@@ -25,11 +25,12 @@ import java.io.*;
 import java.io.BufferedWriter;
 import java.net.URL;
 import java.net.URLConnection;
+import java.awt.Color;
 
 public class Browser extends JFrame {
 
     public String version  = "0.0.1";    /*   Big update = Change this by 1   */
-    public String build    = "04";       /*   Small update = Change this by 1 */
+    public String build    = "05";       /*   Small update = Change this by 1 */
     private String type    = "SNAPSHOT"; /*   DEVBUILD, SNAPSHOT, RELEASE     */ 
     public String fullversion = version + "-" + type + "-" + build;
     
@@ -49,8 +50,8 @@ public class Browser extends JFrame {
         int windowheight = r.height;
         int windowwidth = r.width;
 
-        String folder = System.getProperty("user.home") + "\\Desktop\\ZunoZap\\";
-        File programfolder = new File(folder);
+        String folder = System.getProperty("user.dir") + "\\Desktop\\ZunoZap\\";
+        //File programfolder = new File(folder);
         File programsettings = new File(folder + "settings.txt");
         try {
             if (!programsettings.exists()) {
@@ -69,7 +70,7 @@ public class Browser extends JFrame {
             runStartPage();
         }catch(Exception e){
             Log("Error :( Can't load start page!");
-            display.setText("Error :( Can't load page: http://zunozap.github.io/");
+            display.setText("Error :( Can't load page: http://zunozap.ml");
         }
     }
     
@@ -85,7 +86,6 @@ public class Browser extends JFrame {
         setVisible(true);
         setResizable(true);
         setLayout(null);
-        //setLayout(new BorderLayout());
         setLocationRelativeTo(null);
         addComponentsToFrame(getContentPane());
         
@@ -93,22 +93,13 @@ public class Browser extends JFrame {
     
     public void addComponentsToFrame(Container pane) {
         Insets insets = getInsets();
-        
-        JPanel buttonPanel = new JPanel();
-        JButton aboutButton = new JButton("About");
-        aboutButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                AboutPage();
-            }
-        });
-        buttonPanel.add(aboutButton);
-        
-        
-        
+
         //Imported MenuBar from my never released browser MiniBrowser.
         JMenuBar menuBar = new JMenuBar();
         JMenu fileMenu = new JMenu("File");
         JMenu closeTab = new JMenu("Close");
+        JMenu editpageTab = new JMenu("Edit Mode");
+        JMenu fontTab = new JMenu("Change Font");
         
         
         // Set up file menu.
@@ -130,6 +121,44 @@ public class Browser extends JFrame {
             }
         });
         
+        editpageTab.setMnemonic(KeyEvent.VK_F);
+        JMenuItem editOnMenuItem = new JMenuItem("Enable Edit Mode",
+                KeyEvent.VK_X);
+        editOnMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                EditPage(true);
+            }
+        });
+        
+        editpageTab.setMnemonic(KeyEvent.VK_F);
+        JMenuItem editOffMenuItem = new JMenuItem("Disable Edit Mode",
+                KeyEvent.VK_X);
+        editOffMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                EditPage(false);
+            }
+        });
+        
+        fontTab.setMnemonic(KeyEvent.VK_F);
+        JMenuItem fontIntMenuItem = new JMenuItem("italic text",
+                KeyEvent.VK_X);
+        editOnMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                field.setFont(new Font("Menlo", Font.ITALIC, 12));
+            }
+        });
+        
+        fontTab.setMnemonic(KeyEvent.VK_F);
+        JMenuItem fontNormalMenuItem = new JMenuItem("normal text",
+                KeyEvent.VK_X);
+        editOffMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                field.setFont(new Font("Menlo", Font.PLAIN, 12));
+            }
+        });
+        
+        
+        
         
         closeTab.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -138,8 +167,13 @@ public class Browser extends JFrame {
         });
         fileMenu.add(fileAboutMenuItem);
         fileMenu.add(fileShowSourceMenuItem);
+        editpageTab.add(editOnMenuItem);
+        editpageTab.add(editOffMenuItem);
+        fileMenu.add(editpageTab);
+        fontTab.add(fontNormalMenuItem);
+        fontTab.add(fontIntMenuItem);
+        fileMenu.add(fontTab);
         menuBar.add(fileMenu);
-        menuBar.add(closeTab);
         setJMenuBar(menuBar);
         
         pane.add(field);
@@ -155,8 +189,10 @@ public class Browser extends JFrame {
         
         display.setEditable(false);
         
-        field.setBounds(8 - insets.left, 30 - insets.top, 568, 20);
-        panee.setBounds(17 - insets.left, 52 - insets.top, 990, 1000);
+        field.setBounds(12 - insets.left, 30 - insets.top, 568, 20);
+        //int size = pane.getSize();
+        //int width = size.width;
+        panee.setBounds(17 - insets.left, 52 - insets.top, 990, 1000); //990
         sbar.setBounds(6 - insets.left, 52 - insets.top, 12, 1000);
         
         ActionListenerCalls();
@@ -193,8 +229,8 @@ public class Browser extends JFrame {
             display.setPage(text);
             Log("Connected to: " + ip);
         }catch(Exception e){
-            Log("Error :( Can't load page!" + text);
-            display.setText("Error :( Can't load page: " + text);
+            Log(Color.red + "Error :( Can't load page!" + text);
+            display.setText(Color.red + "Error :( Can't load page: " + text);
         }
     }
     
@@ -222,7 +258,7 @@ public class Browser extends JFrame {
         return a.toString();
     }
     public void actionExit() {
-        System.exit(0);
+         Runtime.getRuntime().exit(0);
     }
     
     public void runStartPage() throws IOException {
@@ -232,18 +268,15 @@ public class Browser extends JFrame {
         display.setText(text);
     }
     public void AboutPage() {
-        /*try{
-            display.setPage("https://zunozap.github.io/");
-        } catch(IOException e) {
-            Log(e.toString());
-        }*/
         String at;
         at = "<html><CENTER><h1>About ZunoZap</h1>";
         at = at + "<p>Version:</p><p>" + fullversion + "</p>";
         at = at + "<p>Build:        </p><p>" + build + "</p>";
         at = at + "<p>Folder:       </p><p>" + System.getProperty("user.home") + "\\ZunoZap\\" + "</p>";
         at = at + "<p>User Agent:   </p><p>Mozilla/5.0, QupZilla/2.0.1, ZunoZap/0.0.1</p>";
-        at = at + "<p>Class Path:   </p><p>" + System.getProperty("java.class.path") + "</p>";
+        if (!(System.getProperty("java.class.path") == ".")) {
+            at = at + "<p>Class Path:   </p><p>" + System.getProperty("java.class.path") + "</p>";
+        }
         at = at + "<h1>System Info</h1>";
         at = at + "<p>User Home:    </p><p>" + System.getProperty("user.home") + "</p>";
         at = at + "<p>OS Type:      </p><p>" + System.getProperty("os.name");
@@ -254,7 +287,9 @@ public class Browser extends JFrame {
     }
     public void Update() {/* To be added */}
     public void Back() {/* to be added */}
-    public void EditPage(String url) {/* to be added */}
+    public void EditPage(boolean choice) {
+        display.setEditable(choice);
+    }
     public void ShowSource(String url) {
         try{
             display.setText(getUrlSource(url));
