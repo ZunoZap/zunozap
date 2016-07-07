@@ -14,6 +14,9 @@ import javax.swing.text.html.*;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
+import java.io.*;
+import java.net.*;
+import javax.swing.*;
 import java.net.InetAddress;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -26,8 +29,8 @@ import java.net.URLConnection;
 public class Browser extends JFrame {
 
     public String version  = "0.0.1";    /*   Big update = Change this by 1   */
-    public String build    = "03";       /*   Small update = Change this by 1 */
-    private String type    = "DEVBUILD"; /*   DEVBUILD, SNAPSHOT, RELEASE     */ 
+    public String build    = "04";       /*   Small update = Change this by 1 */
+    private String type    = "SNAPSHOT"; /*   DEVBUILD, SNAPSHOT, RELEASE     */ 
     public String fullversion = version + "-" + type + "-" + build;
     
     private TextField field = new TextField();
@@ -46,17 +49,12 @@ public class Browser extends JFrame {
         int windowheight = r.height;
         int windowwidth = r.width;
 
-        String folder = System.getProperty("user.home") + "\\ZunoZap\\";
+        String folder = System.getProperty("user.home") + "\\Desktop\\ZunoZap\\";
         File programfolder = new File(folder);
         File programsettings = new File(folder + "settings.txt");
         try {
-            if (!programfolder.exists()) {
-                LogS("Creating C:\\ZunoZap\\");
-                //programfolder.createNewFile();
-                programsettings.createNewFile();
-            }
             if (!programsettings.exists()) {
-                LogS("Creating C:\\ZunoZap\\settings.txt");
+                LogS("Creating " + folder + "settings.txt");
                 programsettings.createNewFile();
             }
         } catch (IOException e) {
@@ -87,6 +85,7 @@ public class Browser extends JFrame {
         setVisible(true);
         setResizable(true);
         setLayout(null);
+        //setLayout(new BorderLayout());
         setLocationRelativeTo(null);
         addComponentsToFrame(getContentPane());
         
@@ -118,16 +117,27 @@ public class Browser extends JFrame {
                 KeyEvent.VK_X);
         fileAboutMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                //actionExit();
                 AboutPage();
             }
         });
+        
+        fileMenu.setMnemonic(KeyEvent.VK_F);
+        JMenuItem fileShowSourceMenuItem = new JMenuItem("Show Page Source",
+                KeyEvent.VK_X);
+        fileAboutMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                ShowSource(field.getText());
+            }
+        });
+        
+        
         closeTab.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 actionExit();
             }
         });
         fileMenu.add(fileAboutMenuItem);
+        fileMenu.add(fileShowSourceMenuItem);
         menuBar.add(fileMenu);
         menuBar.add(closeTab);
         setJMenuBar(menuBar);
@@ -171,12 +181,17 @@ public class Browser extends JFrame {
     }
     
     private void loadData(String text) {
+        String ip;
         try{
-            /*InetAddress giriip = java.net.InetAddress.getByName(text);
-            String ip = giriip.getHostAddress();*/
-            String ip = "[IP-HIDDEN]";
+            InetAddress giriip = java.net.InetAddress.getByName(text);
+            ip = giriip.getHostAddress();
+        } catch(UnknownHostException e) {
+            ip = text;
+        }
+        try{
+            //ip = "[IP-HIDDEN]";
             display.setPage(text);
-            Log("Connected to: " + ip + "(" + text + ")");
+            Log("Connected to: " + ip);
         }catch(Exception e){
             Log("Error :( Can't load page!" + text);
             display.setText("Error :( Can't load page: " + text);
@@ -185,6 +200,9 @@ public class Browser extends JFrame {
     
     private void Log(String text) {
         System.out.println("[ZunoZap] " + text);
+    }
+    private void LogError(String text) {
+        System.out.println("[ERROR] " + text);
     }
     private static void LogS(String text) {
         //Static version of Log();
@@ -214,17 +232,34 @@ public class Browser extends JFrame {
         display.setText(text);
     }
     public void AboutPage() {
-        try{
+        /*try{
             display.setPage("https://zunozap.github.io/");
         } catch(IOException e) {
             Log(e.toString());
-        }
+        }*/
         String at;
         at = "<html><CENTER><h1>About ZunoZap</h1>";
-        at = at + "<p>Version: " + fullversion + "</p>";
-        at = at + "<p>Build: " + build + "</p>";
-        at = at + "<p>Folder: " + System.getProperty("user.home") + "\\ZunoZap\\" + "</p></html>";
-        field.setText("zunozap:about");
-        display.setText(at);
+        at = at + "<p>Version:</p><p>" + fullversion + "</p>";
+        at = at + "<p>Build:        </p><p>" + build + "</p>";
+        at = at + "<p>Folder:       </p><p>" + System.getProperty("user.home") + "\\ZunoZap\\" + "</p>";
+        at = at + "<p>User Agent:   </p><p>Mozilla/5.0, QupZilla/2.0.1, ZunoZap/0.0.1</p>";
+        at = at + "<p>Class Path:   </p><p>" + System.getProperty("java.class.path") + "</p>";
+        at = at + "<h1>System Info</h1>";
+        at = at + "<p>User Home:    </p><p>" + System.getProperty("user.home") + "</p>";
+        at = at + "<p>OS Type:      </p><p>" + System.getProperty("os.name");
+        at = at + System.getProperty("os.version") + System.getProperty("os.arch") + "</p></html>";
+        //field.setText("zunozap:about");
+        //display.setText(at);
+        JOptionPane.showMessageDialog(display, at, "About", JOptionPane.PLAIN_MESSAGE);
+    }
+    public void Update() {/* To be added */}
+    public void Back() {/* to be added */}
+    public void EditPage(String url) {/* to be added */}
+    public void ShowSource(String url) {
+        try{
+            display.setText(getUrlSource(url));
+        } catch(IOException e) {
+            LogError(e.toString());
+        }
     }
 }
