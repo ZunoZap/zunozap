@@ -1,0 +1,334 @@
+import java.awt.*;
+import javax.swing.*;
+import java.lang.Object;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Window;
+import java.awt.Frame;
+import javax.swing.JFrame;
+import java.awt.event.*;
+import javax.swing.event.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.text.*;
+import javax.swing.text.html.*;
+import javax.imageio.ImageIO;
+import java.io.File;
+import java.io.IOException;
+import java.io.*;
+import java.net.*;
+import javax.swing.*;
+import java.net.InetAddress;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.util.*;
+import java.io.*;
+import java.io.BufferedWriter;
+import java.net.URL;
+import java.net.URLConnection;
+import java.awt.Color;
+import java.lang.Runtime;
+import java.lang.*;
+
+public class ZunoZap extends JFrame {
+
+    public String version  = "0.0.1";    /*   Big update = Change this by 1   */
+    public String build    = "06";       /*   Small update = Change this by 1 */
+    private String type    = "SNAPSHOT"; /*   DEVBUILD, SNAPSHOT, RELEASE     */ 
+    public String fullversion = version + "-" + type + "-" + build;
+    
+    private TextField field = new TextField();
+    private JEditorPane display = new JEditorPane();
+    private JScrollPane panee = new JScrollPane(display);
+    private JScrollBar sbar = new JScrollBar(Scrollbar.VERTICAL, 0, 1, 0, 255);
+    private JButton backButton, forwardButton;
+    private JMenuBar themenuBar = new JMenuBar();
+    private File zunozapfolder = new File(System.getProperty("user.home") + File.separator + "ZunoZap" + File.separator);
+    private static File zunozapfolderS = new File(System.getProperty("user.home") + File.separator + "ZunoZap" + File.separator);
+    
+    public static void main(String args[]) {
+
+        ZunoZap file = new ZunoZap();
+        file.frameHandler();
+        
+        Rectangle r = file.getBounds();
+        int windowheight = r.height;
+        int windowwidth = r.width;
+
+        //File zunozapfolder = new File(System.getProperty("user.home") + File.separator + "ZunoZap" + File.separator);
+        File zunozapfile = new File(System.getProperty("user.home") + File.separator + "ZunoZap" + File.separator + "settings.txt");
+            
+        if(!zunozapfolderS.exists()) {
+            zunozapfolderS.mkdir();
+            LogS("Creating Program Folder!");
+        }
+
+        try {
+            if (!zunozapfile.exists()) {
+                LogS("Creating " + zunozapfile);
+                zunozapfile.createNewFile();
+            }
+        } catch (IOException e) {
+            LogS(e.toString());
+        }
+        LogS("Starting Browser.class");
+        file.startPage();
+    }
+    
+    public void startPage() {
+        try{
+            runStartPage();
+        }catch(Exception e){
+            Log("Error :( Can't load start page!");
+            display.setText("Error :( Can't load page: http://zunozap.ml");
+        }
+    }
+    
+    public void frameHandler() {
+        setTitle("ZunoZap " + fullversion);
+        setSize(1000, 700);
+        try{ 
+            setIconImage(ImageIO.read(new File("icon.png")));
+        } catch (IOException e){
+            LogS(e.toString());
+        }
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setVisible(true);
+        setResizable(true);
+        setLayout(null);
+        setLocationRelativeTo(null);
+        addComponentsToFrame(getContentPane());
+        
+    }
+    
+    public void addComponentsToFrame(Container pane) {
+        Insets insets = getInsets();
+
+        //Imported MenuBar from my never released browser MiniBrowser.
+        JMenuBar menuBar = new JMenuBar();
+        JMenu fileMenu = new JMenu("File");
+        JMenu closeTab = new JMenu("Close");
+        JMenu editpageTab = new JMenu("Edit Mode");
+        JMenu fontTab = new JMenu("Change Font");
+        
+        
+        // Set up file menu.
+        fileMenu.setMnemonic(KeyEvent.VK_F);
+        JMenuItem fileAboutMenuItem = new JMenuItem("About",
+                KeyEvent.VK_X);
+        fileAboutMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                AboutPage();
+            }
+        });
+        
+        fileMenu.setMnemonic(KeyEvent.VK_F);
+        JMenuItem fileShowSourceMenuItem = new JMenuItem("Show Page Source",
+                KeyEvent.VK_X);
+        fileShowSourceMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //ShowSource(field.getText());
+                Log(field.getText());
+                try{
+                    //Runtime.getRuntime().exec("cmd /c echo " + getUrlSource("http://" + field.getText()) + ">>" + zunozapfolder + field.getText() + ".html");
+                    //Log(getUrlSource("http://" + field.getText()));
+                    
+                    File htmlsourcefile = new File(zunozapfolder + File.separator + field.getText() + ".html");
+
+                    // if file doesnt exists, then create it
+                    if (!htmlsourcefile.exists()) {
+                        htmlsourcefile.createNewFile();
+                    }
+                    
+                    FileWriter fw = new FileWriter(htmlsourcefile.getAbsoluteFile());
+                    BufferedWriter bw = new BufferedWriter(fw);
+                    bw.write("<!--");
+                    bw.write("HTML source for: " + field.getText());
+                    bw.write("By ZunoZap Web Browser's Show Page Source");
+                    bw.write("-->");
+                    bw.write(getUrlSource("http://" + field.getText()));
+                    bw.close();
+                    
+                } catch(IOException ioe) {
+                    Log(ioe.toString());
+                }
+            }
+        });
+        
+        editpageTab.setMnemonic(KeyEvent.VK_F);
+        JMenuItem editOnMenuItem = new JMenuItem("Enable Edit Mode",
+                KeyEvent.VK_X);
+        editOnMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                EditPage(true);
+            }
+        });
+        
+        editpageTab.setMnemonic(KeyEvent.VK_F);
+        JMenuItem editOffMenuItem = new JMenuItem("Disable Edit Mode",
+                KeyEvent.VK_X);
+        editOffMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                EditPage(false);
+            }
+        });
+        
+        fontTab.setMnemonic(KeyEvent.VK_F);
+        JMenuItem fontIntMenuItem = new JMenuItem("italic text",
+                KeyEvent.VK_X);
+        editOnMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                field.setFont(new Font("Menlo", Font.ITALIC, 12));
+            }
+        });
+        
+        fontTab.setMnemonic(KeyEvent.VK_F);
+        JMenuItem fontNormalMenuItem = new JMenuItem("normal text",
+                KeyEvent.VK_X);
+        editOffMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                field.setFont(new Font("Menlo", Font.PLAIN, 12));
+            }
+        });
+        
+        
+        
+        
+        closeTab.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                actionExit();
+            }
+        });
+        fileMenu.add(fileAboutMenuItem);
+        fileMenu.add(fileShowSourceMenuItem);
+        editpageTab.add(editOnMenuItem);
+        editpageTab.add(editOffMenuItem);
+        fileMenu.add(editpageTab);
+        fontTab.add(fontNormalMenuItem);
+        fontTab.add(fontIntMenuItem);
+        fileMenu.add(fontTab);
+        menuBar.add(fileMenu);
+        setJMenuBar(menuBar);
+        
+        pane.add(field);
+        pane.add(panee);
+        pane.add(sbar);
+        //pane.add(menuBar);
+        //pane.add(buttonPanel);
+        //pane.add(fileMenu);
+        
+        Font font = new Font("Menlo", Font.ITALIC, 12);
+        
+        field.setFont(font);
+        
+        display.setEditable(false);
+        
+        field.setBounds(12 - insets.left, 30 - insets.top, 568, 20);
+        //int size = pane.getSize();
+        //int width = size.width;
+        panee.setBounds(17 - insets.left, 52 - insets.top, 990, 1000); //990
+        sbar.setBounds(6 - insets.left, 52 - insets.top, 12, 1000);
+        
+        ActionListenerCalls();
+    }
+    
+    private void ActionListenerCalls() {
+        field.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String url = "http://" + e.getActionCommand();
+                loadData(url);
+            }
+        });
+        
+        display.addHyperlinkListener(new HyperlinkListener() {
+            public void hyperlinkUpdate(HyperlinkEvent e) {
+                if(e.getEventType() == HyperlinkEvent.EventType.ACTIVATED){
+                    loadData(e.getURL().toString());
+                    field.setText(e.getURL().toString());
+                }
+            }
+        });
+    }
+    
+    private void loadData(String text) {
+        String ip;
+        try{
+            InetAddress giriip = java.net.InetAddress.getByName(text);
+            ip = giriip.getHostAddress();
+        } catch(UnknownHostException e) {
+            ip = text;
+        }
+        try{
+            //ip = "[IP-HIDDEN]";
+            display.setPage(text);
+            Log("Connected to: " + ip);
+        }catch(Exception e){
+            Log(Color.red + "Error :( Can't load page!" + text);
+            display.setText(Color.red + "Error :( Can't load page: " + text);
+        }
+    }
+    
+    private void Log(String text) {
+        System.out.println("[ZunoZap] " + text);
+    }
+    private void LogError(String text) {
+        System.out.println("[ERROR] " + text);
+    }
+    private static void LogS(String text) {
+        //Static version of Log();
+        System.out.println("[ZunoZap] " + text);
+    }
+    private String getUrlSource(String site) throws IOException {
+        URL url = new URL(site);
+        URLConnection urlc = url.openConnection();
+        BufferedReader in = new BufferedReader(new InputStreamReader(
+        urlc.getInputStream(), "UTF-8"));
+        String inputLine;
+        StringBuilder a = new StringBuilder();
+        while ((inputLine = in.readLine()) != null)
+        a.append(inputLine);
+        in.close();
+
+        return a.toString();
+    }
+    public void actionExit() {
+         Runtime.getRuntime().exit(0);
+    }
+    
+    public void runStartPage() throws IOException {
+        display.setPage("https://zunozap.github.io/");
+    }
+    public void writetext(String text) {
+        display.setText(text);
+    }
+    public void AboutPage() {
+        String at;
+        at = "<html><CENTER><h1>About ZunoZap</h1>";
+        at = at + "<p>Version:</p><p>" + fullversion + "</p>";
+        at = at + "<p>Build:        </p><p>" + build + "</p>";
+        at = at + "<p>Folder:       </p><p>" + System.getProperty("user.home") + "\\ZunoZap\\" + "</p>";
+        at = at + "<p>User Agent:   </p><p>Mozilla/5.0, QupZilla/2.0.1, ZunoZap/0.0.1</p>";
+        if (!(System.getProperty("java.class.path") == ".")) {
+            at = at + "<p>Class Path:   </p><p>" + System.getProperty("java.class.path") + "</p>";
+        }
+        at = at + "<h1>System Info</h1>";
+        at = at + "<p>User Home:    </p><p>" + System.getProperty("user.home") + "</p>";
+        at = at + "<p>OS Type:      </p><p>" + System.getProperty("os.name");
+        at = at + System.getProperty("os.version") + System.getProperty("os.arch") + "</p></html>";
+        //field.setText("zunozap:about");
+        //display.setText(at);
+        JOptionPane.showMessageDialog(display, at, "About", JOptionPane.PLAIN_MESSAGE);
+    }
+    public void Update() {/* To be added */}
+    public void Back() {/* to be added */}
+    public void EditPage(boolean choice) {
+        display.setEditable(choice);
+    }
+    public void ShowSource(String url) {
+        try{
+            display.setText(getUrlSource(url));
+        } catch(IOException e) {
+            LogError(e.toString());
+        }
+    }
+    public void DownloadSource() {}
+}
