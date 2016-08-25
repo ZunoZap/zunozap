@@ -1,8 +1,16 @@
 package me.isaiah.zunozap;
 
+/**
+ * @author ZunoZap Devs.
+ * 
+ * */
+
 import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 
+import me.isaiah.zunozap.FileManager;
 import me.isaiah.zunozap.ZunoAPI;
 import me.isaiah.zunozap.ImgButtons;
 import me.isaiah.zunozap.HBox;
@@ -14,6 +22,7 @@ import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -26,6 +35,11 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.geometry.Insets;
+
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JTabbedPane;
 import javax.swing.event.HyperlinkEvent;
 
 import org.w3c.dom.Document;
@@ -35,102 +49,69 @@ import org.w3c.dom.events.Event;
 import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
+import org.apache.commons.io.FileUtils;
+
 @SuppressWarnings("unused")
 public class Main extends Application {
-	public WebView ZunoZap;
-	private WebEngine ZunoZapEngine;
-	private String version = "v0.0.5";
-	final static TextField addressBar = new TextField();
-	private Button googleBar = new Button("Google");
-	private Button sourcebutton = new Button("Download Page Source");
-  	private Button aboutbutton = new Button("About ZunoZap");
-  	private Button GOButton = new Button("GO");
-  	private Button BackButton = new Button("Back");
-  	private Button ForwardButton = new Button("Forward");
-  	private static File DPfolder = new File(System.getProperty("user.home") + File.separator + "ZunoZap" + File.separator + "Saved Pages");
-  	private File folder = new File(System.getProperty("user.home") + File.separator + "ZunoZap" + File.separator);
+	public static String name = "ZunoZap";
+	public static String version = "v1.0-DevTestBuild";
+	
+	public static WebView ZunoZap = ZunoAPI.WebView;
+	public WebEngine ZunoZapEngine = ZunoAPI.WebEngine;
+	
+	public final static TextField addressBar = ZunoAPI.addressBar;
+
+	protected static Button googleBar = new Button("Google");
+	protected static Button sourcebutton = new Button("Download Page Source");
+  	protected static Button aboutbutton = new Button("About ZunoZap");
+  	protected static Button aboutAPIbutton = new Button("About the ZunoAPI");
+    protected static Button enableTools = new Button("Enable Styles");
+  	protected static Button GOButton = new Button("GO");
+  	protected static Button BackButton = new Button("Back");
+  	protected static Button ForwardButton = new Button("Forward");
+
+  	private static File folder = FileManager.folder;
+  	private static File Dfolder = FileManager.Dfolder;
+  	private static File DPfolder = FileManager.DPfolder;
+  	private static File programsettings = FileManager.programsettings;
+  	protected static VBox root = new VBox();
+  	
   	public ClassLoader loader = Main.class.getClassLoader();
   	
-  	public static void main(String[] args) {
-	  	ZunoAPI.loadAPI();
-	  	launch(args);
-    }
+  	public static void main(String[] args) { launch(args); }
   	
-  	
-  	public void About() {
-  		String aboutpage = loader.getResource("about.html").toExternalForm();
-  		loadPage(aboutpage);
-  	}
+  	public void About() {ZunoAPI.aboutPage();}
   
-  	private HBox topbar = new HBox();
-    private HBox TheaddressBar = new HBox();
+  	protected static HBox topbar = new HBox();
+  	protected static HBox TheaddressBar = new HBox();
 
     final ImageView selectedImage = new ImageView();
     final Hyperlink[] hpls = new Hyperlink[ImgButtons.captions.length];
     final Image[] images = new Image[ImgButtons.imageFiles.length];
-    final WebView browser = new WebView();
-    final WebEngine webEngine = browser.getEngine();
-    final Button showPrevDoc = new Button("Toggle Previous Docs");
-    final WebView smallView = new WebView();
-    @SuppressWarnings("rawtypes")
-	final ComboBox comboBox = new ComboBox();
-    private boolean needDocumentationButton = false;
-    
-    @SuppressWarnings("static-access")
+
+    private static boolean SS = true;
     public void start(Stage stage) {
+    	try {
+			ZunoZap.getStylesheets().add(FileManager.UASS.toURI().toURL().toString()); // UASS = User Agent Style Sheet
+			ZunoTools.addStyleCSSFileToButtons(FileManager.UASS.toURI().toURL().toString());
+		} catch (MalformedURLException e1) {
+			e1.printStackTrace();
+		}
     	stage.setTitle("ZunoZap " + version);
-        File programsettings = new File(folder + "settings.txt");
+    	System.out.println("[ZunoAPI] The browser's style settings: " + ZunoZap.getStylesheets().toString().replace("file:/", ""));
+    	
+    	ZunoAPI.loadAPI();
 
-            ZunoAPI.SetupZunoZapFiles(folder, DPfolder, programsettings);
-    
-            addressBar.setOnAction(new EventHandler<ActionEvent>() {
-            	public void handle(ActionEvent event) {
-            		loadPageFromAddressBar(stage);
-            	}
-            });
-    
-            googleBar.setOnAction(new EventHandler<ActionEvent>() {
-            	public void handle(ActionEvent event) {
-            		loadPage("https://www.google.com/?gws_rd=ssl#q="+ addressBar.getText().replaceAll(" ", "+"));
-            	}
-            });
-            
-            
-            GOButton.setOnAction(new EventHandler<ActionEvent>() {
-            	public void handle(ActionEvent event) {
-            		loadPageFromAddressBar(stage);
-            	}
-            });
-            
-            BackButton.setOnAction(new EventHandler<ActionEvent>() {
-				@Override
-				public void handle(ActionEvent event) {
-					ZunoZapEngine.executeScript("history.back()");
-				}
-            });
-            
-            ForwardButton.setOnAction(new EventHandler<ActionEvent>() {
-				@Override
-				public void handle(ActionEvent event) {
-					ZunoZapEngine.executeScript("history.forward()");
-				}
-            });
-    
-            //apply the styles
-            //getStyleClass().add("browser"); 
+        FileManager.SetupZunoZapFiles(folder, DPfolder, programsettings, Dfolder);
+        ZunoAPI.setOnActions(stage, addressBar, googleBar, GOButton, BackButton, ForwardButton, enableTools);
 
-            for (int i = 0; i < ImgButtons.captions.length; i++) {
+           	for (int i = 0; i < ImgButtons.captions.length; i++) {
             	Hyperlink hpl = hpls[i] = new Hyperlink(ImgButtons.captions[i]);
-            	Image image = images[i] =
-            			new Image(loader.getResourceAsStream(ImgButtons.imageFiles[i]));
-            	hpl.setGraphic(new ImageView(image));
-            	final String url = ImgButtons.urls[i];
-            	hpl.setOnAction(new EventHandler<ActionEvent>() {
-            		@Override
-            		public void handle(ActionEvent e) {
-            			loadPage(url);
-            			addressBar.setText(url);
-            		}
+            	Image image = images[i] = new Image(loader.getResourceAsStream(ImgButtons.imageFiles[i]));
+            	hpl.setGraphic(new ImageView(image)); final String url = ImgButtons.urls[i];
+            	
+            	hpl.setOnAction(new EventHandler<ActionEvent>() {@Override public void handle(ActionEvent e) {
+            		ZunoAPI.loadPage(url); addressBar.setText(url); }
             	});
             }
             
@@ -138,118 +119,33 @@ public class Main extends Application {
 
         sourcebutton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
-            public void handle(ActionEvent e) {
-                    DownloadPage(addressBar.getText());
-            }
-        });
+            public void handle(ActionEvent e) { ZunoAPI.DownloadPage(addressBar.getText()); }});
         
         aboutbutton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent e) {
-                    About();
-            }
-        });
-
+            @Override public void handle(ActionEvent e) { About(); }});
         addressBar.setMinWidth(500);
         Insets pi = new Insets(0, 5, 0, 5);
         Insets pi2 = new Insets(0, 4, 0, 4);
-        TheaddressBar.autosize();
-        TheaddressBar.setMargin(GOButton, pi);
-        TheaddressBar.setMargin(BackButton, pi2);
-        TheaddressBar.setMargin(ForwardButton, pi2);
-        TheaddressBar.setMargin(googleBar, pi);
-        TheaddressBar.getChildren().add(BackButton);
-        TheaddressBar.getChildren().add(ForwardButton);
-        TheaddressBar.getChildren().add(addressBar);
-        TheaddressBar.getChildren().add(GOButton);
-        TheaddressBar.getChildren().add(googleBar);
-        TheaddressBar.setAlignment(Pos.CENTER);
-        TheaddressBar.autosize();
         
-        topbar.setMargin(aboutbutton, pi);
-        topbar.getChildren().add(sourcebutton);
-        topbar.getChildren().add(aboutbutton);
+        //The Addressbar
+        ZunoAPI.setMargins(TheaddressBar, pi2, BackButton, GOButton);
+        ZunoAPI.setMargins(TheaddressBar, pi2, pi, ForwardButton, googleBar);
+        ZunoAPI.allAllKids(TheaddressBar, BackButton, ForwardButton, addressBar, GOButton, googleBar);
+        ZunoAPI.setAlined(TheaddressBar, Pos.CENTER);
         
-        topbar.setAlignment(Pos.CENTER);
+        //The Top bar
+        ZunoAPI.setMargin(topbar, pi, aboutbutton);
+        ZunoAPI.allAllKids(topbar, sourcebutton, aboutbutton);
+        ZunoAPI.setAlined(topbar, Pos.CENTER);
+
     	topbar.getStyleClass().add("browser-toolbar");
-        topbar.getChildren().addAll(hpls);
+        topbar.getChildren().addAll(hpls);   
+        
+        ZunoAPI.loadStartPage();
 
-        WebView ZunoZap = new WebView();
-        ZunoZapEngine = ZunoZap.getEngine();
-
-        ZunoAPI.loadStartPage(ZunoZapEngine);
-        Listener();
-
-        VBox root = new VBox();
-        root.getChildren().setAll(
-        		topbar,
-        		TheaddressBar,
-        		ZunoZap
-        );
+        ZunoAPI.MTH = topbar.getMaxHeight();
+        ZunoAPI.CreateRootVBox(root, ZunoZap, topbar, TheaddressBar);
         stage.setScene(new Scene(root));
         stage.show();
-    }
-  
-    @Deprecated
-    private static void DownloadPage(String site) {
-    	ZunoAPI.DownloadPage(site, addressBar, DPfolder); //Downloading the page has been moved to the ZunoAPI
-    }
-
-    public void loadPage(String url) {
-        ZunoZapEngine.load(url);
-        addressBar.setText(url);
-        //Document doc = ZunoZapEngine.getDocument();
-        //Element el = doc.getElementById("title");
-        //System.out.println(ZunoZapEngine.getDocument().getDocumentElement());
-    }
-    
-    public void loadPageFromAddressBar(Stage stage) {
-    	if (addressBar.getText().contains("http://") || addressBar.getText().contains("https://") || addressBar.getText().contains("file://") || addressBar.getText().contains("zunozap:")) {
-            if (addressBar.getText().contains("zunozap:start") || addressBar.getText().contains("zunozap://start")) {
-            	loadPagePGL(stage, "http://zunozap.github.io");
-            } else if (addressBar.getText().contains("zunozap:") && addressBar.getText().contains("about")) {
-                loadPagePGL(stage, Main.class.getResource("about.html").toExternalForm());
-            } else {
-            	loadPagePGL(stage, addressBar.getText());
-                //stage.setTitle("ZunoZap " + version +" - "+ addressBar.getText());
-                addressBar.setText(addressBar.getText().replace("http://", ""));
-            }
-        } else {
-        	loadPagePGL(stage, "http://" + addressBar.getText());
-            stage.setTitle("ZunoZap " + version +" - "+ addressBar.getText());
-        }
-    }
-    
-    private void loadPagePGL(Stage stage, String url) {
-    	loadPage(url);
-    	//Document doc = ZunoZapEngine.getDocument();
-    	//Element el = doc.getElementById("title");
-
-        stage.setTitle("ZunoZap " + version +" - "+ addressBar.getText());
-    }
-    
-    public void Listener() {
-        ZunoZapEngine.getLoadWorker().exceptionProperty().addListener(new ChangeListener<Throwable>() {
-            @Override public void changed(ObservableValue<? extends Throwable> observableValue, Throwable oldException, Throwable exception) {
-                System.out.println("ZunoZap encountered an exception loading a page: " + exception);
-            }
-        });
-    }
-    public void test(HyperlinkEvent hyperlinkEvent) {
-    	    HyperlinkEvent.EventType type = hyperlinkEvent.getEventType();
-    	    final URL url = hyperlinkEvent.getURL();
-    	    if (type == HyperlinkEvent.EventType.ENTERED) {
-    	      System.out.println("URL: " + url);
-    	    } else if (type == HyperlinkEvent.EventType.ACTIVATED) {
-    	      System.out.println("Activated");
-    	}
-    	    ZunoZapEngine.getLoadWorker().exceptionProperty().addListener(new ChangeListener<Throwable>() {
-				@Override
-				public void changed(ObservableValue<? extends Throwable> observable, Throwable oldValue,
-						Throwable newValue) {
-					addressBar.setText(url.toString());
-					
-				}
-            });
     }
 }
