@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import me.isaiah.zunozap.Main;
+
+@Deprecated
 public class FileManager {
 	
 	public static File folder = new File(System.getProperty("user.home") + File.separator + Main.name + File.separator);
@@ -15,10 +17,22 @@ public class FileManager {
 	public static File DataFolder = new File(folder + File.separator + "data");
 	public static File UASS = new File(folder + File.separator + "style.css");
 	
-	public FileManager() { System.out.println("[ZunoAPI] File manager loaded!"); }
+	//public static LogManager log;
 	
-	public static void SetupZunoZapFiles(File folder, File DPfolder, File programsettings, File Dfolder){
+	public FileManager() {
+		if (Main.name != "ZunoZap") {
+			System.out.println("[ZunoAPI] File manager loaded!");
+		}
+	}
+	
+	@Deprecated
+	public static void SetupZunoZapFiles(File folder, File DPfolder, File programsettings, File Dfolder) {
+		SetupZunoZapFiles();
+	}
+	
+	public static void SetupZunoZapFiles(){
     	if (!folder.exists()) {
+    		//log.info("Creating ZunoZap folder!");
             folder.mkdir();
         }
 
@@ -34,6 +48,20 @@ public class FileManager {
         	DataFolder.mkdir();
         }
         
+        try {
+			if (ConfigUtils.viewProp(programsettings.toString(), "styleFile") == null) {
+				ConfigUtils.changeProp(programsettings.toString(), "styleFile", "style.css");
+			}
+		} catch (FileNotFoundException e2) {
+			e2.printStackTrace();
+		}
+        
+        try {
+			UASS = new File(folder + File.separator + ConfigUtils.viewProp(programsettings.toString(), "styleFile"));
+		} catch (FileNotFoundException e2) {
+			e2.printStackTrace();
+		}
+        
         if (!UASS.exists()) {
         	try {
 				UASS.createNewFile();
@@ -42,32 +70,13 @@ public class FileManager {
 			}
         }
         
-        try {
-			if (ConfigUtils.viewProp(programsettings.toString(), "enableJavaScript") == null) {
-				ConfigUtils.changeProp(programsettings.toString(), "enableJavaScript", "true");
-			}
-		} catch (FileNotFoundException e2) {
-			e2.printStackTrace();
-		}
-        
         if (!programsettings.exists()) {
         	try {
 				programsettings.createNewFile();
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
-        	
-        	try {
-				ConfigUtils.changeProp("settings.properties", "enableJavaScript", "true");
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
         }
-    
-        if (OLDprogramsettings.exists()) {
-			System.out.println("Removing " + folder + File.separator + "settings.txt to update");
-			OLDprogramsettings.delete();
-		}
     }
 	
 	public static void loadManager(){

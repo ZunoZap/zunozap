@@ -1,5 +1,11 @@
 package me.isaiah.zunozap;
 
+/**
+ * @deprecated No longer used as of ZunoZap v0.1.0
+ *
+ * @since 0.0.2
+ */
+@Deprecated
 public class ImgButtons {
 	
 	public static String[] imageFiles = new String[]{
