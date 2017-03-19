@@ -9,12 +9,11 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 
-import com.sun.javafx.application.LauncherImpl;
+import javax.swing.JOptionPane;
 
 import javafx.application.Application;
 import javafx.scene.control.Button;
 import javafx.scene.web.WebEngine;
-import me.isaiah.zunozap.plugin.PluginManager;
 
 /**
  * New ZunoAPI from ZunoZap 0.1.0+
@@ -25,13 +24,15 @@ import me.isaiah.zunozap.plugin.PluginManager;
 public abstract class ZunoAPI extends Application {
     public static String name;
     public static String version;
+    public static boolean isOutdated = false;
+    public static boolean blockPluginEvents = false;
     
     public static String getVersion() { return version; }
     public final static String aboutPageHTML() {
         return "<header> <h1>About ZunoZap</h1></header>"
                 +"<body>"
                 +"    ZunoZap is a web browser made with the Java WebView,</p><br>"
-                +"    Version: "+System.getProperty("zunozap.version")+"<br>"
+                +"    Version: "+getVersion()+"<br>"
                 +"    UserAgent: "+ "ZunoZap/0.1 Mozilla/5.0 JavaFX/8.0" +"<br>"
                 +"    Java Enabled: true<br>"
                 +"    JavaScript Enabled: true<br>"
@@ -40,10 +41,29 @@ public abstract class ZunoAPI extends Application {
                 +"</body>";
     }
 
-    /*Set Style*/ public final static void setStyle(String css, Button...btns) {for (Button b : btns){b.setStyle(css);}}
-    /*History  */ public final static void history(WebEngine e, String go) {e.executeScript("history."+go+"();");}
+    /**
+     * Set the style of multiple {@link javafx.scene.control.Button Button}s at one time.
+     */
+    public final static void setStyle(String css, Button...btns) {for (Button b : btns){b.setStyle(css);}}
+    /**
+     * Change the browser history.
+     */
+    public final static void history(WebEngine e, String go) {e.executeScript("history."+go+"();");}
     /*Load Page*/
     public final static void loadSite(String url, WebEngine e) {
+        if (url.toLowerCase().startsWith("zunozap:update")) {
+            e.loadContent(Updater.browser(version));
+            return;
+        } else if (url.toLowerCase().startsWith("zunozap:home")) {
+            e.load("https://zunozap.github.io/");
+            return;
+        }
+
+        if ((url.replaceAll("[ . ]", "").equalsIgnoreCase(url))) {
+            e.load("https://google.com/search?q=" + url.replace(" ", "%20"));
+            return;
+        }
+
         if (forceHTTPS) {
             e.load(url.startsWith("http") ? url : "https://" + url);
         } else {
@@ -103,4 +123,16 @@ public abstract class ZunoAPI extends Application {
             System.out.println("Downloaded source code for: " + we.getLocation() + " Find it in your ZunoZap folder!");       
        } catch(IOException e) { System.out.println(e); }
    }
+
+    public static boolean allowPluginEvents() {
+        return !blockPluginEvents;
+    }
+    
+    public static void showMessage(String message) {
+        showMessage(message, 1);
+    }
+    
+    public static void showMessage(String message, int type) {
+        JOptionPane.showMessageDialog(null, message, name, type);
+    }
 }

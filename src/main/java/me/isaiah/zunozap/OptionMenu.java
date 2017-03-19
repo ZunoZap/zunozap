@@ -20,22 +20,14 @@ public class OptionMenu {
 
     public static JFrame f;
     public static JPanel panel;
-    public static JLabel lbLabel1;
-    public static JLabel lbLabel2;
-    public static JCheckBox cbBox5;
-    public static JCheckBox cbBox6;
-    
-    static GridBagLayout gbPanel0 = new GridBagLayout();
-    static GridBagConstraints gbcPanel0 = new GridBagConstraints();
-
     public OptionMenu() { createMenu(); }
 
     public final static void createMenu() {
         f = new JFrame();
         panel = new JPanel();
 
-        addCheckBox("Display Tab bar");
-        addCheckBox("Force HTTPS", false);
+        addCheckBox("Force HTTPS", ZunoAPI.forceHTTPS);
+        addCheckBox("Block event calls", false); //might increase porformance when enabled, but will disable plugins. 
        
         f.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         panel.setSize(5000, 2000);
@@ -47,7 +39,7 @@ public class OptionMenu {
         f.setVisible(true);
     }
 
-    private static int i = 2;
+    private static int i = 1;
     private static void addCheckBox(String text) {
         addCheckBox(text, true);
     }
@@ -59,7 +51,7 @@ public class OptionMenu {
         cBox.addActionListener(new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent e) {
-                ZunoZap.getOptionMenuAction(Integer.parseInt(cBox.getName()), cBox.isSelected());
+                ZunoZap.getOptionMenuAction(EOption.getByValue(Integer.parseInt(cBox.getName())), cBox.isSelected());
             }
         });
 
@@ -72,5 +64,5 @@ public class OptionMenu {
 final class ZCheckButton {
     public static int none = 0;
     public static int displayTabBar = OptionMenu.CBlist.get(0);
-    public static int forceHTTPS = 3;
+    public static int forceHTTPS = OptionMenu.CBlist.get(1);
 }

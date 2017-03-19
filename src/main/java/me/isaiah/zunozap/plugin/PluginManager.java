@@ -1,7 +1,6 @@
 package me.isaiah.zunozap.plugin;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Properties;
@@ -60,14 +59,4 @@ public class PluginManager {
         }
         System.out.println(String.format("Found %s plugins: %s", pluginNames.size(), pluginNames));
     }
-    
-    private static InputStream a(File file) throws IOException {
-        JarFile jar = new JarFile(file);
-        JarEntry entry = jar.getJarEntry("plugin.txt");
-        InputStream stream = jar.getInputStream(entry);
-        jar.close();
-        stream.close();
-        return stream != null ? stream : null;
-    }
 }
-
