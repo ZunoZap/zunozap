@@ -1,3 +1,4 @@
+/*Default ZunoZap style*/
 .tab-pane *.tab-header-background {
     -fx-outer-border: darkorange;
     -fx-inner-border: darkorange;
@@ -11,10 +12,6 @@
     -fx-border-insets: 5px;
 }
 
-.tab:selected {
-    -fx-background-color: #3c3c3c;
-}
-
 .tab .tab-label { 
     -fx-alignment: CENTER;
     -fx-text-fill: #828282;
@@ -24,5 +21,11 @@
 
 .tab:selected .tab-label { 
     -fx-alignment: CENTER;
-    -fx-text-fill: #96b946;
+}
+
+.button {
+	-fx-background-color: transparent;
+	-fx-border: solid;
+	-fx-border-color: teal;
+	-fx-border-radius: 2px;
 }

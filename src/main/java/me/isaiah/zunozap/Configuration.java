@@ -1,4 +1,4 @@
-package me.isaiah.zunozap.old;
+package me.isaiah.zunozap;
 
 import java.io.FileInputStream;
  import java.io.FileNotFoundException;
@@ -6,25 +6,8 @@ import java.io.FileInputStream;
  import java.io.IOException;
  import java.util.Properties;
 
- public class ConfigUtils {
-	 /*
-	  How to use:
-	  
-        try{
-            changeProp("test.properties", "testfield", "testtext");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        
-        try{
-            System.out.println("" + viewProp("test.properties", "testfield"));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    
-    */
- 
- 	public static void changeProp(String file, String field, String text) throws FileNotFoundException {
+ public class Configuration {
+ 	public static void change(String file, String field, String text) throws FileNotFoundException {
  		FileOutputStream out = new FileOutputStream(file);
  		FileInputStream in = new FileInputStream(file);
  		Properties props = new Properties();
@@ -51,7 +34,7 @@ import java.io.FileInputStream;
  			e.printStackTrace();
  		}
  	}
- 	public static String viewProp(String file, String field) throws FileNotFoundException {
+ 	public static String view(String file, String field) throws FileNotFoundException {
         FileInputStream in = new FileInputStream(file);
  		Properties prop = new Properties();
         try {
