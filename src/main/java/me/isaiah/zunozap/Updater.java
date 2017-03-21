@@ -41,7 +41,7 @@ public class Updater {
             return -1;
         }
 
-        if (line.replace("-SNAPSHOT", "").equalsIgnoreCase(version)) {
+        if (line.equalsIgnoreCase(version)) {
             return 0; //Latest build
         }
         
@@ -55,20 +55,26 @@ public class Updater {
     }
     
     private static String latestBrowserVersion() throws IOException {
-        URL url = new URL("https://raw.githubusercontent.com/ZunoZap/zunozap/master/pom.xml");
+        URL url = new URL("https://raw.githubusercontent.com/ZunoZap/zunozap/master/LATEST-RELEASE.md");
+
+        URLConnection urlc = url.openConnection();
+        BufferedReader in = new BufferedReader(new InputStreamReader(urlc.getInputStream(), "UTF-8"));
+        String line = in.readLine().trim();
+        in.close();
+        return line;
+    }
+    
+    private static String latestPluginVersion(String p) throws IOException {
+        URL url = new URL("https://raw.githubusercontent.com/ZunoZap/plugins/master/"+p.trim()+"/update-info.txt");
 
         URLConnection urlc = url.openConnection();
         BufferedReader in = new BufferedReader(new InputStreamReader(urlc.getInputStream(), "UTF-8"));
         String inputLine;
         String line = "error";
-        int i = 0;
         while ((inputLine = in.readLine()) != null) {
-            if (i == 6) {
                 line = inputLine.trim().substring(9).replace("</version>", "");
                 in.close();
                 return line;
-            }
-            i++;
         }
         return "error";
     }

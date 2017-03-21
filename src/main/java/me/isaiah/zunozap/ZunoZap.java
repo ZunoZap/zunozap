@@ -1,12 +1,11 @@
 package me.isaiah.zunozap;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.swing.JOptionPane;
-
-import com.sun.javafx.application.LauncherImpl;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -36,23 +35,24 @@ import javafx.stage.Stage;
 import me.isaiah.zunozap.plugin.PluginBase;
 import me.isaiah.zunozap.plugin.PluginManager;
 
-public final class ZunoZap extends ZunoAPI {
+public class ZunoZap extends ZunoAPI {
+    public static final String v = "0.3.0-SNAPSHOT";
     public static final File homeDir = new File(System.getProperty("user.home"), "zunozap");
     private static final File localStorage = new File(homeDir, "localstorage");
     private static final File dataDir = new File(homeDir, "webEngine");
 
     private final MenuBar menuBar = new MenuBar();
     private Menu menuFile = new Menu("File");
-    private final static TabPane tb = new TabPane();
+    private static TabPane tb;
 	private final static PluginManager p = new PluginManager();
 
 	/**
      * Launch
+	 * @throws IOException 
      */ 
-    public static void main(String[] args) {
-        name = "ZunoZap";
-        version = "0.2.0";
-        LauncherImpl.launchApplication(ZunoZap.class, args);
+    public static void main(String[] args) throws IOException {
+        launch(ZunoZap.class, args);
+        OptionMenu.save();
     }
 	
 	 /**
@@ -62,6 +62,9 @@ public final class ZunoZap extends ZunoAPI {
 	  */
     @Override
     public void start(Stage stage) {
+        tb = new TabPane();
+        name = "ZunoZap";
+        version = v;
     	System.setProperty(name + ".version", version);
 
     	if (!homeDir.exists()) homeDir.mkdir();
@@ -257,7 +260,14 @@ public final class ZunoZap extends ZunoAPI {
                 new OptionMenu();
             }
         });
-    	menuFile.getItems().addAll(downloadPage,aboutPage,settingButton);
+        
+        MenuItem updateItem = new MenuItem("Check for Update");
+        updateItem.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent t) {
+                JOptionPane.showMessageDialog(null, Updater.browser(version), "ZunoZap Updater", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+    	menuFile.getItems().addAll(downloadPage,aboutPage,updateItem,settingButton);
     }
 
     public final static void getOptionMenuAction(EOption eOption, boolean b) {

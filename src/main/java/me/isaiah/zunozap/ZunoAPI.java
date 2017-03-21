@@ -17,6 +17,7 @@ import javafx.scene.web.WebEngine;
 
 /**
  * New ZunoAPI from ZunoZap 0.1.0+
+ *  Extend this class then call {@link Application#launch()} to launch your program.
  * 
  * @author Isaiah Patton
  * @since ZunoZap 0.1
