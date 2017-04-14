@@ -8,13 +8,13 @@ import java.net.URLConnection;
 
 /**
  * Check for updates.
- * @author Isaiah Patton
  */
 public class Updater {
-    public void plugin(String pluginName) {
+    public void plugin() {
         //TODO: Plugin updater.
+        System.out.println("Method \"plugin()\" not supported!");
     }
-    
+
     public static String browser(String a) {
         switch(browserUpdater(a)) {
             case(0):
@@ -35,47 +35,19 @@ public class Updater {
     private static int browserUpdater(String version) {
         String line = "error";
         try {
-            line = latestBrowserVersion();
+            URL url = new URL("https://raw.githubusercontent.com/ZunoZap/zunozap/master/LATEST-RELEASE.md");
+            URLConnection urlc = url.openConnection();
+            BufferedReader in = new BufferedReader(new InputStreamReader(urlc.getInputStream(), "UTF-8"));
+            line = in.readLine().trim();
+            in.close();
         } catch (IOException e) {
             e.printStackTrace();
             return -1;
         }
 
-        if (line.equalsIgnoreCase(version)) {
-            return 0; //Latest build
-        }
-        
-        if (version.toLowerCase().endsWith("-snapshot")) {
-            return 2; //Dev build.
-        }
+        if (line.equalsIgnoreCase(version)) return 0; //Latest build
+        if (version.toLowerCase().endsWith("-snapshot")) return 2; //Dev build.
 
-        /*line = line.toLowerCase().replace("-snapshot", ""); Not right if a version number is skipped.
-        return (Integer.valueOf(line.replaceAll("[ . ]", "")) - Integer.valueOf(version.replaceAll("[ . ]", "")));*/
         return 1;
-    }
-    
-    private static String latestBrowserVersion() throws IOException {
-        URL url = new URL("https://raw.githubusercontent.com/ZunoZap/zunozap/master/LATEST-RELEASE.md");
-
-        URLConnection urlc = url.openConnection();
-        BufferedReader in = new BufferedReader(new InputStreamReader(urlc.getInputStream(), "UTF-8"));
-        String line = in.readLine().trim();
-        in.close();
-        return line;
-    }
-    
-    private static String latestPluginVersion(String p) throws IOException {
-        URL url = new URL("https://raw.githubusercontent.com/ZunoZap/plugins/master/"+p.trim()+"/update-info.txt");
-
-        URLConnection urlc = url.openConnection();
-        BufferedReader in = new BufferedReader(new InputStreamReader(urlc.getInputStream(), "UTF-8"));
-        String inputLine;
-        String line = "error";
-        while ((inputLine = in.readLine()) != null) {
-                line = inputLine.trim().substring(9).replace("</version>", "");
-                in.close();
-                return line;
-        }
-        return "error";
     }
 }

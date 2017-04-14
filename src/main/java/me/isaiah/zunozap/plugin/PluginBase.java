@@ -1,5 +1,6 @@
 package me.isaiah.zunozap.plugin;
 
+import java.io.File;
 import java.net.URL;
 
 import javafx.scene.Scene;
@@ -8,13 +9,17 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.web.WebEngine;
 import javafx.stage.Stage;
+import me.isaiah.zunozap.ZunoZap;
 
 public abstract class PluginBase {
-    public PluginBase() {}
-    public PluginInfo getPluginInfo() {
-        return null;  
-    }
+    public final File dataFolder = new File(new File(ZunoZap.homeDir, "plugins"), getPluginInfo().name);
 
+    /**
+     * Info about your plugin
+     */
+    public PluginInfo getPluginInfo() {
+        return null;
+    }
     /**
      * Called when the browser is created. 
      * 
@@ -23,14 +28,12 @@ public abstract class PluginBase {
      * @param stage {@link javafx.stage.Stage}
      */
     public void onLoad(Stage stage, Scene scene, TabPane tabBar){/**/}
-
     /**
      * Called when a new tab is created.
      * 
      * @param tab - The tab.
      */
     public void onTabCreate(Tab tab){/**/}
-
     /**
      * Called when the page URL changes
      * 
@@ -40,7 +43,6 @@ public abstract class PluginBase {
      * @param newURL - URL changing to.
      */
     public void onURLChange(WebEngine webEngine, TextField urlField, URL oldURL, URL newURL){/**/}
-
     /**
      * Called when a popup pops up.
      * @param badPopup - true if the popup setoff the build-in antivirus alarm, false outherwise.

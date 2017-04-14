@@ -1,4 +1,4 @@
-package me.isaiah.zunozap.plugin;
+package me.isaiah.zunozap.plugin.manager;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,18 +8,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import me.isaiah.zunozap.plugin.PluginBase;
+
 final class PluginClassLoader extends URLClassLoader {
     private final PluginLoader loader;
     private final Map<String, Class<?>> classes = new HashMap<String, Class<?>>();
-    private final String name;
     public PluginBase plugin;
 
     PluginClassLoader(final PluginLoader loader, final ClassLoader parent, final String name, final File file) throws Exception {
         super(new URL[] {file.toURI().toURL()}, parent);
 
         this.loader = loader;
-        this.name = name;
-
         try {
             Class<?> jarClass;
             try {
@@ -74,6 +73,8 @@ final class PluginClassLoader extends URLClassLoader {
         return name.startsWith("me.isaiah.zunozap") ||
                 name.startsWith("zunozap") ||
                 name.startsWith("io.github.zunozap") ||
-                name.startsWith("sun");
+                name.startsWith("sun") ||
+                name.startsWith("com.sun") ||
+                name.startsWith("javafx.scene.web");
     }
 }

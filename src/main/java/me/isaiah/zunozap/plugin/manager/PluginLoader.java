@@ -1,4 +1,4 @@
-package me.isaiah.zunozap.plugin;
+package me.isaiah.zunozap.plugin.manager;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -9,10 +9,7 @@ public final class PluginLoader {
     private final Pattern[] fileFilters = new Pattern[] {Pattern.compile("\\.jar$"), };
     private final Map<String, Class<?>> classes = new HashMap<String, Class<?>>();
     private final Map<String, PluginClassLoader> loaders = new LinkedHashMap<String, PluginClassLoader>();
-
-    public Pattern[] getPluginFileFilters() {
-        return fileFilters.clone();
-    }
+    public Pattern[] getPluginFileFilters(){return fileFilters.clone();}
 
     Class<?> getClassByName(final String name) {
         Class<?> cachedClass = classes.get(name);

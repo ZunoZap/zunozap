@@ -12,12 +12,16 @@ import java.net.URLConnection;
 import javax.swing.JOptionPane;
 
 import javafx.application.Application;
+import javafx.scene.Group;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.web.WebEngine;
+import javafx.stage.Stage;
 
 /**
  * New ZunoAPI from ZunoZap 0.1.0+
- *  Extend this class then call {@link Application#launch()} to launch your program.
+ *  Extend this class then call {@link #launch()} to launch your program.
  * 
  * @author Isaiah Patton
  * @since ZunoZap 0.1
@@ -27,19 +31,25 @@ public abstract class ZunoAPI extends Application {
     public static String version;
     public static boolean isOutdated = false;
     public static boolean blockPluginEvents = false;
-    
-    public static String getVersion() { return version; }
+    public static boolean createPluginDataFolders = true;
+    public static boolean useDuck = true; //DuckDuckGO vs Google
+
+    public static String getVersion(){ return version; }
     public final static String aboutPageHTML() {
         return "<header> <h1>About ZunoZap</h1></header>"
                 +"<body>"
                 +"    ZunoZap is a web browser made with the Java WebView,</p><br>"
                 +"    Version: "+getVersion()+"<br>"
-                +"    UserAgent: "+ "ZunoZap/0.1 Mozilla/5.0 JavaFX/8.0" +"<br>"
+                +"    UserAgent: %s<br>"
                 +"    Java Enabled: true<br>"
-                +"    JavaScript Enabled: true<br>"
-                +"    Licence: <a href='https://raw.githubusercontent.com/ZunoZap/zunozap/master/LICENSE'>GNU General Public License v3</a>"
+                +"    JavaScript Enabled: %s<br>"
+                +"    Licence: <a href='https://raw.githubusercontent.com/%s'>%s</a>"
                 +"    <hr>"
                 +"</body>";
+    }
+
+    protected void setUserAgent(WebEngine e) {
+        if (!e.getUserAgent().contains("ZunoZap")) e.setUserAgent(e.getUserAgent() + " ZunoZap/0.1");
     }
 
     /**
@@ -60,8 +70,12 @@ public abstract class ZunoAPI extends Application {
             return;
         }
 
-        if ((url.replaceAll("[ . ]", "").equalsIgnoreCase(url))) {
-            e.load("https://google.com/search?q=" + url.replace(" ", "%20"));
+        if ((url.replaceAll("[ . ]", "").equalsIgnoreCase(url.replaceAll(" ", "")))) {
+            if (!useDuck){
+                e.load("https://google.com/search?q=" + url.replace(" ", "%20"));
+            }else{
+                e.load("https://duckduckgo.com/?q=" + url.replace(" ", "%20"));
+            }
             return;
         }
 
@@ -77,42 +91,27 @@ public abstract class ZunoAPI extends Application {
     /**
      * @return HTML code of website. 
      */
-    public static String getUrlSource(String site) throws IOException {
-        URL url;
-
-        if (site.startsWith("http")) url = new URL(site);
-        else url = new URL("http://" + site);
-        
-        URLConnection urlc = url.openConnection();
+    public static String getUrlSource(String url) throws IOException {
+        URLConnection urlc = new URL(url).openConnection();
         BufferedReader in = new BufferedReader(new InputStreamReader(urlc.getInputStream(), "UTF-8"));
         String inputLine;
         StringBuilder a = new StringBuilder();
         while ((inputLine = in.readLine()) != null) a.append(inputLine);
         in.close();
-
         return a.toString();
     }
 
     public static void DownloadPage(File theDPfolder, WebEngine we) {
         try{       
-            File htmlsourcefile = new File(theDPfolder + File.separator + we.getLocation().replaceAll("[ : / . ]", "-") + ".html");
-
-            if(!htmlsourcefile.exists()){
-                try{
-                    htmlsourcefile.createNewFile();
-                }catch(IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            URL url = new URL(we.getLocation());
+            File htmlsourcefile = new File(theDPfolder + File.separator + we.getLocation().replaceAll("[ : / . ]", "-").trim() + ".html");
+            if(!htmlsourcefile.exists()) htmlsourcefile.createNewFile();
 
             FileWriter fw = new FileWriter(htmlsourcefile.getAbsoluteFile());
             BufferedWriter bw = new BufferedWriter(fw);
-            bw.write("<!-- HTML source for: " + url.getPath().trim() + "-->");
+            bw.write("<!--" + we.getLocation().trim() + "-->");
             bw.newLine();
 
-            URLConnection urlc = url.openConnection();
+            URLConnection urlc = new URL(we.getLocation()).openConnection();
             BufferedReader in = new BufferedReader(new InputStreamReader(urlc.getInputStream(), "UTF-8"));
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
@@ -121,19 +120,68 @@ public abstract class ZunoAPI extends Application {
             }
             in.close();
             bw.close();
-            System.out.println("Downloaded source code for: " + we.getLocation() + " Find it in your ZunoZap folder!");       
+            System.out.println("Downloaded " + we.getLocation().trim());       
        } catch(IOException e) { System.out.println(e); }
    }
 
     public static boolean allowPluginEvents() {
         return !blockPluginEvents;
     }
-    
+
     public static void showMessage(String message) {
         showMessage(message, 1);
     }
-    
+
     public static void showMessage(String message, int type) {
         JOptionPane.showMessageDialog(null, message, name, type);
     }
+
+    public final static void getOptionMenuAction(EOption eOption, boolean b) {
+        switch (eOption) {
+            case blockEventCalls:
+                blockPluginEvents = b;
+                break;
+            case forceHTTPS:
+                forceHTTPS = b;
+                break;
+            case createPluginDataFolders:
+                createPluginDataFolders = b;
+                break;
+            case useDuckDuckGo:
+                useDuck = b;
+            default:
+                break;
+        }
+    }
+
+    @Override
+    public void init() {
+        System.out.println("Launching wrapped application...");
+    }
+
+    @Override
+    public void start(Stage stage) {
+        Group root = new Group();
+        BorderPane borderPane = new BorderPane();
+
+        root.getChildren().add(borderPane);
+        Scene scene = new Scene(root, 1200, 600);
+
+        start(stage, scene, root, borderPane);
+
+        stage.setTitle(name + " v" + version);
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    public boolean isOffical() {
+        try {
+            Class.forName("me.isaiah.zunozap.ZunoZap");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+    
+    public abstract void start(Stage stage, Scene scene, Group root, BorderPane borderPane);
 }
