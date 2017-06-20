@@ -2,7 +2,7 @@ package me.isaiah.zunozap.plugin;
 
 import java.util.ArrayList;
 
-public class PluginInfo {       
+public class PluginInfo {
     public String name = null;
     public String description = "None";
     public String version = "1.0";

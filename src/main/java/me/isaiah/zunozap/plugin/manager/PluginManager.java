@@ -12,8 +12,8 @@ import me.isaiah.zunozap.plugin.PluginBase;
 import me.isaiah.zunozap.plugin.PluginInfo;
 
 public class PluginManager {
-    public ArrayList<PluginBase> plugins = new ArrayList<PluginBase>();
-    public ArrayList<String> pluginNames = new ArrayList<String>();
+    public ArrayList<PluginBase> plugins = new ArrayList<>();
+    public ArrayList<String> pluginNames = new ArrayList<>();
     public PluginClassLoader classLoader;
 
     public void loadPlugins() {
@@ -30,9 +30,7 @@ public class PluginManager {
                     p.load(stream);
                     jar.close();
                     stream.close();
-
                     classLoader = new PluginClassLoader(new PluginLoader(), getClass().getClassLoader(), p.getProperty("mainClass"), f);
-
                     PluginBase plugin = classLoader.plugin;
                     PluginInfo info = plugin.getPluginInfo();
 

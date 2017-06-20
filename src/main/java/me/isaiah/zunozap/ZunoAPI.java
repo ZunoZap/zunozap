@@ -8,8 +8,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 
 import javax.swing.JOptionPane;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 import javafx.application.Application;
 import javafx.scene.Group;
@@ -27,15 +33,26 @@ import javafx.stage.Stage;
  * @since ZunoZap 0.1
  */
 public abstract class ZunoAPI extends Application {
-    public static String name;
+    public String name;
     public static String version;
-    public static boolean isOutdated = false;
+    public boolean isOutdated = false;
     public static boolean blockPluginEvents = false;
     public static boolean createPluginDataFolders = true;
-    public static boolean useDuck = true; //DuckDuckGO vs Google
+    public static boolean useDuck = true; // DuckDuckGO vs Google
 
-    public static String getVersion(){ return version; }
-    public final static String aboutPageHTML() {
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public final String aboutPageHTML() {
         return "<header> <h1>About ZunoZap</h1></header>"
                 +"<body>"
                 +"    ZunoZap is a web browser made with the Java WebView,</p><br>"
@@ -48,8 +65,10 @@ public abstract class ZunoAPI extends Application {
                 +"</body>";
     }
 
-    protected void setUserAgent(WebEngine e) {
+    public static void setUserAgent(WebEngine e) {
         if (!e.getUserAgent().contains("ZunoZap")) e.setUserAgent(e.getUserAgent() + " ZunoZap/0.1");
+
+        System.out.println(e.getUserAgent());
     }
 
     /**
@@ -61,13 +80,36 @@ public abstract class ZunoAPI extends Application {
      */
     public final static void history(WebEngine e, String go) {e.executeScript("history."+go+"();");}
     /*Load Page*/
-    public final static void loadSite(String url, WebEngine e) {
-        if (url.toLowerCase().startsWith("zunozap:update")) {
-            e.loadContent(Updater.browser(version));
-            return;
-        } else if (url.toLowerCase().startsWith("zunozap:home")) {
-            e.load("https://zunozap.github.io/");
-            return;
+    public static final void loadSite(String url, WebEngine e) {
+        if (url.startsWith("zunozap:")) {
+            if (url.substring(8).startsWith("update")) {
+                e.loadContent(Updater.browser(version, url));
+                return;
+            } else if (url.substring(8).startsWith("zunozap:home")) {
+                e.load("https://zunozap.github.io/");
+                return;
+            } else if (url.substring(8).startsWith("search")) {
+                try {
+                    Document d = Jsoup
+                            .connect("http://www.google.com/search?q="
+                                    + URLEncoder.encode(url.substring(8 + "search".length()), "UTF-8"))
+                            .userAgent("ZunoZap/0.1.0 Chrome/53.0.2785.148").get();
+
+                    String str = "<style>a{color:black;}</style>Search Results: ";
+                    for (Element link : d.select(".g>.r>a")) {
+                        String title = link.text();
+                        String searchurl = link.absUrl("href");
+                        searchurl = URLDecoder.decode(
+                                searchurl.substring(searchurl.indexOf('=') + 1, searchurl.indexOf('&')), "UTF-8");
+
+                        str = str + "<p><a href='" + searchurl + "'>" + title + "</a></p>";
+                    }
+                    e.loadContent(str);
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+                return;
+            }
         }
 
         if ((url.replaceAll("[ . ]", "").equalsIgnoreCase(url.replaceAll(" ", "")))) {
@@ -124,15 +166,15 @@ public abstract class ZunoAPI extends Application {
        } catch(IOException e) { System.out.println(e); }
    }
 
-    public static boolean allowPluginEvents() {
+    public boolean allowPluginEvents() {
         return !blockPluginEvents;
     }
 
-    public static void showMessage(String message) {
+    public void showMessage(String message) {
         showMessage(message, 1);
     }
 
-    public static void showMessage(String message, int type) {
+    public void showMessage(String message, int type) {
         JOptionPane.showMessageDialog(null, message, name, type);
     }
 
@@ -156,7 +198,7 @@ public abstract class ZunoAPI extends Application {
 
     @Override
     public void init() {
-        System.out.println("Launching wrapped application...");
+        System.out.println("[ZunoAPI] Launching wrapped application...");
     }
 
     @Override
@@ -167,6 +209,9 @@ public abstract class ZunoAPI extends Application {
         root.getChildren().add(borderPane);
         Scene scene = new Scene(root, 1200, 600);
 
+        name = getProgramInfo().name;
+        version = getProgramInfo().version;
+
         start(stage, scene, root, borderPane);
 
         stage.setTitle(name + " v" + version);
@@ -174,14 +219,6 @@ public abstract class ZunoAPI extends Application {
         stage.show();
     }
 
-    public boolean isOffical() {
-        try {
-            Class.forName("me.isaiah.zunozap.ZunoZap");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-    
+    public abstract ProgramInfo getProgramInfo();
     public abstract void start(Stage stage, Scene scene, Group root, BorderPane borderPane);
 }

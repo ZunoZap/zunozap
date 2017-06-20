@@ -15,15 +15,16 @@ public class Updater {
         System.out.println("Method \"plugin()\" not supported!");
     }
 
-    public static String browser(String a) {
+    public static String browser(String a, String b) {
         switch(browserUpdater(a)) {
             case(0):
                 break;
             case(1):
-                ZunoAPI.isOutdated = true;
-                return ZunoAPI.name + " is outdated!\nIt is recommended that you update to the latest version\n" + ZunoAPI.name + " will still continue to work if you dont update.";
+                return b + " is outdated!\nIt is recommended that you update to the latest version\n" + b
+                        + " will still continue to work if you dont update.";
             case(2):
-                return "Your using a snapshot build of " + ZunoAPI.name + "\nSnapshot builds might contain bugs!\nPlease report bugs at:\nhttps://github.com/ZunoZap/zunozap/issues/";
+                return "Your using a snapshot build of " + b
+                        + "\nSnapshot builds might contain bugs!\nPlease report bugs at:\nhttps://github.com/ZunoZap/zunozap/issues/";
             case(-1):
                 return "Error fetching update infomation.";
             default:

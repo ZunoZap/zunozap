@@ -10,18 +10,22 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
+
 /**
- * @author  Isaiah Patton
+ * @author Isaiah Patton
  */
 public class OptionMenu {
     private static File settings = new File(ZunoZap.homeDir, "settings.txt");
-    public static ArrayList<Integer> CBlist = new ArrayList<Integer>();
+    public ArrayList<Integer> CBlist = new ArrayList<Integer>();
     private static Properties p = new Properties();
-    private static int i = 1;
+    private int i = 1;
+    private JButton jbtn = new JButton("Apply");
 
     public static JFrame f;
     public static JPanel panel;
@@ -33,7 +37,7 @@ public class OptionMenu {
         }
     }
 
-    public final static void createMenu() throws IOException {
+    public final void createMenu() throws IOException {
         f = new JFrame();
         panel = new JPanel();
 
@@ -61,7 +65,20 @@ public class OptionMenu {
         addCheckBox("Block event calls", ZunoAPI.blockPluginEvents); //might increase porformance when enabled, but will disable plugins.
         addCheckBox("Create plugin folders", ZunoAPI.createPluginDataFolders);
         addCheckBox("Use DuckDuckGo", ZunoAPI.useDuck);
-       
+
+        jbtn.setEnabled(false);
+        jbtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    save();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+        panel.add(jbtn);
+
         s.close();
         f.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         panel.setSize(5000, 2000);
@@ -69,11 +86,23 @@ public class OptionMenu {
         f.setTitle("ZunoZap Settings");
         f.setPreferredSize(new Dimension(400, 300));
         f.setContentPane(panel);
+        BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
+        f.setLayout(layout);
+        f.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                try {
+                    save();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
         f.pack();
         f.setVisible(true);
     }
 
-    private static void addCheckBox(String text, boolean b) {
+    private void addCheckBox(String text, boolean b) {
         final int it = i;
         final JCheckBox cBox = new JCheckBox(text);
         cBox.setSelected(b);
@@ -81,17 +110,15 @@ public class OptionMenu {
         cBox.addActionListener(new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("[DEBUG] " + it);
-                ZunoAPI.getOptionMenuAction(EOption.getByValue(it), cBox.isSelected());
+                ZunoAPI.getOptionMenuAction(EOption.getById(it), cBox.isSelected());
             }
         });
-
        CBlist.add(i);
        panel.add(cBox);
        i++;
    }
     
-   public static void save() throws IOException {
+    public static void save() throws IOException {
        Properties p = new Properties();
        FileInputStream s = new FileInputStream(settings);
        p.load(s);
@@ -105,7 +132,7 @@ public class OptionMenu {
        s.close();
    }
 
-   protected static void addDefault(String key, String value) {
+   protected static void addDefault(String key, String value){
        if (!p.containsKey(key)) p.setProperty(key, value);
    }
 }
