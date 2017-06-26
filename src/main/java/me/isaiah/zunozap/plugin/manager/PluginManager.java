@@ -47,6 +47,6 @@ public class PluginManager {
                 }
             }
         }
-        System.out.println(String.format("Found %s plugins: %s", pluginNames.size(), pluginNames));
+        System.out.println("Found " + pluginNames.size() + " plugins: " + pluginNames.toString());
     }
 }

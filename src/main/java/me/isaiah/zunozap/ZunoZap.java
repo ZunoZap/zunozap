@@ -37,14 +37,13 @@ import me.isaiah.zunozap.plugin.PluginBase;
 import me.isaiah.zunozap.plugin.manager.PluginManager;
 
 public class ZunoZap extends ZunoAPI {
-    public static final String v = "0.3.1";
+    public static final String v = "0.3.2";
     public static final File homeDir = new File(System.getProperty("user.home"), "zunozap");
     private static final File localStorage = new File(homeDir, "localstorage");
     private static final File dataDir = new File(homeDir, "webEngine");
     private final MenuBar menuBar = new MenuBar();
     private Menu menuFile = new Menu("File");
     private Menu book = new Menu("Bookmarks");
-    private Bookmarks bm = new Bookmarks();
     private static TabPane tb;
     private final static PluginManager p = new PluginManager();
 
@@ -79,11 +78,11 @@ public class ZunoZap extends ZunoAPI {
         if (!localStorage.exists()) localStorage.mkdir();
         if (!dataDir.exists()) dataDir.mkdir();
 
-        /*Add ZunoZap Logo*/stage.getIcons().add(new Image(ZunoZap.class.getClassLoader().getResourceAsStream("zunozaplogo.gif")));
+        stage.getIcons().add(new Image(ZunoZap.class.getClassLoader().getResourceAsStream("zunozaplogo.gif")));
         tb.setPrefSize(1365, 768);
         tb.setSide(Side.TOP);
-        
-        /*====New-Tab-Button====*/
+
+        /* New tab button */
           final Tab newtab = new Tab(" + ");
           newtab.setClosable(false);
           tb.getTabs().addAll(newtab);
@@ -110,30 +109,27 @@ public class ZunoZap extends ZunoAPI {
                 pl.onLoad(stage, scene, tb);
     }
 
-    /**
-     * What happens when you click the 'New Tab' button.
-     */
     @SuppressWarnings("static-access") 
     public final void createTab(boolean isStartTab) {
         tabnum++;
 
-        /*====Create Tab====*/
+        /* Create Tab */
           final Tab tab = new Tab("Loading");
           tab.setTooltip(new Tooltip("Tab #"+tabnum));
           tab.setId("tab-"+tabnum);
 
-        /*Setup Buttons*/
-          final Button backButton = new Button("<"); 
-          final Button forwardButton = new Button(">");
-          final Button goButton = new Button("Go");
+        /* initialize variables */
+        final Button backButton = new Button("<");
+        final Button forwardButton = new Button(">");
+        final Button goButton = new Button("Go");
 
-        /*Setup WebView*/  final WebView webView = new WebView();  
-        /*Setup WebEngine*/final WebEngine webEngine = webView.getEngine();  
-        /*Setup urlField*/ final TextField urlField = new TextField("http://");
-        /*Setup hBox*/     final HBox hBox = new HBox(backButton, forwardButton, urlField, goButton);
-        /*Setup vBox*/     final VBox vBox = new VBox(hBox, webView);
+        final WebView webView = new WebView();
+        final WebEngine webEngine = webView.getEngine();
+        final TextField urlField = new TextField("http://");
+        final HBox hBox = new HBox(backButton, forwardButton, urlField, goButton);
+        final VBox vBox = new VBox(hBox, webView);
 
-        /*======Setup Event Handlers======*/
+        /* Setup Event Handlers */
           final EventHandler<ActionEvent> goAction = new EventHandler<ActionEvent>() {  
               @Override public void handle(ActionEvent event){loadSite(urlField.getText(), webEngine);}  
           };
@@ -146,33 +142,21 @@ public class ZunoZap extends ZunoAPI {
               @Override public void handle(ActionEvent event){history(webEngine, "forward");}  
           };
           urlChangeLis(webEngine, urlField, tab);
-        /*======Bookmarks======*/
-          for (final String hi : bm.registered) {
-              final MenuItem mark = new MenuItem(hi);
-              mark.setOnAction(new EventHandler<ActionEvent>() {
-                  @Override public void handle(ActionEvent t){
-                      //TODO: way to add & remove bookmarks in browser
-                      webEngine.load(bm.map.get(hi).toString());
-                  }
-              });
-              book.getItems().add(mark);
-            // bm.registered.remove(hi);
-          }
 
-        /*======Set Actions======*/
+        /* Set Actions */
           goButton.setOnAction(goAction);
           backButton.setOnAction(backAction);
           forwardButton.setOnAction(forwardAction);
           urlField.setOnAction(goAction);
 
-        /*======Setting Styles======*/
+        /* Setting Styles */
           urlField.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-border: solid; -fx-border-color: teal; -fx-border-radius: 5px;");
           urlField.setMaxWidth(400);
           hBox.setStyle("-fx-background-color: orange;");
           hBox.setHgrow(urlField, Priority.ALWAYS);
           vBox.setVgrow(webView, Priority.ALWAYS);
           vBox.autosize();
-        /*==========================*/
+        /* === */
 
         webEngine.setUserDataDirectory(dataDir);
         webEngine.setUserAgent(webEngine.getUserAgent() + " ZunoZap/0.1.0 Chrome/53.0.2785.148");
@@ -240,9 +224,8 @@ public class ZunoZap extends ZunoAPI {
 
                 urlField.setText(newValue);
 
-                if (httpsredirect) {
+                if (httpsredirect)
                     return; // Redirect from HTTP version of site
-                }
 
                 if (allowPluginEvents()) {
                     if (!(newValue.replaceAll("[ . ]", "").equalsIgnoreCase(newValue) || newValue.startsWith("http"))) {
@@ -260,13 +243,12 @@ public class ZunoZap extends ZunoAPI {
             }
         });
         
-        // JS alert() function handler
+        // JS alert() handler
         webEngine.setOnAlert(new EventHandler<WebEvent<String>>(){
             @Override
             public void handle(WebEvent<String> popupText) {
                 boolean badPopup = false;
                 if (popupText.toString().toLowerCase().contains("virus")) {
-                    // Warn user if website trys to create an popup trying to get you two download an virus
                     badPopup = true;
                     JOptionPane.showMessageDialog(null, "The site you are visting has tryed to create an popup with the word 'virus' in it, Please be carefull on this site", "ZunoZap AntiPopupVirus", JOptionPane.WARNING_MESSAGE);
                }
@@ -339,15 +321,5 @@ public class ZunoZap extends ZunoAPI {
     @Override
     public final boolean allowPluginEvents() {
         return (p.plugins.size() != 0) && (super.allowPluginEvents());
-    }
-    
-    @Deprecated
-    protected boolean isOfficalZunoZap() {
-        try {
-            Class.forName("me.isaiah.zunozap.ZunoZap");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
     }
 }

@@ -7,9 +7,8 @@ public class PluginInfo {
     public String description = "None";
     public String version = "1.0";
     public String minBrowserVersion = "0.1.0";
-    public ArrayList<Object> optionalData = new ArrayList<Object>();
+    public ArrayList<Object> optionalData = new ArrayList<>();
     public PluginBase internal_reference = null;
-
     public String[] getAllInfo() {
         return new String[] {name, version, description, minBrowserVersion};
     }

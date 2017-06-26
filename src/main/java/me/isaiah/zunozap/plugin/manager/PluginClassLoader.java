@@ -12,7 +12,7 @@ import me.isaiah.zunozap.plugin.PluginBase;
 
 final class PluginClassLoader extends URLClassLoader {
     private final PluginLoader loader;
-    private final Map<String, Class<?>> classes = new HashMap<String, Class<?>>();
+    private final Map<String, Class<?>> classes = new HashMap<>();
     public PluginBase plugin;
 
     PluginClassLoader(final PluginLoader loader, final ClassLoader parent, final String name, final File file) throws Exception {
@@ -46,7 +46,8 @@ final class PluginClassLoader extends URLClassLoader {
     }
 
     Class<?> findClass(String name, boolean checkGlobal) throws ClassNotFoundException {
-        if (isBadClass(name)) throw new ClassNotFoundException(name); //Bad class name.
+        if (isBadClass(name))
+            throw new ClassNotFoundException(name);
 
         Class<?> result = classes.get(name);
 
@@ -70,11 +71,7 @@ final class PluginClassLoader extends URLClassLoader {
     }
     
     public static boolean isBadClass(String name) {
-        return name.startsWith("me.isaiah.zunozap") ||
-                name.startsWith("zunozap") ||
-                name.startsWith("io.github.zunozap") ||
-                name.startsWith("sun") ||
-                name.startsWith("com.sun") ||
-                name.startsWith("javafx.scene.web");
+        return name.startsWith("me.isaiah.zunozap") || name.startsWith("io.github.zunozap") ||
+                name.startsWith("sun") || name.startsWith("com.sun") || name.startsWith("javafx.scene.web");
     }
 }

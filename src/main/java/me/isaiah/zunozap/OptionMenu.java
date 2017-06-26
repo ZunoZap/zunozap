@@ -17,16 +17,12 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
-/**
- * @author Isaiah Patton
- */
 public class OptionMenu {
     private static File settings = new File(ZunoZap.homeDir, "settings.txt");
-    public ArrayList<Integer> CBlist = new ArrayList<Integer>();
+    public ArrayList<Integer> CBlist = new ArrayList<>();
     private static Properties p = new Properties();
     private int i = 1;
     private JButton jbtn = new JButton("Apply");
-
     public static JFrame f;
     public static JPanel panel;
     public OptionMenu() {
@@ -41,23 +37,22 @@ public class OptionMenu {
         f = new JFrame();
         panel = new JPanel();
 
-        if (!settings.exists()){
+        if (!settings.exists())
             settings.createNewFile();
-        }
 
         FileInputStream s = new FileInputStream(settings);
         p.load(s);
-        
+
         addDefault("forceHTTPS", "false");
         addDefault("blockEventCalls", "false");
         addDefault("createPluginDataFolders", "true");
         addDefault("onTheDuckSide", "true");
-        
+
         ZunoAPI.forceHTTPS = String.valueOf(p.get("forceHTTPS")).toLowerCase().contains("true");
         ZunoAPI.blockPluginEvents = String.valueOf(p.get("blockEventCalls")).toLowerCase().contains("true");
         ZunoAPI.createPluginDataFolders = String.valueOf(p.get("createPluginDataFolders")).toLowerCase().contains("true");
         ZunoAPI.useDuck = String.valueOf(p.get("onTheDuckSide")).toLowerCase().contains("true");
-        
+
         p.store(new FileOutputStream(settings), null);
 
         i = 1; //Reset.
@@ -82,7 +77,7 @@ public class OptionMenu {
         s.close();
         f.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         panel.setSize(5000, 2000);
-       
+
         f.setTitle("ZunoZap Settings");
         f.setPreferredSize(new Dimension(400, 300));
         f.setContentPane(panel);
@@ -116,8 +111,8 @@ public class OptionMenu {
        CBlist.add(i);
        panel.add(cBox);
        i++;
-   }
-    
+    }
+
     public static void save() throws IOException {
        Properties p = new Properties();
        FileInputStream s = new FileInputStream(settings);
@@ -130,9 +125,9 @@ public class OptionMenu {
        
        p.store(new FileOutputStream(settings), null);
        s.close();
-   }
+    }
 
-   protected static void addDefault(String key, String value){
+    protected void addDefault(String key, String value) {
        if (!p.containsKey(key)) p.setProperty(key, value);
    }
 }

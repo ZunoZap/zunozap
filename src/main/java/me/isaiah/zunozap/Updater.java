@@ -11,29 +11,26 @@ import java.net.URLConnection;
  */
 public class Updater {
     public void plugin() {
-        //TODO: Plugin updater.
         System.out.println("Method \"plugin()\" not supported!");
     }
 
     public static String browser(String a, String b) {
         switch(browserUpdater(a)) {
             case(0):
-                break;
+            break;
             case(1):
-                return b + " is outdated!\nIt is recommended that you update to the latest version\n" + b
-                        + " will still continue to work if you dont update.";
+            return b + " is outdated!\nIt is recommended that you update to the latest version\n";
             case(2):
-                return "Your using a snapshot build of " + b
-                        + "\nSnapshot builds might contain bugs!\nPlease report bugs at:\nhttps://github.com/ZunoZap/zunozap/issues/";
+            return "Your using a snapshot build of " + b + "\nSnapshot builds might contain bugs!";
             case(-1):
-                return "Error fetching update infomation.";
+            return "Error fetching update infomation.";
             default:
-                return "_NULL_";
+            return "_NULL_";
         }
         return "_NULL_";
     }
     
-    private static int browserUpdater(String version) {
+    private static int browserUpdater(String ver) {
         String line = "error";
         try {
             URL url = new URL("https://raw.githubusercontent.com/ZunoZap/zunozap/master/LATEST-RELEASE.md");
@@ -46,8 +43,10 @@ public class Updater {
             return -1;
         }
 
-        if (line.equalsIgnoreCase(version)) return 0; //Latest build
-        if (version.toLowerCase().endsWith("-snapshot")) return 2; //Dev build.
+        if (line.equalsIgnoreCase(ver))
+            return 0; // latest
+        if (ver.toLowerCase().endsWith("-snapshot"))
+            return 2;
 
         return 1;
     }

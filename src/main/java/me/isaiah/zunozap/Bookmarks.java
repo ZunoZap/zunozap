@@ -6,13 +6,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Bookmarks {
-    public HashMap<String, URL> map = new HashMap<String, URL>();
-    public ArrayList<String> names = new ArrayList<String>();
-    public ArrayList<String> registered = new ArrayList<String>();
+    public HashMap<String, URL> map = new HashMap<>();
+    public ArrayList<String> names = new ArrayList<>();
+    public ArrayList<String> registered = new ArrayList<>();
 
-    /**
-     * Adds a bookmark.
-     */
     public void add(String name, URL url){
         if (!names.contains(name)){
             map.put(name, url);
@@ -21,9 +18,6 @@ public class Bookmarks {
         }
     }
 
-    /**
-     * Adds a bookmark.
-     */
     public void add(String name, String url){
         try {
             map.put(name, new URL(url));
@@ -34,26 +28,19 @@ public class Bookmarks {
         registered.add(name);
     }
 
-    /**
-     * Removes all bookmarks.
-     */
     public void removeAll(){
         map.clear();
         names.clear();
         registered.clear();
     }
 
-    /**
-     * Removes bookmark.
-     */
     public void remove(String name){
         if (names.contains(name)){
             map.remove(name);
             names.remove(name);
             registered.remove(name);
-        } else {
+        } else
             System.err.println("The bookmark " + name + " does not exist.");
-        }
     }
 
     public HashMap<String, URL> getMap(){
@@ -61,6 +48,6 @@ public class Bookmarks {
     }
     
     public ArrayList<String> get() {
-        return new ArrayList<String>(registered);
+        return new ArrayList<>(registered);
     }
 }
