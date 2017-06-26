@@ -37,7 +37,7 @@ import me.isaiah.zunozap.plugin.PluginBase;
 import me.isaiah.zunozap.plugin.manager.PluginManager;
 
 public class ZunoZap extends ZunoAPI {
-    public static final String v = "0.3.0-SNAPSHOT";
+    public static final String v = "0.3.1";
     public static final File homeDir = new File(System.getProperty("user.home"), "zunozap");
     private static final File localStorage = new File(homeDir, "localstorage");
     private static final File dataDir = new File(homeDir, "webEngine");
@@ -208,6 +208,21 @@ public class ZunoZap extends ZunoAPI {
         webEngine.locationProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if (oldValue == null) {
+                    urlField.setText(newValue);
+                    if (allowPluginEvents()) {
+                        for (PluginBase plug : p.plugins) {
+                            try {
+                                plug.onURLChange(webEngine, urlField, null, new URL(newValue));
+                            } catch (MalformedURLException e) {
+                                System.out.println(e);
+                                System.err.println("Cant pass onURLChange event to plugin: " + plug.getPluginInfo().name
+                                        + " v" + plug.getPluginInfo().version);
+                            }
+                        }
+                    }
+                    return;
+                }
                 boolean httpsredirect = false;
                 if (newValue.contains("file://")) {
                     urlField.setText(newValue);
