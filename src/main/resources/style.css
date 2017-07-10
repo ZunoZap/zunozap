@@ -29,3 +29,15 @@
 	-fx-border-color: teal;
 	-fx-border-radius: 2px;
 }
+
+#urlfield {
+	-fx-background-color: transparent; 
+	-fx-text-fill: white;
+	-fx-border: solid;
+	-fx-border-color: teal;
+	-fx-border-radius: 5px;
+}
+
+#urlbar {
+	-fx-background-color: orange;
+}

@@ -15,7 +15,7 @@ public abstract class PluginBase {
     public final File dataFolder = new File(new File(ZunoZap.homeDir, "plugins"), getPluginInfo().name);
 
     /**
-     * Info about your plugin
+     * Info about your plug-in
      */
     public PluginInfo getPluginInfo() {
         return null;
@@ -43,9 +43,13 @@ public abstract class PluginBase {
      * @param newURL - URL changing to.
      */
     public void onURLChange(WebEngine webEngine, TextField urlField, URL oldURL, URL newURL){/**/}
+    
     /**
-     * Called when a popup pops up.
-     * @param badPopup - true if the popup setoff the build-in antivirus alarm, false outherwise.
+     * Called when a pop-up pops up.
+     * 
+     * @param badPopup
+     *            - true if the pop-up set off the build-in anti-virus alarm,
+     *            false otherwise.
      */
     public void onPopup(boolean badPopup) {/**/}
 }

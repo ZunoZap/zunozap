@@ -23,12 +23,10 @@ public class PluginManager {
         for (File f : pluginFolder.listFiles()) {
             if ((!f.isDirectory()) && (f.getName().endsWith(".jar"))) {
                 Properties p = new Properties();
-                try {
-                    JarFile jar = new JarFile(f);
+                try (JarFile jar = new JarFile(f)) {
                     JarEntry entry = jar.getJarEntry("plugin.txt");
                     InputStream stream = jar.getInputStream(entry);
                     p.load(stream);
-                    jar.close();
                     stream.close();
                     classLoader = new PluginClassLoader(new PluginLoader(), getClass().getClassLoader(), p.getProperty("mainClass"), f);
                     PluginBase plugin = classLoader.plugin;
