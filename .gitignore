@@ -16,3 +16,6 @@ hs_err_pid*
 MANIFEST.MF
 zunozaplogo.gif
 /bin/
+/generated-sources/
+/maven-archiver/
+/maven-status/
