@@ -43,16 +43,18 @@ import me.isaiah.zunozap.plugin.PluginBase;
 import me.isaiah.zunozap.plugin.manager.PluginManager;
 
 public class ZunoZap extends ZunoAPI {
-    public static final String v = "0.3.3-dev";
+    public static final String v = "0.3.4";
     public static final File homeDir = new File(System.getProperty("user.home"), "zunozap");
     private static final File localStorage = new File(homeDir, "offline-pages");
     private static final File dataDir = new File(homeDir, "webEngine");
     protected static final File temp = new File(homeDir, "temp");
     private static final File stylefolder = new File(homeDir, "styles");
+    private static final File pluginfolder = new File(homeDir, "plugins");
     private final MenuBar menuBar = new MenuBar();
     private Menu menuFile = new Menu("File");
     private Menu book = new Menu("Bookmarks");
     private static TabPane tb;
+    private static StyleManager sm;
     private final static PluginManager p = new PluginManager();
 
     /**
@@ -123,7 +125,7 @@ public class ZunoZap extends ZunoAPI {
         if (!stylefolder.exists()) {
             stylefolder.mkdir();
         }
-        new StyleManager(stylefolder, scene);
+        sm = new StyleManager(stylefolder, scene);
         scene.getStylesheets().add(ZunoAPI.stylesheet.toURI().toURL().toExternalForm());
 
         p.loadPlugins();
@@ -235,6 +237,7 @@ public class ZunoZap extends ZunoAPI {
         });
 
         webEngine.locationProperty().addListener(new ChangeListener<String>() {
+            @SuppressWarnings("static-access")
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 if (oldValue == null) {
@@ -252,6 +255,56 @@ public class ZunoZap extends ZunoAPI {
                     }
                     return;
                 }
+
+                if (newValue.toLowerCase().contains("zunozap.github.io/addons/themes/")) {
+                    showMessage("Press OK to start downloading theme");
+                    URL website = null;
+                    try {
+                        website = new URL(newValue);
+                    } catch (MalformedURLException e1) {
+                        showMessage("Unable to download theme");
+                        e1.printStackTrace();
+                        return;
+                    }
+                    try (InputStream in = website.openStream()) {
+                        File f = new File(stylefolder, newValue.substring(newValue.lastIndexOf("/") + 1));
+                        Files.copy(in, Paths.get(f.toURI()), StandardCopyOption.REPLACE_EXISTING);
+                        sm.b.clear();
+                        try {
+                            sm.init(stylefolder);
+                        } catch (Exception e) {
+                            showMessage("Unable to reload style manager.\nRestart is required to enable them.");
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        showMessage("Unable to download theme.");
+                        return;
+                    }
+                    showMessage("Downloaded theme");
+                    return;
+                }
+                if (newValue.toLowerCase().contains("zunozap.github.io/addons/plugins/")) {
+                    showMessage("Press OK to start downloading plugin");
+                    URL website = null;
+                    try {
+                        website = new URL(newValue);
+                    } catch (MalformedURLException e1) {
+                        showMessage("Unable to download plugin");
+                        e1.printStackTrace();
+                        return;
+                    }
+                    try (InputStream in = website.openStream()) {
+                        File f = new File(pluginfolder, newValue.substring(newValue.lastIndexOf("/") + 1));
+                        Files.copy(in, Paths.get(f.toURI()), StandardCopyOption.REPLACE_EXISTING);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        showMessage("Unable to download plugin.");
+                        return;
+                    }
+                    showMessage("Downloaded plugin, restart required to use plugin.");
+                    return;
+                }
+
                 boolean httpsredirect = false;
                 if (newValue.contains("file://")) {
                     urlField.setText(newValue);
