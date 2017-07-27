@@ -68,8 +68,7 @@ public class OptionMenu implements ActionListener {
         f = new JFrame();
         panel = new JPanel();
 
-        if (!settings.exists())
-            settings.createNewFile();
+        if (!settings.exists()) settings.createNewFile();
 
         FileInputStream s = new FileInputStream(settings);
         p.load(s);

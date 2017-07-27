@@ -43,7 +43,7 @@ import me.isaiah.zunozap.plugin.PluginBase;
 import me.isaiah.zunozap.plugin.manager.PluginManager;
 
 public class ZunoZap extends ZunoAPI {
-    public static final String v = "0.3.4";
+    public static final String v = "0.3.5";
     public static final File homeDir = new File(System.getProperty("user.home"), "zunozap");
     private static final File localStorage = new File(homeDir, "offline-pages");
     private static final File dataDir = new File(homeDir, "webEngine");
@@ -56,12 +56,18 @@ public class ZunoZap extends ZunoAPI {
     private static TabPane tb;
     private static StyleManager sm;
     private final static PluginManager p = new PluginManager();
+    public static boolean firstRun = false;
 
     /**
      * Launch
      * @throws IOException 
      */ 
     public static void main(String[] args) throws IOException {
+        if (!new File(homeDir, "settings.txt").exists()) {
+            if (!homeDir.exists()) homeDir.mkdir();
+            new File(homeDir, "settings.txt").createNewFile(); // Fix error.
+            firstRun = true;
+        }
         launch(ZunoZap.class, args);
         double total = getTotalRamSavedFromGCinMB();
         if (total > 1048576) {

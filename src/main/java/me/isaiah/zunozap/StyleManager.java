@@ -53,7 +53,7 @@ public class StyleManager {
         ZunoZap.ExportResource("style.css");
         File f = new File(ZunoZap.homeDir, "style.css");
         b.put("ZunoZap default", f);
-        if (ZunoAPI.styleName.equalsIgnoreCase("none")) {
+        if (ZunoAPI.styleName.equalsIgnoreCase("none") || ZunoZap.firstRun) {
             ZunoAPI.stylesheet = f;
             ZunoAPI.styleName = "ZunoZap default";
         } else {

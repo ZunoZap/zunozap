@@ -7,8 +7,8 @@ import java.util.regex.Pattern;
 
 public final class PluginLoader {
     private final Pattern[] fileFilters = new Pattern[] {Pattern.compile("\\.jar$"), };
-    private final Map<String, Class<?>> classes = new HashMap<String, Class<?>>();
-    private final Map<String, PluginClassLoader> loaders = new LinkedHashMap<String, PluginClassLoader>();
+    private final Map<String, Class<?>> classes = new HashMap<>();
+    private final Map<String, PluginClassLoader> loaders = new LinkedHashMap<>();
     public Pattern[] getPluginFileFilters(){return fileFilters.clone();}
 
     Class<?> getClassByName(final String name) {
