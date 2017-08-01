@@ -11,7 +11,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Properties;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -20,19 +19,17 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 
 public class OptionMenu implements ActionListener {
     private static File settings = new File(ZunoZap.homeDir, "settings.txt");
     public ArrayList<Integer> CBlist = new ArrayList<>();
-    private static Properties p = new Properties();
+    private static ZunoProperties p = new ZunoProperties();
     private int i = 1;
     private JButton odf = new JButton("Open data folder");
     private JButton jbtn = new JButton("Apply settings");
     public static JFrame f;
     public static JPanel panel;
-    public static String style = "None";
     public OptionMenu() {
         try {
             createMenu();
@@ -42,7 +39,8 @@ public class OptionMenu implements ActionListener {
     }
 
     public static final void init() throws IOException {
-        Properties p = new Properties();
+        if (!settings.exists()) settings.createNewFile();
+        ZunoProperties p = new ZunoProperties();
         FileInputStream s = new FileInputStream(settings);
         p.load(s);
         addDefault("forceHTTPS", "false");
@@ -50,13 +48,14 @@ public class OptionMenu implements ActionListener {
         addDefault("createPluginDataFolders", "true");
         addDefault("onTheDuckSide", "true");
         addDefault("offlineStorage", "true");
+        addDefault("javascript", "true");
 
         ZunoAPI.forceHTTPS = String.valueOf(p.get("forceHTTPS")).toLowerCase().contains("true");
         ZunoAPI.blockPluginEvents = String.valueOf(p.get("blockEventCalls")).toLowerCase().contains("true");
-        ZunoAPI.createPluginDataFolders = String.valueOf(p.get("createPluginDataFolders")).toLowerCase()
-                .contains("true");
+        ZunoAPI.createPluginDataFolders = String.valueOf(p.get("createPluginDataFolders")).toLowerCase().contains("true");
         ZunoAPI.useDuck = String.valueOf(p.get("onTheDuckSide")).toLowerCase().contains("true");
-        ZunoAPI.offlineStorage = String.valueOf(p.get("onTheDuckSide")).toLowerCase().contains("true");
+        ZunoAPI.offlineStorage = String.valueOf(p.get("offlineStorage")).toLowerCase().contains("true");
+        ZunoAPI.JS = !(String.valueOf(p.get("javascript")).toLowerCase().contains("true"));
 
         ZunoAPI.styleName = String.valueOf(p.get("style"));
         ZunoAPI.stylesheet = new File(String.valueOf(p.get("stylefile")));
@@ -78,30 +77,34 @@ public class OptionMenu implements ActionListener {
         addDefault("createPluginDataFolders", "true");
         addDefault("onTheDuckSide", "true");
         addDefault("offlineStorage", "true");
+        addDefault("javascript", "true");
 
         ZunoAPI.forceHTTPS = String.valueOf(p.get("forceHTTPS")).toLowerCase().contains("true");
         ZunoAPI.blockPluginEvents = String.valueOf(p.get("blockEventCalls")).toLowerCase().contains("true");
         ZunoAPI.createPluginDataFolders = String.valueOf(p.get("createPluginDataFolders")).toLowerCase().contains("true");
         ZunoAPI.useDuck = String.valueOf(p.get("onTheDuckSide")).toLowerCase().contains("true");
-        ZunoAPI.offlineStorage = String.valueOf(p.get("onTheDuckSide")).toLowerCase().contains("true");
+        ZunoAPI.offlineStorage = String.valueOf(p.get("offlineStorage")).toLowerCase().contains("true");
+        ZunoAPI.JS = String.valueOf(p.get("javascript")).toLowerCase().contains("true");
 
         p.store(new FileOutputStream(settings), "ZunoZap Settings");
 
-        i = 1; //Reset.
+        i = 1; // Reset.
         addCheckBox("Force HTTPS", ZunoAPI.forceHTTPS);
-        addCheckBox("Block event calls", ZunoAPI.blockPluginEvents); //might increase porformance when enabled, but will disable plugins.
+        addCheckBox("Block event calls", ZunoAPI.blockPluginEvents);
         addCheckBox("Create plugin folders", ZunoAPI.createPluginDataFolders);
         addCheckBox("Use DuckDuckGo", ZunoAPI.useDuck);
         addCheckBox("Download websites for offline browsing", ZunoAPI.offlineStorage);
+        addCheckBox("Javascript", ZunoAPI.JS);
 
         jbtn.setEnabled(true);
+
         jbtn.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(ActionEvent a) {
                 try {
                     save();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -124,7 +127,7 @@ public class OptionMenu implements ActionListener {
         text.setBorder(new EmptyBorder(0, 0, 0, 0));
         text.setMargin(new Insets(20, 0, 0, 0));
         text.setMaximumSize(new Dimension(50, 25));
-        JComboBox<Object> style = new JComboBox<>(StyleManager.staticGetStyleNames());
+        JComboBox<Object> style = new JComboBox<>(StyleManager.staticGetStyles().keySet().toArray());
         style.setSelectedItem(ZunoAPI.styleName);
         style.setMaximumSize(new Dimension(150, 20));
         style.addActionListener(this);
@@ -140,7 +143,7 @@ public class OptionMenu implements ActionListener {
         panel.add(jbtn);
 
         s.close();
-        f.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        f.setDefaultCloseOperation(2);
         panel.setSize(5000, 2000);
 
         f.setTitle("ZunoZap Settings");
@@ -164,38 +167,52 @@ public class OptionMenu implements ActionListener {
 
     private void addCheckBox(String text, boolean b) {
         final int it = i;
-        final JCheckBox cBox = new JCheckBox(text);
-        cBox.setSelected(b);
-        cBox.setName(String.valueOf(i).toString());
-        cBox.addActionListener(new ActionListener(){
+        final JCheckBox box = new JCheckBox(text);
+        box.setSelected(b);
+        box.setName(String.valueOf(i).toString());
+        box.addActionListener(new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent e) {
-                ZunoAPI.getOptionMenuAction(EOption.getById(it), cBox.isSelected());
+                ZunoAPI.getOptionMenuAction(EOption.getById(it), box.isSelected());
+                try {
+                    save();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
         });
        CBlist.add(i);
-       panel.add(cBox);
+       panel.add(box);
        i++;
     }
 
+    @Deprecated
     public static void save() throws IOException {
-        Properties p = new Properties();
+        save(true);
+    }
+
+    public static void save(boolean all) throws IOException {
+        if (!settings.exists()) settings.createNewFile();
+        ZunoProperties p = new ZunoProperties();
         FileInputStream s = new FileInputStream(settings);
         p.load(s);
-        p.setProperty("forceHTTPS", String.valueOf(ZunoAPI.forceHTTPS));
-        p.setProperty("blockEventCalls", String.valueOf(ZunoAPI.blockPluginEvents));
-        p.setProperty("createPluginDataFolders", String.valueOf(ZunoAPI.createPluginDataFolders));
-        p.setProperty("onTheDuckSide", String.valueOf(ZunoAPI.useDuck));
-        p.setProperty("offlineStorage", String.valueOf(ZunoAPI.offlineStorage));
-        p.setProperty("style", ZunoAPI.styleName);
-        p.setProperty("stylefile", ZunoAPI.stylesheet.getAbsolutePath());
+        p.setProperty("forceHTTPS", ZunoAPI.forceHTTPS);
+        p.setProperty("blockEventCalls", ZunoAPI.blockPluginEvents);
+        p.setProperty("createPluginDataFolders", ZunoAPI.createPluginDataFolders);
+        p.setProperty("onTheDuckSide", ZunoAPI.useDuck);
+        p.setProperty("offlineStorage", ZunoAPI.offlineStorage);
+        p.setProperty("javascript", ZunoAPI.JS);
+        if (all) {
+            p.setProperty("style", ZunoAPI.styleName);
+            p.setProperty("stylefile", ZunoAPI.stylesheet.getAbsolutePath());
+        }
         p.store(new FileOutputStream(settings), null);
         s.close();
     }
-
+    
     protected static void addDefault(String key, String value) {
-       if (!p.containsKey(key)) p.setProperty(key, value);
-   }
+       if (!p.containsKey(key)) p.setProperty(key, value); 
+    }
 
     @SuppressWarnings("unchecked")
     @Override
@@ -206,8 +223,7 @@ public class OptionMenu implements ActionListener {
         ZunoAPI.styleName = name;
         StyleManager.staticGetScene().getStylesheets().clear();
         try {
-            StyleManager.staticGetScene().getStylesheets()
-                    .add(StyleManager.b.get(name).toURI().toURL().toExternalForm());
+            StyleManager.staticGetScene().getStylesheets().add(StyleManager.b.get(name).toURI().toURL().toExternalForm());
         } catch (MalformedURLException e1) {
             e1.printStackTrace();
         }

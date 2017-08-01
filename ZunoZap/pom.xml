@@ -3,17 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>me.isaiah.zunozap</groupId>
-  <artifactId>ZunoZap-parent</artifactId>
+  <artifactId>ZunoZap</artifactId>
   <version>0.3.6-dev</version>
 
-  <name>ZunoZap-parent</name>
+  <name>ZunoZap</name>
   <url>https://zunozap.github.io/</url>
-  <packaging>pom</packaging>
-  
-  <modules>
-    <module>DownloadManager</module>
-    <module>ZunoZap</module>
-  </modules>
 
   <build>
     <defaultGoal>package</defaultGoal>
@@ -58,4 +52,12 @@
   	<name>ZunoZap Team</name>
   	<url>https://github.com/ZunoZap/</url>
   </organization>
+  
+  <dependencies>
+    <dependency>
+      <groupId>me.isaiah.downloadmanager</groupId>
+      <artifactId>DownloadManager</artifactId>
+      <version>0.0.1</version>
+    </dependency>
+  </dependencies>
 </project>

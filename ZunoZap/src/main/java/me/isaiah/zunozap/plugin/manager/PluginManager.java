@@ -17,7 +17,7 @@ public class PluginManager {
     public PluginClassLoader classLoader;
 
     public void loadPlugins() {
-        System.out.println("Loading Plugins ...");
+        System.out.println("Loading Plugins...");
         File pluginFolder = new File(ZunoZap.homeDir, "plugins");
         if (!pluginFolder.exists()) pluginFolder.mkdir();
         for (File f : pluginFolder.listFiles()) {

@@ -9,6 +9,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
 
 import javax.swing.JOptionPane;
 
@@ -43,7 +44,7 @@ import me.isaiah.zunozap.plugin.PluginBase;
 import me.isaiah.zunozap.plugin.manager.PluginManager;
 
 public class ZunoZap extends ZunoAPI {
-    public static final String v = "0.3.5";
+    public static final String v = "0.3.6";
     public static final File homeDir = new File(System.getProperty("user.home"), "zunozap");
     private static final File localStorage = new File(homeDir, "offline-pages");
     private static final File dataDir = new File(homeDir, "webEngine");
@@ -51,12 +52,13 @@ public class ZunoZap extends ZunoAPI {
     private static final File stylefolder = new File(homeDir, "styles");
     private static final File pluginfolder = new File(homeDir, "plugins");
     private final MenuBar menuBar = new MenuBar();
-    private Menu menuFile = new Menu("File");
-    private Menu book = new Menu("Bookmarks");
+    private final Menu menuFile = new Menu("File");
+    private final Menu menuBook = new Menu("Bookmarks");
     private static TabPane tb;
     private static StyleManager sm;
     private final static PluginManager p = new PluginManager();
     public static boolean firstRun = false;
+    protected static HashMap<String, String> bm = new HashMap<>();
 
     /**
      * Launch
@@ -65,25 +67,23 @@ public class ZunoZap extends ZunoAPI {
     public static void main(String[] args) throws IOException {
         if (!new File(homeDir, "settings.txt").exists()) {
             if (!homeDir.exists()) homeDir.mkdir();
-            new File(homeDir, "settings.txt").createNewFile(); // Fix error.
+            new File(homeDir, "settings.txt").createNewFile(); // Fix error
+            OptionMenu.save(false);
             firstRun = true;
         }
         launch(ZunoZap.class, args);
-        double total = getTotalRamSavedFromGCinMB();
-        if (total > 1048576) {
-            System.out.println("[GC]: Total saved RAM: " + Math.floor(((total / 1024) / 1024) * 10 + 0.5) / 10 + " TB");
-        } else if (total > 1024) {
+        double total = GCSavedInMB();
+        if (total > 1024)
             System.out.println("[GC]: Total saved RAM: " + Math.floor((total / 1024) * 10 + 0.5) / 10 + " GB");
-        } else {
-            System.out.println("[GC]: Total saved RAM: " + Math.floor(total * 10 + 0.5) / 10 + " MB");
-        }
+        else System.out.println("[GC]: Total saved RAM: " + Math.floor(total * 10 + 0.5) / 10 + " MB");
+
         System.exit(0); // exit after closing
     }
     
     @Override
     public void stop() {
         try {
-            OptionMenu.save();
+            OptionMenu.save(true);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -97,13 +97,16 @@ public class ZunoZap extends ZunoAPI {
     @Override
     public void start(Stage stage, Scene scene, StackPane root, BorderPane borderPane) throws Exception {
         tb = new TabPane();
-        System.setProperty(name + ".version", version);
         OptionMenu.init();
+        bm.put("ZunoZap", "https://zunozap.github.io/"); // TODO: fully add
 
         if (!homeDir.exists()) homeDir.mkdir();
         if (!localStorage.exists()) localStorage.mkdir();
         if (!dataDir.exists()) dataDir.mkdir();
         if (!temp.exists()) temp.mkdir();
+        if (!stylefolder.exists()) stylefolder.mkdir();
+
+        temp.deleteOnExit();
 
         stage.getIcons().add(new Image(ZunoZap.class.getClassLoader().getResourceAsStream("zunozaplogo.gif")));
         tb.setPrefSize(1365, 768);
@@ -116,8 +119,7 @@ public class ZunoZap extends ZunoAPI {
         /*Start Tab*/createTab(true);
 
         tb.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {
-            @Override
-            public void changed(ObservableValue<? extends Tab> a, Tab b, Tab c) {
+            @Override public void changed(ObservableValue<? extends Tab> a, Tab b, Tab c) {
                 if (c == newtab) createTab(false);
             }
         });
@@ -127,25 +129,26 @@ public class ZunoZap extends ZunoAPI {
         borderPane.autosize();
 
         regMenuItems();
-        menuBar.getMenus().addAll(menuFile,book);
-        if (!stylefolder.exists()) {
-            stylefolder.mkdir();
-        }
+        menuBar.getMenus().addAll(menuFile, menuBook);
         sm = new StyleManager(stylefolder, scene);
         scene.getStylesheets().add(ZunoAPI.stylesheet.toURI().toURL().toExternalForm());
 
         p.loadPlugins();
-        if (allowPluginEvents())
-            for (PluginBase pl : p.plugins)
-                pl.onLoad(stage, scene, tb);
+        if (allowPluginEvents()) for (PluginBase pl : p.plugins)
+            pl.onLoad(stage, scene, tb);
+    }
+
+    public final void createTab(boolean isStart) {
+        if (!useDuck) createTab(isStart, "https://www.google.com");
+        else createTab(isStart, "https://start.duckduckgo.com/");
     }
 
     @SuppressWarnings("static-access") 
-    public final void createTab(boolean isStartTab) {
+    public final void createTab(boolean isStartTab, String url) {
         tabnum++;
 
         /* Create Tab */
-          final Tab tab = new Tab("Loading");
+          final Tab tab = new Tab("Loading...");
           tab.setTooltip(new Tooltip("Tab #"+tabnum));
           tab.setId("tab-"+tabnum);
 
@@ -161,15 +164,15 @@ public class ZunoZap extends ZunoAPI {
         final VBox vBox = new VBox(hBox, webView);
 
         /* Setup Event Handlers */
-          final EventHandler<ActionEvent> goAction = new EventHandler<ActionEvent>() {  
+          final EventHandler<ActionEvent> goAction = new EventHandler<ActionEvent>(){ 
               @Override public void handle(ActionEvent event){loadSite(urlField.getText(), webEngine);}  
           };
 
-          final EventHandler<ActionEvent> backAction = new EventHandler<ActionEvent>() {  
+          final EventHandler<ActionEvent> backAction = new EventHandler<ActionEvent>(){
               @Override public void handle(ActionEvent event){history(webEngine, "back");}  
           };
 
-          final EventHandler<ActionEvent> forwardAction = new EventHandler<ActionEvent>() {
+          final EventHandler<ActionEvent> forwardAction = new EventHandler<ActionEvent>(){
               @Override public void handle(ActionEvent event){history(webEngine, "forward");}  
           };
           urlChangeLis(webEngine, urlField, tab);
@@ -190,7 +193,8 @@ public class ZunoZap extends ZunoAPI {
         /* === */
 
         webEngine.setUserDataDirectory(dataDir);
-        webEngine.setUserAgent(webEngine.getUserAgent() + " ZunoZap/0.1.0 Chrome/53.0.2785.148");
+        webEngine.setUserAgent(webEngine.getUserAgent() + " ZunoZap/" + v + " Chrome/60.0.3112");
+        webEngine.javaScriptEnabledProperty().set(ZunoAPI.JS);
 
         if (isStartTab) {
             String startText = "<h1><img src='https://zunozap.github.io/images/flash.png' width='150px' height='150px'><br><b>ZunoZap</b></h1><h3>Build: "+version+"</h3><br /> \n\t\t\t To start browsing, click on + (New Tab) sign."; 
@@ -201,15 +205,11 @@ public class ZunoZap extends ZunoAPI {
                 webEngine.loadContent(startText);
             }
         } else {
-            if (!useDuck) loadSite("https://www.google.com", webEngine);
-            else
-                loadSite("https://start.duckduckgo.com/", webEngine);
+            loadSite(url, webEngine);
         }
         tab.setContent(vBox);
 
-        if (allowPluginEvents())
-            for (PluginBase pl : p.plugins)
-                pl.onTabCreate(tab);
+        if (allowPluginEvents()) for (PluginBase pl : p.plugins) pl.onTabCreate(tab);
 
         final ObservableList<Tab> tabs = tb.getTabs();
         tabs.add(tabs.size() - 1, tab);
@@ -222,8 +222,7 @@ public class ZunoZap extends ZunoAPI {
     public final void urlChangeLis(final WebEngine webEngine, final TextField urlField, final Tab tab) {
         webEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
             @SuppressWarnings("rawtypes")
-            @Override
-            public void changed(ObservableValue ov, State oldState, State newState) {
+            @Override public void changed(ObservableValue ov, State oldState, State newState) {
                 if (newState == Worker.State.FAILED) {
                     File f = new File(localStorage,
                             webEngine.getLocation().replaceAll("[ : / . ]", "-").trim() + ".html");
@@ -236,7 +235,7 @@ public class ZunoZap extends ZunoAPI {
                         }
                         return;
                     }
-                    System.err.println("Failed to load page. No internet?");
+                    webEngine.loadContent("Unable to load " + webEngine.getLocation().trim());
                     return;
                 }
             }
@@ -254,11 +253,18 @@ public class ZunoZap extends ZunoAPI {
                                 plug.onURLChange(webEngine, urlField, null, new URL(newValue));
                             } catch (MalformedURLException e) {
                                 System.out.println(e);
-                                System.err.println("Cant pass onURLChange event to plugin: " + plug.getPluginInfo().name
-                                        + " v" + plug.getPluginInfo().version);
+                                System.err.println("Cant pass url change to plugin: " + plug.getPluginInfo().name + " v"
+                                        + plug.getPluginInfo().version);
                             }
                         }
                     }
+                    return;
+                }
+                
+                if (isUrlDownload(newValue)) {
+                    // TODO: download
+                    // showMessage("true");
+                    new Download(newValue);
                     return;
                 }
 
@@ -311,6 +317,8 @@ public class ZunoZap extends ZunoAPI {
                     return;
                 }
 
+                webEngine.javaScriptEnabledProperty().set(ZunoAPI.JS);
+
                 boolean httpsredirect = false;
                 if (newValue.contains("file://")) {
                     urlField.setText(newValue);
@@ -328,26 +336,23 @@ public class ZunoZap extends ZunoAPI {
 
                 urlField.setText(newValue);
 
-                if (httpsredirect)
-                    return; // Redirect from HTTP version of site
+                if (httpsredirect) return; // HTTPS redirect
 
                 if (allowPluginEvents()) {
                     if (!(newValue.replaceAll("[ . ]", "").equalsIgnoreCase(newValue) || newValue.startsWith("http"))) {
-                        for (PluginBase plug : p.plugins) {
+                        p.plugins.forEach((pl) -> {
                             try {
-                                plug.onURLChange(webEngine, urlField, new URL(oldValue), new URL(newValue));
+                                pl.onURLChange(webEngine, urlField, new URL(oldValue), new URL(newValue));
                             } catch (MalformedURLException e) {
-                                System.out.println(e);
-                                System.err.println("Cant pass onURLChange event to plugin: " + plug.getPluginInfo().name
-                                        + " v" + plug.getPluginInfo().version);
+                                e.printStackTrace();
+                                System.err.println("Cant pass onURLChange event to plugin: " + pl.getPluginInfo().name
+                                        + " v" + pl.getPluginInfo().version);
                             }
-                        }
+                        });
                     }
                 }
-                
-                if (ZunoAPI.offlineStorage) {
-                    DownloadPage(localStorage, temp, webEngine);
-                }
+
+                if (ZunoAPI.offlineStorage) new Thread(() -> DownloadPage(localStorage, temp, webEngine)).start();
             }
         });
         
@@ -355,13 +360,13 @@ public class ZunoZap extends ZunoAPI {
         webEngine.setOnAlert(new EventHandler<WebEvent<String>>(){
             @Override
             public void handle(WebEvent<String> popupText) {
-                boolean badPopup = false;
+                boolean bad = false;
                 if (popupText.toString().toLowerCase().contains("virus")) {
-                    badPopup = true;
+                    bad = true;
                     JOptionPane.showMessageDialog(null, "The site you are visting has tryed to create an popup with the word 'virus' in it, Please be carefull on this site", "ZunoZap AntiPopupVirus", JOptionPane.WARNING_MESSAGE);
                 }
                 if (allowPluginEvents()) for (PluginBase pl : p.plugins)
-                    pl.onPopup(badPopup);
+                    pl.onPopup(bad);
 
                 JOptionPane.showMessageDialog(null, popupText.getData(), "JS Popup", JOptionPane.INFORMATION_MESSAGE);
             }
@@ -369,6 +374,13 @@ public class ZunoZap extends ZunoAPI {
         webEngine.titleProperty().addListener(new ChangeListener<String>() {
             @Override public void changed(ObservableValue<? extends String> o, String oV, String nV){ tab.setText(nV); }
         });
+    }
+
+    protected boolean isUrlDownload(String s) {
+        if (s.endsWith(".exe") || s.endsWith(".jar")) {
+            return true;
+        }
+        return false;
     }
 
     private boolean isHTTPSRedirect(URL oldu, URL newu) {
@@ -382,16 +394,13 @@ public class ZunoZap extends ZunoAPI {
         return false;
     }
 
-    /**
-     * Add the items to the File menu dropdown list.
-     */
     public final void regMenuItems() {
-        MenuItem downloadPage = new MenuItem("Clear all offline data.");
-        MenuItem aboutPage = new MenuItem("About ZunoZap v" + version);
-        MenuItem settingButton = new MenuItem("Settings");
-        MenuItem updateItem = new MenuItem("Check for Update");
+        MenuItem clear = new MenuItem("Clear all offline data.");
+        MenuItem aboutPage = new MenuItem("About ZunoZap v" + v);
+        MenuItem settings = new MenuItem("Settings");
+        MenuItem update = new MenuItem("Check for Update");
 
-        downloadPage.setOnAction(new EventHandler<ActionEvent>() {
+        clear.setOnAction(new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent t) {
                 temp.delete();
                 localStorage.delete();
@@ -400,36 +409,44 @@ public class ZunoZap extends ZunoAPI {
 
         aboutPage.setOnAction(new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent t){
-                Tab aboutTab = new Tab("About");
+                Tab about = new Tab("About");
                 WebView w = new WebView();
                 setUserAgent(w.getEngine());
+                w.getEngine().javaScriptEnabledProperty().set(!ZunoAPI.JS);
                 w.getEngine()
                         .loadContent(String.format(aboutPageHTML(), "ZunoZap", w.getEngine().getUserAgent(),
-                                w.getEngine().isJavaScriptEnabled(), "ZunoZap/zunozap/master/LICENCE", "GPLv3")
-                                + getPluginNames());
-                aboutTab.setContent(w);
-                tb.getTabs().add(tb.getTabs().size() - 1, aboutTab);
-                tb.getSelectionModel().select(aboutTab);
+                                w.getEngine().javaScriptEnabledProperty().get(), "ZunoZap/zunozap/master/LICENCE", "GPLv3") + getPluginNames());
+                about.setContent(w);
+                tb.getTabs().add(tb.getTabs().size() - 1, about);
+                tb.getSelectionModel().select(about);
             }
         });
 
-        settingButton.setOnAction(new EventHandler<ActionEvent>() {
+        settings.setOnAction(new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent t){new OptionMenu();}
         });
-        
-        updateItem.setOnAction(new EventHandler<ActionEvent>() {
-            @Override public void handle(ActionEvent t){
-                JOptionPane.showMessageDialog(null, Updater.browser(version, name), "ZunoZap Update",
-                        JOptionPane.INFORMATION_MESSAGE);
+  
+        update.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent t) {
+                showMessage(Updater.browser(v, name));
             }
         });
-        menuFile.getItems().addAll(downloadPage,aboutPage,updateItem,settingButton);
+        bm.forEach((s1, s2) -> {
+            MenuItem item = new MenuItem(s1);
+            item.setOnAction(new EventHandler<ActionEvent>() {
+                @Override public void handle(ActionEvent t) {
+                    createTab(false, s2);
+                }
+            });
+            menuBook.getItems().add(item);
+        });
+        menuFile.getItems().addAll(clear, aboutPage, update, settings);
     }
 
     public static final String getPluginNames() {
         int size = p.plugins.size();
-        return size != 0 ? "Plugins ["+ size +"]:"
-               +String.valueOf(p.pluginNames).replace("[", "").replace("]", "") : "No Installed Plugins.";
+        return size != 0 ? "Plugins [" + size + "]:" + String.valueOf(p.pluginNames).replace("[", "").replace("]", "")
+                : "No Installed Plugins.";
     }
 
     @Override
@@ -443,24 +460,19 @@ public class ZunoZap extends ZunoAPI {
             if (stream == null) throw new Exception("Cannot get file " + resourceName + " from Jar file.");
 
             copy(resourceName, stream, homeDir.getAbsolutePath() + File.separator + "style.css");
-        } catch (Exception e) {
-            throw e;
-        }
+        } catch (Exception e) { throw e; }
 
         return homeDir + resourceName;
     }
 
     public static boolean copy(String name, InputStream source, String destination) {
         System.out.println("Copying -> " + name + "\n\tto -> " + destination);
-
         try {
             Files.copy(source, Paths.get(destination), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
             return false;
         }
-
         return true;
-
     }
 }

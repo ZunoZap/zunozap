@@ -6,7 +6,6 @@ import java.util.HashMap;
 import javafx.scene.Scene;
 
 public class StyleManager {
-    public String defaultStyle = "Default";
     private static Scene scene;
     public static HashMap<String, File> b = new HashMap<>();
 
@@ -16,14 +15,6 @@ public class StyleManager {
 
     public static HashMap<String, File> staticGetStyles() {
         return b;
-    }
-
-    public static Object[] staticGetStyleNames() {
-        return b.keySet().toArray();
-    }
-
-    public static File[] staticGetStyleFiles() {
-        return (File[]) b.values().toArray();
     }
 
     public StyleManager() {
@@ -56,11 +47,9 @@ public class StyleManager {
         if (ZunoAPI.styleName.equalsIgnoreCase("none") || ZunoZap.firstRun) {
             ZunoAPI.stylesheet = f;
             ZunoAPI.styleName = "ZunoZap default";
-        } else {
-            OptionMenu.init();
-        }
-        for (File fi : folder.listFiles())
-            b.put(fi.getName(), fi);
+        } else OptionMenu.init();
+
+        for (File fi : folder.listFiles()) b.put(fi.getName(), fi);
 
         File temp = new File(ZunoZap.temp, "blank.css");
         if (!temp.exists()) temp.createNewFile();

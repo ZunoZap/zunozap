@@ -51,5 +51,5 @@ public abstract class PluginBase {
      *            - true if the pop-up set off the build-in anti-virus alarm,
      *            false otherwise.
      */
-    public void onPopup(boolean badPopup) {/**/}
+    public void onPopup(boolean badPopup){/**/}
 }

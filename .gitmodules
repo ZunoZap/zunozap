@@ -1,0 +1,3 @@
+[submodule "DownloadManager"]
+	path = DownloadManager
+	url = https://github.com/IsaiahPatton/DownloadManager.git

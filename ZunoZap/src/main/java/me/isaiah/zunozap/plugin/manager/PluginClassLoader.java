@@ -46,8 +46,7 @@ final class PluginClassLoader extends URLClassLoader {
     }
 
     Class<?> findClass(String name, boolean checkGlobal) throws ClassNotFoundException {
-        if (isBadClass(name))
-            throw new ClassNotFoundException(name);
+        if (name.startsWith("me.isaiah.zunozap") || name.startsWith("io.github.zunozap")) throw new ClassNotFoundException(name);
 
         Class<?> result = classes.get(name);
 
@@ -68,10 +67,5 @@ final class PluginClassLoader extends URLClassLoader {
 
     Set<String> getClasses() {
         return classes.keySet();
-    }
-    
-    public static boolean isBadClass(String name) {
-        return name.startsWith("me.isaiah.zunozap") || name.startsWith("io.github.zunozap") ||
-                name.startsWith("sun") || name.startsWith("com.sun") || name.startsWith("javafx.scene.web");
     }
 }

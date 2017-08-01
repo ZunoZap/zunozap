@@ -12,4 +12,13 @@ public class PluginInfo {
     public String[] getAllInfo() {
         return new String[] {name, version, description, minBrowserVersion};
     }
+
+    public PluginInfo(){
+    }
+
+    public PluginInfo(String name, String des, String version) {
+        this.name = name;
+        this.description = des;
+        this.version = version;
+    }
 }
