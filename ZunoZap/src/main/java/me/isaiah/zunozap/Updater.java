@@ -11,17 +11,16 @@ public class Updater {
         String line = "error";
         try {
             URLConnection c = new URL("https://raw.githubusercontent.com/ZunoZap/zunozap/master/LATEST-RELEASE.md").openConnection();
-            BufferedReader in = new BufferedReader(new InputStreamReader(c.getInputStream(), "UTF-8"));
-            line = in.readLine().trim();
-            in.close();
+            BufferedReader r = new BufferedReader(new InputStreamReader(c.getInputStream(), "UTF-8"));
+            line = r.readLine().trim();
+            r.close();
         } catch (IOException e) {
             e.printStackTrace();
             return "Error fetching update infomation: " + e;
         }
 
         if (line.equalsIgnoreCase(a)) return "You are running the latest version";
-        if (a.toLowerCase().endsWith("-snapshot"))
-            return "Your using a snapshot build of " + b + "\nSnapshot builds might contain bugs!";
+        if (a.toLowerCase().endsWith("-dev")) return "Your using a snapshot build of " + b;
 
         return b + " is outdated!\nIt is recommended that you update to the latest version\n";
     }

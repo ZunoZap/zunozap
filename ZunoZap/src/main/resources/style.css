@@ -31,11 +31,11 @@
 }
 
 #urlfield {
-	-fx-background-color: transparent; 
+	-fx-background-color: rgba(10,10,10,0.1);
 	-fx-text-fill: white;
 	-fx-border: solid;
 	-fx-border-color: teal;
-	-fx-border-radius: 5px;
+	-fx-border-radius: 2px;
 }
 
 #urlbar {

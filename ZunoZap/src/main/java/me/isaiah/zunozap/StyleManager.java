@@ -51,7 +51,7 @@ public class StyleManager {
 
         for (File fi : folder.listFiles()) b.put(fi.getName(), fi);
 
-        File temp = new File(ZunoZap.temp, "blank.css");
+        File temp = new File(new File(ZunoZap.homeDir, "temp"), "blank.css");
         if (!temp.exists()) temp.createNewFile();
         b.put("Java default", temp);
     }

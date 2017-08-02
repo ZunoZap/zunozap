@@ -24,7 +24,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
 public abstract class ZunoAPI extends Application {
     public String name;
@@ -38,6 +37,7 @@ public abstract class ZunoAPI extends Application {
     public static File stylesheet = null;
     public static String styleName = "None";
     private static double totalRamGCsaved = 0;
+    protected static Timer t;
     public int tabnum = 0;
 
     public String getName() {
@@ -114,14 +114,11 @@ public abstract class ZunoAPI extends Application {
             while ((line = in.readLine()) != null) a.append(line);
             in.close();
             return a.toString();
-        } catch (IOException e) {
-            return null;
-        }
+        } catch (IOException e){ return null; }
     }
 
     public static void DownloadPage(File dp, File temp, WebEngine w) {
         try {
-            URLConnection urlc = new URL(w.getLocation()).openConnection();
             File html = new File(temp, w.getLocation().replaceAll("[ : / . ? ]", "-").trim() + ".html");
             if (!html.exists()) html.createNewFile();
 
@@ -130,14 +127,7 @@ public abstract class ZunoAPI extends Application {
             System.out.println(w.getLocation().trim());
             bw.write("<!--" + w.getLocation().trim() + "-->");
             bw.newLine();
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(urlc.getInputStream(), "UTF-8"));
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                bw.write(inputLine.trim());
-                bw.newLine();
-            }
-            in.close();
+            bw.write(getUrlSource(w.getLocation().trim()));
             bw.close();
             System.out.println("Downloaded " + w.getLocation().trim());
             if (html.length() > 2) {
@@ -219,24 +209,25 @@ public abstract class ZunoAPI extends Application {
     }
 
     private void startGC() {
-        System.out.println("[GC]: GC is set to run every 15 sec.");
-        new Timer().schedule(
-                new TimerTask() {
-                    @Override public void run() {
-                        long l = Runtime.getRuntime().freeMemory();
-                        String sl = formatSize(l);
-                        double e = Double.valueOf(sl.substring(0, (sl.length() - 3)));
-                        if (e > 145 && e <= 600) {
-                            System.gc();
-                            String l2 = formatSize(Runtime.getRuntime().freeMemory() - l);
-                            System.out.println("[GC]: Saved " + l2 + " of RAM.");
-                            double a = Double.valueOf(l2.substring(0, (l2.length() - 3)));
-                            if (l2.endsWith("MB"))
-                                totalRamGCsaved += a;
-                            else if (l2.endsWith("GB")) totalRamGCsaved += ((long) a * 1024);
-                        } else System.out.println("[GC]: RAM is normal level.");
-                    }
-                }, 2, (long) Duration.seconds(14.9).toMillis());
+        System.out.println("[GC]: GC is set to run every 15 sec. ");
+        t = new Timer();
+        t.schedule(
+            new TimerTask() {
+                @Override public void run() {
+                    long l = Runtime.getRuntime().freeMemory();
+                    String sl = formatSize(l);
+                    double e = Double.valueOf(sl.substring(0, (sl.length() - 3)));
+                    if (e > 145 && e <= 600) {
+                        System.gc();
+                        String l2 = formatSize(Runtime.getRuntime().freeMemory() - l);
+                        System.out.println("[GC]: Saved " + l2 + " of RAM.");
+                        double a = Double.valueOf(l2.substring(0, (l2.length() - 3)));
+                        if (l2.endsWith("MB"))
+                            totalRamGCsaved += a;
+                        else if (l2.endsWith("GB")) totalRamGCsaved += ((long) a * 1024);
+                    } else System.out.println("[GC]: RAM is normal level.");
+                }
+            }, 3000, 14900);
     }
 
     public static double GCSavedInMB() {

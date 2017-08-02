@@ -47,15 +47,15 @@ public class OptionMenu implements ActionListener {
         addDefault("blockEventCalls", "false");
         addDefault("createPluginDataFolders", "true");
         addDefault("onTheDuckSide", "true");
-        addDefault("offlineStorage", "true");
+        addDefault("offlineStorage", "false");
         addDefault("javascript", "true");
 
-        ZunoAPI.forceHTTPS = String.valueOf(p.get("forceHTTPS")).toLowerCase().contains("true");
-        ZunoAPI.blockPluginEvents = String.valueOf(p.get("blockEventCalls")).toLowerCase().contains("true");
-        ZunoAPI.createPluginDataFolders = String.valueOf(p.get("createPluginDataFolders")).toLowerCase().contains("true");
+        ZunoAPI.forceHTTPS = p.getBoolean("forceHTTPS");
+        ZunoAPI.blockPluginEvents = p.getBoolean("blockEventCalls");
+        ZunoAPI.createPluginDataFolders = p.getBoolean("createPluginDataFolders");
         ZunoAPI.useDuck = String.valueOf(p.get("onTheDuckSide")).toLowerCase().contains("true");
         ZunoAPI.offlineStorage = String.valueOf(p.get("offlineStorage")).toLowerCase().contains("true");
-        ZunoAPI.JS = !(String.valueOf(p.get("javascript")).toLowerCase().contains("true"));
+        ZunoAPI.JS = String.valueOf(p.get("javascript")).toLowerCase().contains("true");
 
         ZunoAPI.styleName = String.valueOf(p.get("style"));
         ZunoAPI.stylesheet = new File(String.valueOf(p.get("stylefile")));
@@ -76,7 +76,7 @@ public class OptionMenu implements ActionListener {
         addDefault("blockEventCalls", "false");
         addDefault("createPluginDataFolders", "true");
         addDefault("onTheDuckSide", "true");
-        addDefault("offlineStorage", "true");
+        addDefault("offlineStorage", "false");
         addDefault("javascript", "true");
 
         ZunoAPI.forceHTTPS = String.valueOf(p.get("forceHTTPS")).toLowerCase().contains("true");
@@ -98,26 +98,20 @@ public class OptionMenu implements ActionListener {
 
         jbtn.setEnabled(true);
 
-        jbtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent a) {
-                try {
-                    save();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        jbtn.addActionListener((a) -> {
+            try {
+                save();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
 
         odf.setEnabled(true);
-        odf.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    Desktop.getDesktop().open(ZunoZap.homeDir);
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
+        odf.addActionListener((a) -> {
+            try {
+                Desktop.getDesktop().open(ZunoZap.homeDir);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
         JTextField text = new JTextField();
@@ -170,15 +164,12 @@ public class OptionMenu implements ActionListener {
         final JCheckBox box = new JCheckBox(text);
         box.setSelected(b);
         box.setName(String.valueOf(i).toString());
-        box.addActionListener(new ActionListener(){
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                ZunoAPI.getOptionMenuAction(EOption.getById(it), box.isSelected());
-                try {
-                    save();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
+        box.addActionListener((a) -> {
+            ZunoAPI.getOptionMenuAction(EOption.getById(it), box.isSelected());
+            try {
+                save();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
        CBlist.add(i);

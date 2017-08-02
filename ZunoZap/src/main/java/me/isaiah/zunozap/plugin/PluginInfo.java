@@ -9,12 +9,12 @@ public class PluginInfo {
     public String minBrowserVersion = "0.1.0";
     public ArrayList<Object> optionalData = new ArrayList<>();
     public PluginBase internal_reference = null;
+
     public String[] getAllInfo() {
         return new String[] {name, version, description, minBrowserVersion};
     }
 
-    public PluginInfo(){
-    }
+    public PluginInfo(){}
 
     public PluginInfo(String name, String des, String version) {
         this.name = name;
