@@ -26,7 +26,7 @@ public class Reader {
     public void readd() {
         ZunoZap.bm.forEach((s1, s2) -> {
             MenuItem item = new MenuItem(s1);
-            item.setOnAction((t) -> { ZunoZap.getInstance().createTab(false, s2); });
+            item.setOnAction((t) -> { ((ZunoZap) ZunoZap.getInstance()).createTab(false, s2); });
             ZunoZap.menuBook.getItems().add(item);
         });
     }

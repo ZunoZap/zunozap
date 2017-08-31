@@ -21,6 +21,11 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+/***
+ * The setting manager for ZunoZap.
+ * 
+ * @Deprecated Planed to replace with a more modern Setting page.
+ */
 public class OptionMenu implements ActionListener {
     private static File settings = new File(ZunoZap.homeDir, "settings.txt");
     public ArrayList<Integer> CBlist = new ArrayList<>();
@@ -159,6 +164,7 @@ public class OptionMenu implements ActionListener {
         f.setVisible(true);
     }
 
+    @SuppressWarnings("deprecation")
     private void addCheckBox(String text, boolean b) {
         final int it = i;
         final JCheckBox box = new JCheckBox(text);

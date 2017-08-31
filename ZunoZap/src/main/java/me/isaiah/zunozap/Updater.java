@@ -20,7 +20,7 @@ public class Updater {
         }
 
         if (line.equalsIgnoreCase(a)) return "You are running the latest version";
-        if (a.toLowerCase().endsWith("-dev")) return "Your using a snapshot build of " + b;
+        if (a.toLowerCase().endsWith("dev")) return "Your using a snapshot build of " + b;
 
         return b + " is outdated!\nIt is recommended that you update to the latest version\n";
     }

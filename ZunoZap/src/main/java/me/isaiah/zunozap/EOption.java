@@ -2,6 +2,7 @@ package me.isaiah.zunozap;
 
 import java.util.HashMap;
 
+@Deprecated
 public enum EOption {
     forceHTTPS(1), blockEventCalls(2), createPluginDataFolders(3), useDuckDuckGo(4), offlineStorage(5), JS(6);
 
