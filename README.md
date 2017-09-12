@@ -21,4 +21,6 @@ Github: https://github.com/ZunoZap/
 
 Discord: https://discordapp.com/invite/66z7bjP
 
+![image](https://www.gnu.org/graphics/lgplv3-147x51.png)
+
 
