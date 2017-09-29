@@ -23,4 +23,13 @@ Discord: https://discordapp.com/invite/66z7bjP
 
 ![image](https://www.gnu.org/graphics/lgplv3-147x51.png)
 
+# Disclaimer
 
+ZunoZap uses JxBrowser http://www.teamdev.com/jxbrowser, which is a proprietary software. 
+
+The use of JxBrowser is governed by JxBrowser Product Licence Agreement http://www.teamdev.com/jxbrowser-licence-agreement. 
+
+If you would like to use JxBrowser in your development, please contact TeamDev.
+
+
+ZunoZap is a non-commercial product. And will always be free to use.
