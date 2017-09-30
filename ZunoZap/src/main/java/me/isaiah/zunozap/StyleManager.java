@@ -41,18 +41,19 @@ public class StyleManager {
     }
 
     public void init(File folder) throws Exception {
-        ZunoZap.ExportResource("style.css");
-        File f = new File(ZunoZap.homeDir, "style.css");
+        ZunoAPI.exportResource("style.css", ZunoAPI.home);
+        File f = new File(ZunoAPI.home, "style.css");
         b.put("ZunoZap default", f);
-        if (ZunoAPI.styleName.equalsIgnoreCase("none") || ZunoZap.firstRun) {
+        if (ZunoAPI.styleName.equalsIgnoreCase("none") || ZunoZap_old.firstRun || ZunoZap.firstRun) {
             ZunoAPI.stylesheet = f;
             ZunoAPI.styleName = "ZunoZap default";
         } else OptionMenu.init();
 
         for (File fi : folder.listFiles()) b.put(fi.getName(), fi);
 
-        File temp = new File(new File(ZunoZap.homeDir, "temp"), "blank.css");
-        if (!temp.exists()) temp.createNewFile();
+        File temp = new File(ZunoAPI.home, "temp");
+        if (!temp.exists()) temp.mkdir();
+        File.createTempFile("blank-style", ".css", temp);
         b.put("Java default", temp);
     }
 }

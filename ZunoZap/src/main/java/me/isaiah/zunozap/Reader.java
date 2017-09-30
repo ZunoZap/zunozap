@@ -6,39 +6,44 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 
 public class Reader {
-    public Reader() throws IOException {
-        File dat = new File(ZunoZap.homeDir, "bookmarks.dat");
+    public HashMap<String, String> bm = ZunoAPI.getInstance().bm;
+    private Menu book;
+    public Reader(Menu menuBook) throws IOException {
+        File dat = new ZFile("bookmarks.dat", false);
         if (!dat.exists()) dat.createNewFile();
-        ZunoZap.menuBook.getItems().clear();
+        this.book = menuBook;
+        menuBook.getItems().clear();
         for (String s : Files.readAllLines(Paths.get(dat.toURI()))) {
             if (!s.startsWith("#")) {
                 String key = s.substring(0, s.indexOf("="));
                 String value = s.substring(s.indexOf("=") + 1);
-                if (!ZunoZap.bm.containsKey(key)) ZunoZap.bm.put(decode(key, 12), decode(value, 12));
+                if (!bm.containsKey(key)) ZunoAPI.getInstance().bm.put(decode(key, 12), decode(value, 12));
             }
         }
     }
     
     public void readd() {
-        ZunoZap.bm.forEach((s1, s2) -> {
+        bm.forEach((s1, s2) -> {
             MenuItem item = new MenuItem(s1);
-            item.setOnAction((t) -> { ((ZunoZap) ZunoZap.getInstance()).createTab(false, s2); });
-            ZunoZap.menuBook.getItems().add(item);
+            item.setOnAction((t) -> { ZunoAPI.bmct(false, s2); });
+            book.getItems().add(item);
         });
     }
     
     public void refresh() throws IOException {
-        File dat = new File(ZunoZap.homeDir, "bookmarks.dat");
+        ZFile dat = new ZFile("bookmarks.dat", false);
         if (!dat.exists()) dat.createNewFile();
         BufferedWriter bw = new BufferedWriter(new FileWriter(dat.getAbsoluteFile()));
         bw.write("# Bookmark storage data. DO NOT EDIT!");
         bw.newLine();
 
-        ZunoZap.bm.forEach((s1, s2) -> {
+        bm.forEach((s1, s2) -> {
            try {
                bw.write(encode(s1 + "=" + s2, 12));
                bw.newLine();

@@ -2,16 +2,18 @@ package me.isaiah.zunozap;
 
 import java.util.HashMap;
 
-@Deprecated
 public enum EOption {
-    forceHTTPS(1), blockEventCalls(2), createPluginDataFolders(3), useDuckDuckGo(4), offlineStorage(5), JS(6);
+    forceHTTPS, blockEventCalls, createPluginDataFolders, useDuck, offlineStorage, JS;
 
-    private final int i;
     private final static HashMap<Integer, EOption> map = new HashMap<>();
+    private boolean b;
 
-    private EOption(int v) {this.i = v;}
+    private EOption() {this.b = false;}
 
-    public int getId() {return i;}
+    public int getId() {return ordinal() + 1;}
+
+    public boolean get() {return b;}
+    public void set(boolean b) {this.b = b;};
 
     public static EOption getById(int id){ return map.get(id); }
 

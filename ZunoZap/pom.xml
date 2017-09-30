@@ -4,7 +4,7 @@
 
   <groupId>me.isaiah.zunozap</groupId>
   <artifactId>ZunoZap</artifactId>
-  <version>0.3.6-dev</version>
+  <version>0.4.0</version>
 
   <name>ZunoZap</name>
   <url>https://zunozap.github.io/</url>
@@ -30,7 +30,7 @@
                   <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                      <manifestEntries>
                        <Main-Class>
-                         me.isaiah.zunozap.ZunoZap
+                         me.isaiah.zunozap.LibDownload
                        </Main-Class>
                      </manifestEntries>
                    </transformer>
@@ -41,6 +41,13 @@
       </plugin>
     </plugins>
   </build>
+
+  <repositories>
+    <repository>
+        <id>com.teamdev</id>
+        <url>http://maven.teamdev.com/repository/products</url>
+    </repository>
+  </repositories>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -55,9 +62,33 @@
   
   <dependencies>
     <dependency>
-      <groupId>me.isaiah.downloadmanager</groupId>
+      <groupId>me.isaiah.zunozap</groupId>
       <artifactId>DownloadManager</artifactId>
       <version>0.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.teamdev.jxbrowser</groupId>
+      <artifactId>jxbrowser-win</artifactId>
+      <version>6.15</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.teamdev.jxbrowser</groupId>
+      <artifactId>jxbrowser-mac</artifactId>
+      <version>6.15</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.teamdev.jxbrowser</groupId>
+      <artifactId>jxbrowser-linux64</artifactId>
+      <version>6.15</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.teamdev.jxbrowser</groupId>
+      <artifactId>jxbrowser</artifactId>
+      <version>6.15</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 </project>

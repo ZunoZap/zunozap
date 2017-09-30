@@ -19,3 +19,5 @@ zunozaplogo.gif
 /generated-sources/
 /maven-archiver/
 /maven-status/
+/ZunoZap/*.jar
+/DownloadManager/*.jar

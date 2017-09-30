@@ -9,5 +9,6 @@ import java.lang.annotation.Target;
 public @interface Info {
     public String name() default "Unknown";
     public String version() default "Unknown";
+    public String updateURL() default "https://raw.githubusercontent.com/ZunoZap/zunozap/master/LATEST-RELEASE.md";
     public boolean enableGC() default true;
 }

@@ -1,4 +1,3 @@
-/*Default ZunoZap style*/
 .tab-pane *.tab-header-background {
     -fx-outer-border: darkorange;
     -fx-inner-border: darkorange;
@@ -24,20 +23,20 @@
 }
 
 .button {
-	-fx-background-color: transparent;
-	-fx-border: solid;
-	-fx-border-color: teal;
-	-fx-border-radius: 2px;
+    -fx-background-color: transparent;
+    -fx-border: solid;
+    -fx-border-color: teal;
+    -fx-border-radius: 2px;
 }
 
 #urlfield {
-	-fx-background-color: rgba(10,10,10,0.1);
-	-fx-text-fill: white;
-	-fx-border: solid;
-	-fx-border-color: teal;
-	-fx-border-radius: 2px;
+    -fx-background-color: rgba(10,10,10,0.1);
+    -fx-text-fill: white;
+    -fx-border: solid;
+    -fx-border-color: teal;
+    -fx-border-radius: 2px;
 }
 
 #urlbar {
-	-fx-background-color: orange;
+    -fx-background-color: orange;
 }
