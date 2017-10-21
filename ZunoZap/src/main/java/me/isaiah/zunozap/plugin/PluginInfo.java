@@ -16,9 +16,9 @@ public class PluginInfo {
 
     public PluginInfo(){}
 
-    public PluginInfo(String name, String des, String version) {
+    public PluginInfo(String name, String des, String ver) {
         this.name = name;
         this.description = des;
-        this.version = version;
+        this.version = ver;
     }
 }

@@ -13,7 +13,7 @@ import me.isaiah.zunozap.plugin.PluginInfo;
 
 public class PluginManager {
     public ArrayList<PluginBase> plugins = new ArrayList<>();
-    public ArrayList<String> pluginNames = new ArrayList<>();
+    public ArrayList<String> names = new ArrayList<>();
     public PluginClassLoader classLoader;
 
     public void loadPlugins() {
@@ -38,13 +38,13 @@ public class PluginManager {
                     }
                     info.internal_reference = plugin;
                     plugins.add(plugin);
-                    pluginNames.add(info.name);
+                    names.add(info.name);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    System.out.println("Cant load plugin from jar " + f.getName());
+                    System.out.println(f.getName() + " is not a valid plugin.");
                 }
             }
         }
-        System.out.println("Found " + pluginNames.size() + " plugins: " + pluginNames.toString());
+        System.out.println("Found " + names.size() + " plugins: " + names.toString());
     }
 }

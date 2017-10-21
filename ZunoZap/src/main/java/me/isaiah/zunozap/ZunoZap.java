@@ -10,11 +10,8 @@ import java.util.ArrayList;
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.BrowserCore;
 import com.teamdev.jxbrowser.chromium.BrowserPreferences;
-import com.teamdev.jxbrowser.chromium.CertificateErrorParams;
 import com.teamdev.jxbrowser.chromium.DownloadHandler;
 import com.teamdev.jxbrowser.chromium.DownloadItem;
-import com.teamdev.jxbrowser.chromium.LoadHandler;
-import com.teamdev.jxbrowser.chromium.LoadParams;
 import com.teamdev.jxbrowser.chromium.PluginInfo;
 import com.teamdev.jxbrowser.chromium.PopupContainer;
 import com.teamdev.jxbrowser.chromium.PopupHandler;
@@ -44,12 +41,12 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import me.isaiah.zunozap.plugin.PluginBase;
 
-@Info(name="ZunoZap", version="0.4.0")
+@Info(name="ZunoZap", version="0.4.1", enableGC=false)
 public class ZunoZap extends ZunoAPI {
     public static final File home = new File(System.getProperty("user.home"), "zunozap");
     private static final ZFile saveDir = new ZFile("offline-pages"), dataDir = new ZFile("engine"), cssDir = new ZFile("styles"),
             plDir = new ZFile("plugins"), temp = new ZFile("temp");
-    private static MenuBar menuBar;
+    protected static MenuBar menuBar;
     protected final static Menu menuFile = new Menu("File"), menuBook = new Menu("Bookmarks");
     protected static TabPane tb;
     private static StyleManager sm;
@@ -59,7 +56,7 @@ public class ZunoZap extends ZunoAPI {
 
     @Override
     public void init() {
-        if (Environment.isMac()) BrowserCore.initialize(); // On Mac OS X Chromium engine must be initialized in non-UI thread.
+        if (Environment.isMac()) BrowserCore.initialize();
         super.init();
     }
 
@@ -100,7 +97,7 @@ public class ZunoZap extends ZunoAPI {
         bmread.refresh();
         this.stage = stage;
 
-        mkDirIfNotExist(home, saveDir, temp, cssDir);
+        mkDirs(home, saveDir, temp, cssDir);
 
         stage.getIcons().add(new Image(ZunoZap.class.getClassLoader().getResourceAsStream("zunozaplogo.gif")));
         tb.setPrefSize(1365, 768);
@@ -108,6 +105,7 @@ public class ZunoZap extends ZunoAPI {
         /* Setup tabs */
         Tab newtab = new Tab(" + ");
         newtab.setClosable(false);
+        newtab.setId("createtab");
         tb.getTabs().add(newtab);
         createTab(true);
 
@@ -125,11 +123,6 @@ public class ZunoZap extends ZunoAPI {
 
         p.loadPlugins();
         getHooks().onStart(stage, scene, tb);
-    }
-
-    public final void createTab(boolean isStart) {
-        if (EOption.useDuck.get()) createTab(isStart, "https://start.duckduckgo.com/");
-        else createTab(isStart, "https://google.com/");
     }
 
     @Override
@@ -193,7 +186,7 @@ public class ZunoZap extends ZunoAPI {
         VBox.setVgrow(web, Priority.ALWAYS);
         vBox.autosize();
 
-        engine.getPreferences().setJavaScriptEnabled(EOption.JS.get());
+        engine.getPreferences().setJavaScriptEnabled(EOption.JS.b);
         engine.setUserAgent(engine.getUserAgent() + " ZunoZap/" + getInfo().version());
 
         if (load) {
@@ -234,27 +227,23 @@ public class ZunoZap extends ZunoAPI {
                     }};
             }
         });
-        engine.setLoadHandler(new LoadHandler() {
-            @Override public boolean onCertificateError(CertificateErrorParams cp) { return false; }
 
-            @Override
-            public boolean onLoad(LoadParams lp) {
-                ZunoZap.this.changed(engine, urlField, tab, urlField.getText(), lp.getURL(), bkmark);
-                return false;
-            }
-        });
         engine.addLoadListener(new LoadLis() {
-
-            @Override
-            public void onFinishLoadingFrame(FinishLoadingEvent arg0) {
+            @Override public void onFinishLoadingFrame(FinishLoadingEvent e) {
+                String url = e.getBrowser().getURL();
                 Platform.runLater(() -> {
                     tab.setText(engine.getTitle());
                     String title = (engine.getTitle() != null ? engine.getTitle() : engine.getURL());
                     if (bmread.bm.containsKey(title)) bkmark.setText("Unbookmark");
+                    ZunoZap.this.changed(engine, urlField, tab, urlField.getText(), url, bkmark);
                 });
-                if (EOption.offlineStorage.get()) new Thread(() -> engine.saveWebPage(engine.getURL(), saveDir.getPath(), SavePageType.COMPLETE_HTML)).start();
+                File s = new File(saveDir, url.replaceAll("[ : / . ? ]", "-"));
+                s.mkdir();
+                if (EOption.offlineStorage.b && !url.contains("mail")) new Thread(() -> {
+                    ZunoAPI.DownloadPage(saveDir, temp, url, false);
+                    engine.saveWebPage(url.replaceAll("[ : / . ? ]", "-"), s.getPath(), SavePageType.COMPLETE_HTML);
+                }).start();
             }
-            
         });
     }
 
@@ -278,8 +267,8 @@ public class ZunoZap extends ZunoAPI {
             }
         }
 
-        engine.getPreferences().setJavaScriptEnabled(EOption.JS.get());
-        engine.getPreferences().setPluginsEnabled(!EOption.blockEventCalls.get());
+        engine.getPreferences().setJavaScriptEnabled(EOption.JS.b);
+        engine.getPreferences().setPluginsEnabled(!EOption.blockEventCalls.b);
 
         if (isUrlDownload(newUrl)) {
             new Download(newUrl.replace("?zunozapforcedownload", ""));
@@ -319,7 +308,7 @@ public class ZunoZap extends ZunoAPI {
             Browser b = new Browser();
             BrowserView v = new BrowserView(b);
             b.setUserAgent(b.getUserAgent() + " ZunoZap/" + getInfo().version());
-            b.getPreferences().setJavaScriptEnabled(EOption.JS.get());
+            b.getPreferences().setJavaScriptEnabled(EOption.JS.b);
             b.loadHTML(String.format(aboutPageHTML(), "ZunoZap", b.getUserAgent(), b.getPreferences().isJavaScriptEnabled(), "ZunoZap/zunozap/master/LICENCE", "LGPLv3") + getPluginNames() 
             + getJxPluginNames(b) + "<br><b>Note:</b> ZunoZap uses the Chromium engine provided by <a href='https://www.teamdev.com/jxbrowser'>JxBrowser</a> by <a href='https://www.teamdev.com/'>TeamDev Ltd.</a>");
             t.setContent(v);
@@ -338,22 +327,19 @@ public class ZunoZap extends ZunoAPI {
 
     public final void loadSite(String url, Browser e) {
         if (url.startsWith("zunozap:")) {
-            if (url.substring(8).startsWith("update")) e.loadURL(updateCheck());
-            else if (url.substring(8).startsWith("home")) e.loadURL("https://zunozap.github.io/");
+            if (url.substring(8).startsWith("home")) e.loadURL("https://zunozap.github.io/");
             else if (url.substring(8).startsWith("start")) e.loadURL("https://zunozap.github.io/pages/startpage.html");
 
             return;
         }
 
         if ((url.replaceAll("[ . ]", "").equalsIgnoreCase(url.replaceAll(" ", "")))) {
-            if (!EOption.useDuck.get()) e.loadURL("https://google.com/search?q=" + url.replace(" ", "%20"));
-            else e.loadURL("https://duckduckgo.com/?q=" + url.replace(" ", "%20")); 
+            e.loadURL("https://" + (EOption.useDuck.b ? "duckduckgo.com/" : "google.com/search") + "?q=" + url.replace(" ", "%20"));
 
             return;
         }
 
-        if (EOption.forceHTTPS.get()) e.loadURL(url.startsWith("http") ? url : "https://" + url);
-        else e.loadURL(url.startsWith("http") ? url : "http://" + url);
+        e.loadURL(url.startsWith("http") ? url : "http" + (EOption.forceHTTPS.b ? "s://" : "://") + url);
     }
 
     public static final String getJxPluginNames(Browser b) {
@@ -364,7 +350,7 @@ public class ZunoZap extends ZunoAPI {
                 names.add(info.getName() + " " + info.getVersion());
             else size--;
         }
-        return size != 0 ? "<br>Chromium plugins (" + size + "): " + String.valueOf(names).replace("[", "").replace("]", "")
+        return size != 0 ? "<br>Chromium plugins (" + size + "): " + names.toString().substring(1).replace("]", "")
                 : "<br>No installed Chromium plugins.";
     }
 }

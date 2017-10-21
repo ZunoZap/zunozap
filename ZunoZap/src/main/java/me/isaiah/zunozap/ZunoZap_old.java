@@ -73,7 +73,7 @@ public class ZunoZap_old extends ZunoAPI {
         bmread = new Reader(menuBook);
         bmread.refresh();
 
-        mkDirIfNotExist(home, saveDir, temp, cssDir);
+        mkDirs(home, saveDir, temp, cssDir);
 
         stage.getIcons().add(new Image(ZunoZap.class.getClassLoader().getResourceAsStream("zunozaplogo.gif")));
         tb.setPrefSize(1365, 768);
@@ -98,11 +98,6 @@ public class ZunoZap_old extends ZunoAPI {
 
         p.loadPlugins();
         if (allowPluginEvents()) for (PluginBase pl : p.plugins) pl.onLoad(stage, scene, tb);
-    }
-
-    public final void createTab(boolean isStart) {
-        if (EOption.useDuck.get()) createTab(isStart, "https://start.duckduckgo.com/");
-        else createTab(isStart, "https://google.com/");
     }
 
     @Override
@@ -165,7 +160,7 @@ public class ZunoZap_old extends ZunoAPI {
 
         engine.setUserDataDirectory(dataDir);
         setUserAgent(engine);
-        engine.javaScriptEnabledProperty().set(EOption.JS.get());
+        engine.javaScriptEnabledProperty().set(EOption.JS.b);
 
         if (isStartTab) engine.load("https://zunozap.github.io/pages/startpage.html");
         else loadSite(url, engine);
@@ -239,7 +234,7 @@ public class ZunoZap_old extends ZunoAPI {
             return;
         }
 
-        engine.javaScriptEnabledProperty().set(EOption.JS.get());
+        engine.javaScriptEnabledProperty().set(EOption.JS.b);
 
         if (isUrlDownload(newUrl)) {
             new Download(newUrl.replace("?zunozapforcedownload", ""));
@@ -276,27 +271,27 @@ public class ZunoZap_old extends ZunoAPI {
             }
         }
 
-        if (EOption.offlineStorage.get()) new Thread(() -> DownloadPage(saveDir, temp, engine)).start();
+        if (EOption.offlineStorage.b) new Thread(() -> DownloadPage(saveDir, temp, engine.getLocation(), true)).start();
     }
 
     public final void regMenuItems() {
-        MenuItem clear = new MenuItem("Clear all offline data."), aboutPage = new MenuItem("About ZunoZap v" + getInfo().version());
+        MenuItem clear = new MenuItem("Clear offline data"), about = new MenuItem("About ZunoZap " + getInfo().version());
         MenuItem settings = new MenuItem("Settings"), update = new MenuItem("Check for Update");
 
         clear.setOnAction((t) -> { deleteFolders(temp,saveDir); });
         settings.setOnAction((t) -> { new OptionMenu(); });
         update.setOnAction((t) -> { say(updateCheck()); });
 
-        aboutPage.setOnAction((t) -> {
-            Tab about = new Tab("About");
+        about.setOnAction((a) -> {
+            Tab t = new Tab("About");
             WebView w = new WebView();
             WebEngine e = w.getEngine();
             setUserAgent(w.getEngine());
-            e.javaScriptEnabledProperty().set(EOption.JS.get());
+            e.javaScriptEnabledProperty().set(EOption.JS.b);
             e.loadContent(String.format(aboutPageHTML(), "ZunoZap", e.getUserAgent(), e.javaScriptEnabledProperty().get(), "ZunoZap/zunozap/master/LICENCE", "LGPLv3") + getPluginNames());
-            about.setContent(w);
-            tb.getTabs().add(tb.getTabs().size() - 1, about);
-            tb.getSelectionModel().select(about);
+            t.setContent(w);
+            tb.getTabs().add(tb.getTabs().size() - 1, t);
+            tb.getSelectionModel().select(t);
         });
 
         bmread.bm.forEach((s1, s2) -> {
@@ -304,6 +299,6 @@ public class ZunoZap_old extends ZunoAPI {
             it.setOnAction((t) -> { createTab(false, s2); });
             menuBook.getItems().add(it);
         });
-        menuFile.getItems().addAll(clear, aboutPage, update, settings);
+        menuFile.getItems().addAll(clear, about, update, settings);
     }
 }

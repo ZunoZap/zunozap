@@ -1,48 +1,37 @@
 package me.isaiah.zunozap;
 
 import java.io.File;
-import java.io.IOException;
 
 public class ZFile extends File {
     private static final long serialVersionUID = 1L;
-    private static File homeDir = new File(System.getProperty("user.home"), "ZunoZap");
+    private static File h = new File(System.getProperty("user.home"), "ZunoZap");
     private boolean isDir;
 
-    public ZFile(String child) {
-        super(homeDir, child);
-        this.isDir = true;
-        mkIfNotExist();
+    public ZFile(String ch) {
+        this(ch, true);
     }
 
-    public ZFile(String child, boolean isDir) {
-        super(homeDir, child);
-        this.isDir = isDir;
-        mkIfNotExist();
+    public ZFile(String ch, boolean dir) {
+        super(h, ch);
+        this.isDir = dir;
+        mk();
     }
 
-    @Override
-    public File getParentFile() {
-        mkIfNotExist();
-        return homeDir;
+    @Override public File getParentFile() {
+        return h;
     }
 
-    @Override
-    public String getParent() {
-        mkIfNotExist();
-        return homeDir.getPath();
+    @Override public String getParent() {
+        return h.getPath();
     }
 
-    @Override
-    public boolean isDirectory() {
+    @Override public boolean isDirectory() {
         return isDir;
     }
 
-    public boolean mkIfNotExist() {
-        if (!exists()) {
-            if (isDir) return mkdirs();
+    public boolean mk() {
+        if (isDir) return mkdirs();
 
-            try { return createNewFile(); } catch (IOException e) { return false; }
-        }
-        return false;
+        try { return createNewFile(); } catch (java.io.IOException e) { return false; }
     }
 }

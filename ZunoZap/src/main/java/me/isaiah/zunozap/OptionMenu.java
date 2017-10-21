@@ -27,7 +27,7 @@ public class OptionMenu implements ActionListener {
     private static ZunoProperties p = new ZunoProperties();
     private int i = 1;
     private JButton odf = new JButton("Open data folder");
-    private JButton jbtn = new JButton("Apply settings");
+    private JButton aps = new JButton("Apply settings");
     public static JFrame f;
     public static JPanel panel;
 
@@ -42,15 +42,15 @@ public class OptionMenu implements ActionListener {
         p.load(s);
         addDefaults();
 
-        EOption.forceHTTPS.set(p.get("forceHTTPS"));
-        EOption.blockEventCalls.set(p.get("blockEventCalls"));
-        EOption.createPluginDataFolders.set(p.get("createPluginDataFolders"));
-        EOption.useDuck.set(p.get("onTheDuckSide"));
-        EOption.offlineStorage.set(p.get("offlineStorage"));
-        EOption.JS.set(p.get("javascript"));
+        EOption.forceHTTPS.b = p.get("forceHTTPS");
+        EOption.blockEventCalls.b = p.get("blockEventCalls");
+        EOption.createPluginDataFolders.b = p.get("createPluginDataFolders");
+        EOption.useDuck.b = p.get("onTheDuckSide");
+        EOption.offlineStorage.b = p.get("offlineStorage");
+        EOption.JS.b = p.get("javascript");
 
-        ZunoAPI.styleName = String.valueOf(p.getString("style"));
-        ZunoAPI.stylesheet = new File(String.valueOf(p.getString("stylefile")));
+        ZunoAPI.styleName = String.valueOf(p.getStr("style"));
+        ZunoAPI.stylesheet = new File(String.valueOf(p.getStr("stylefile")));
 
         s.close();
     }
@@ -66,52 +66,50 @@ public class OptionMenu implements ActionListener {
 
         addDefaults();
 
-        EOption.forceHTTPS.set(p.get("forceHTTPS"));
-        EOption.blockEventCalls.set(p.get("blockEventCalls"));
-        EOption.createPluginDataFolders.set(p.get("createPluginDataFolders"));
-        EOption.useDuck.set(p.get("onTheDuckSide"));
-        EOption.offlineStorage.set(p.get("offlineStorage"));
-        EOption.JS.set(p.get("javascript"));
+        EOption.forceHTTPS.b = p.get("forceHTTPS");
+        EOption.blockEventCalls.b = p.get("blockEventCalls");
+        EOption.createPluginDataFolders.b = p.get("createPluginDataFolders");
+        EOption.useDuck.b = p.get("onTheDuckSide");
+        EOption.offlineStorage.b = p.get("offlineStorage");
+        EOption.JS.b = p.get("javascript");
 
-        p.store(new FileOutputStream(settings), "ZunoZap Settings");
+        p.store(new FileOutputStream(settings), "settings");
 
         i = 1; // Reset.
-        addCheckBox("Force HTTPS", EOption.forceHTTPS.get());
-        addCheckBox("Block event calls", EOption.blockEventCalls.get());
-        addCheckBox("Create plugin folders", EOption.createPluginDataFolders.get());
-        addCheckBox("Use DuckDuckGo", EOption.useDuck.get());
-        addCheckBox("Download websites for offline browsing", EOption.offlineStorage.get());
-        addCheckBox("Javascript", EOption.JS.get());
+        addCheckBox("Force HTTPS", EOption.forceHTTPS.b);
+        addCheckBox("Block event calls", EOption.blockEventCalls.b);
+        addCheckBox("Create plugin folders", EOption.createPluginDataFolders.b);
+        addCheckBox("Use DuckDuckGo", EOption.useDuck.b);
+        addCheckBox("Download websites for offline browsing", EOption.offlineStorage.b);
+        addCheckBox("Javascript", EOption.JS.b);
 
-        jbtn.setEnabled(true);
-        jbtn.addActionListener((a) -> { try { save(); } catch (IOException e) { e.printStackTrace(); }});
+        aps.setEnabled(true);
+        aps.addActionListener((a) -> { try { save(); } catch (IOException e) { e.printStackTrace(); }});
 
         odf.setEnabled(true);
         odf.addActionListener((a) -> {
-            try {
-                Desktop.getDesktop().open(ZunoAPI.home);
-            } catch (IOException e) { e.printStackTrace(); }
+            try { Desktop.getDesktop().open(ZunoAPI.home); } catch (IOException e) { e.printStackTrace(); }
         });
-        JTextField text = new JTextField("Style:");
-        text.setEditable(false);
+        JTextField t = new JTextField("Style:");
+        t.setEditable(false);
         panel.setBorder(new EmptyBorder(2, 10, 2, 2));
-        text.setBorder(new EmptyBorder(0, 0, 0, 0));
-        text.setMargin(new Insets(20, 0, 0, 0));
-        text.setMaximumSize(new Dimension(50, 25));
-        JComboBox<Object> style = new JComboBox<>(StyleManager.staticGetStyles().keySet().toArray());
+        t.setBorder(new EmptyBorder(0, 0, 0, 0));
+        t.setMargin(new Insets(20, 0, 0, 0));
+        t.setMaximumSize(new Dimension(50, 25));
+        JComboBox<Object> style = new JComboBox<>(StyleManager.b.keySet().toArray());
         style.setSelectedItem(ZunoAPI.styleName);
         style.setMaximumSize(new Dimension(150, 20));
         style.addActionListener(this);
 
-        JTextField text2 = new JTextField();
-        text2.setEditable(false);
-        text2.setBorder(new EmptyBorder(0, 0, 0, 0));
-        text2.setMaximumSize(new Dimension(10, 20));
-        panel.add(text);
+        JTextField t2 = new JTextField();
+        t2.setEditable(false);
+        t2.setBorder(new EmptyBorder(0, 0, 0, 0));
+        t2.setMaximumSize(new Dimension(10, 20));
+        panel.add(t);
         panel.add(style);
-        panel.add(text2);
+        panel.add(t2);
         panel.add(odf);
-        panel.add(jbtn);
+        panel.add(aps);
 
         s.close();
         f.setDefaultCloseOperation(2);
@@ -132,32 +130,31 @@ public class OptionMenu implements ActionListener {
 
     private void addCheckBox(String text, boolean b) {
         final int it = i;
-        final JCheckBox box = new JCheckBox(text);
+        JCheckBox box = new JCheckBox(text);
         box.setSelected(b);
         box.setName(String.valueOf(i));
         box.addActionListener((a) -> {
-            EOption.getById(it).set(box.isSelected());
+            EOption.getById(it).b = box.isSelected();
             try { save(); } catch (IOException e) { e.printStackTrace(); }
         });
-       CBlist.add(i);
-       panel.add(box);
-       i++;
+        CBlist.add(i);
+        panel.add(box);
+        i++;
     }
 
-    @Deprecated
-    public static void save() throws IOException { save(true); }
+    @Deprecated public static void save() throws IOException { save(true); }
 
     public static void save(boolean all) throws IOException {
         settings.createNewFile();
         ZunoProperties p = new ZunoProperties();
         FileInputStream s = new FileInputStream(settings);
         p.load(s);
-        p.set("forceHTTPS", EOption.forceHTTPS.get());
-        p.set("blockEventCalls", EOption.blockEventCalls.get());
-        p.set("createPluginDataFolders", EOption.createPluginDataFolders.get());
-        p.set("onTheDuckSide", EOption.useDuck.get());
-        p.set("offlineStorage", EOption.offlineStorage.get());
-        p.set("javascript", EOption.JS.get());
+        p.set("forceHTTPS", EOption.forceHTTPS.b);
+        p.set("blockEventCalls", EOption.blockEventCalls.b);
+        p.set("createPluginDataFolders", EOption.createPluginDataFolders.b);
+        p.set("onTheDuckSide", EOption.useDuck.b);
+        p.set("offlineStorage", EOption.offlineStorage.b);
+        p.set("javascript", EOption.JS.b);
         if (all) {
             p.setProperty("style", ZunoAPI.styleName);
             p.setProperty("stylefile", ZunoAPI.stylesheet.getAbsolutePath());
@@ -180,15 +177,16 @@ public class OptionMenu implements ActionListener {
     }
 
     @SuppressWarnings("unchecked")
-    @Override public void actionPerformed(ActionEvent e) {
-        String name = (String) ((JComboBox<String>) e.getSource()).getSelectedItem();
-        ZunoAPI.stylesheet = StyleManager.staticGetStyles().get(name);
+    @Override public void actionPerformed(ActionEvent a) {
+        String name = (String) ((JComboBox<String>) a.getSource()).getSelectedItem();
+        ZunoAPI.stylesheet = StyleManager.b.get(name);
         ZunoAPI.styleName = name;
         StyleManager.staticGetScene().getStylesheets().clear();
         try {
             StyleManager.staticGetScene().getStylesheets().add(StyleManager.b.get(name).toURI().toURL().toExternalForm());
-        } catch (MalformedURLException e1) { e1.printStackTrace(); }
-        System.out.println("[StyleManager]: style changed to " + name);
-        try { save(); } catch (IOException e1) { e1.printStackTrace(); }
+        } catch (MalformedURLException e) { e.printStackTrace(); }
+
+        System.out.println("[StyleManager]: Style changed to " + name);
+        try { save(); } catch (IOException e) { e.printStackTrace(); }
     }
 }

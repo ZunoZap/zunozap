@@ -23,25 +23,18 @@ final class PluginClassLoader extends URLClassLoader {
             Class<?> jarClass;
             try {
                 jarClass = Class.forName(name, true, this);
-            } catch (ClassNotFoundException e) {
-                throw new Exception("Cannot find main class '" + name + "'", e);
-            }
+            } catch (ClassNotFoundException e) { throw new Exception("Cannot find main class '" + name + "'", e); }
 
             Class<? extends PluginBase> pluginClass;
             try {
                 pluginClass = jarClass.asSubclass(PluginBase.class);
-            } catch (ClassCastException e) {
-                throw new Exception("main class '" + name + "' does not extend PluginBase", e);
-            }
+            } catch (ClassCastException e) { throw new Exception("main class '" + name + "' does not extend PluginBase", e); }
 
             plugin = pluginClass.newInstance();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
-    @Override
-    protected Class<?> findClass(String name) throws ClassNotFoundException {
+    @Override protected Class<?> findClass(String name) throws ClassNotFoundException {
         return findClass(name, true);
     }
 

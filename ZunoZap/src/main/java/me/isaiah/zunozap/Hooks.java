@@ -14,12 +14,10 @@ import me.isaiah.zunozap.plugin.manager.PluginManager;
 
 public class Hooks {
     private PluginManager p;
-    public Hooks(PluginManager p) {
-        this.p = p;
-    }
+    public Hooks(PluginManager p) { this.p = p; }
 
-    public void onStart(Stage stage, Scene scene, TabPane tb) {
-        if (a()) for (PluginBase pl : p.plugins) pl.onLoad(stage, scene, tb);
+    public void onStart(Stage st, Scene sc, TabPane tb) {
+        if (a()) for (PluginBase pl : p.plugins) pl.onLoad(st, sc, tb);
     }
 
     public void onUrlChange(Browser b, TextField field, String old, String newURL) {

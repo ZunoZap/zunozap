@@ -14,17 +14,13 @@ public final class PluginLoader {
     Class<?> getClassByName(final String name) {
         Class<?> cachedClass = classes.get(name);
 
-        if (cachedClass != null) {
-            return cachedClass;
-        } else {
+        if (cachedClass != null) return cachedClass;
+        else {
             for (String current : loaders.keySet()) {
                 PluginClassLoader loader = loaders.get(current);
 
-                try {
-                    cachedClass = loader.findClass(name, false);
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
+                try { cachedClass = loader.findClass(name, false); } catch (ClassNotFoundException e) { e.printStackTrace(); }
+
                 if (cachedClass != null) return cachedClass;
             }
         }

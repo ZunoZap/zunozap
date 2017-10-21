@@ -95,13 +95,13 @@ public abstract class ZunoAPI extends Application {
         }
 
         if ((url.replaceAll("[ . ]", "").equalsIgnoreCase(url.replaceAll(" ", "")))) {
-            if (!EOption.useDuck.get()) e.load("https://google.com/search?q=" + url.replace(" ", "%20"));
+            if (!EOption.useDuck.b) e.load("https://google.com/search?q=" + url.replace(" ", "%20"));
             else e.load("https://duckduckgo.com/?q=" + url.replace(" ", "%20")); 
 
             return;
         }
 
-        if (EOption.forceHTTPS.get()) e.load(url.startsWith("http") ? url : "https://" + url);
+        if (EOption.forceHTTPS.b) e.load(url.startsWith("http") ? url : "https://" + url);
         else e.load(url.startsWith("http") ? url : "http://" + url);
     }
 
@@ -117,19 +117,19 @@ public abstract class ZunoAPI extends Application {
         } catch (IOException e){return null;}
     }
 
-    public static void DownloadPage(File dp, File temp, WebEngine w) {
+    public static void DownloadPage(File dp, File temp, String loc, boolean all) {
         try {
             String regex = "[ : / . ? ]";
-            File html = new File(temp, w.getLocation().replaceAll(regex, "-").trim() + ".html");
+            File html = new File(temp, loc.replaceAll(regex, "-").trim() + ".html");
 
-            String toWrite = getUrlSource(w.getLocation().trim());
+            String toWrite = getUrlSource(loc.trim());
             Files.write(Paths.get(html.toURI()), toWrite.getBytes());
-            System.out.println("Downloaded " + w.getLocation());
+            System.out.println("Downloaded " + loc);
             if (html.length() > 2) {
-                File hsdp = new File(new File(dp, w.getLocation().replaceAll(regex, "-").trim()), w.getLocation().replaceAll(regex, "-").trim() + ".html");
+                File hsdp = new File(new File(dp, loc.replaceAll(regex, "-").trim()), loc.replaceAll(regex, "-").trim() + ".html");
                 if (!hsdp.getParentFile().exists()) hsdp.getParentFile().mkdirs();
                 hsdp.delete();
-                downloadAssetsFromPage(w.getLocation().trim(), hsdp.getParentFile());
+                if (all) downloadAssetsFromPage(loc.trim(), hsdp.getParentFile());
                 if (hsdp.exists()) hsdp.delete();
                 Files.move(Paths.get(html.toURI()), Paths.get(hsdp.toURI()), StandardCopyOption.REPLACE_EXISTING);
             } else html.delete();
@@ -139,16 +139,12 @@ public abstract class ZunoAPI extends Application {
     }
 
     public static void downloadAssetsFromPage(String site, File folder) {
-        runTask(() -> {
-                try {
-                    downloadAssetsFromPage0(site,folder);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+        run(() -> {
+            try { downloadAssetsFromPage0(site, folder); } catch (IOException e) { e.printStackTrace(); }
+        });
     }
 
-    public static void runTask(Runnable run) {
+    public static void run(Runnable run) {
         (new Thread(() -> { (new Thread(run)).start(); })).start();
     }
 
@@ -167,15 +163,15 @@ public abstract class ZunoAPI extends Application {
         parser.parse(br, callback, true);
 
         for (HTMLDocument.Iterator iterator = htmlDoc.getIterator(HTML.Tag.IMG); iterator.isValid(); iterator.next()) {
-            String imgSrc = (String) iterator.getAttributes().getAttribute(HTML.Attribute.SRC);
-            if (imgSrc != null) downloadImage(site, imgSrc, folder);
-            else System.out.println("Did not download: " + imgSrc);
+            String src = (String) iterator.getAttributes().getAttribute(HTML.Attribute.SRC);
+            if (src != null) downloadImage(site, src, folder);
+            else System.err.println("Source is null: " + src);
         }
         
         for (HTMLDocument.Iterator iterator = htmlDoc.getIterator(HTML.Tag.LINK); iterator.isValid(); iterator.next()) {
             String src = (String) iterator.getAttributes().getAttribute(HTML.Attribute.HREF);
             if (src != null) downloadAsset(site, src, folder);
-            else System.out.println("Source is null! " + src);
+            else System.err.println("Source is null: " + src);
         }
     }
 
@@ -211,8 +207,8 @@ public abstract class ZunoAPI extends Application {
             else site = src;
 
             File file = new File(folder, src);
-            if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
-            if (!file.exists()) file.createNewFile();
+            file.getParentFile().mkdirs();
+            file.createNewFile();
             Files.write(Paths.get(file.toURI()), getUrlSource(url).getBytes());
         } catch (IOException e) { e.printStackTrace(); }
     }
@@ -268,13 +264,12 @@ public abstract class ZunoAPI extends Application {
         return null;
     }
 
-    public static void exportResource(String res, File folder) throws IOException {
+    public static void exportResource(String res, File folder) {
         try (InputStream stream = ZunoAPI.class.getClassLoader().getResourceAsStream(res)) {
-            if (stream == null) throw new IOException("Cannot get file " + res + " from Jar file.");
+            if (stream == null) throw new IOException("Cannot get file " + res + " from jar.");
 
-            System.out.println("Exporting resource " + res + " to folder " + folder.getAbsolutePath());
             Files.copy(stream, Paths.get(folder.getAbsolutePath() + File.separator + res), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) { throw e; }
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
     private String formatSize(long v) {
@@ -313,18 +308,19 @@ public abstract class ZunoAPI extends Application {
 
     public static void printGCSavedRam() {
         double total = totalRamGCsaved;
-        if (total > 1024) System.out.println("[GC]: Total saved RAM: " + Math.floor((total / 1024) * 10 + 0.5) / 10 + " GB");
-        else System.out.println("[GC]: Total saved RAM: " + Math.floor(total * 10 + 0.5) / 10 + " MB");
+
+        System.out.println("[GC]: Total saved: " + (total > 1024 ? Math.floor((total / 1024) * 10 + 0.5) / 10 + " GB" 
+                : Math.floor(total * 10 + 0.5) / 10 + " MB"));
     }
 
     public static final String getPluginNames() {
         int size = p.plugins.size();
-        return size != 0 ? "Plugins [" + size + "]:" + String.valueOf(p.pluginNames).replace("[", "").replace("]", "")
+        return size != 0 ? "Plugins [" + size + "]:" + String.valueOf(p.names).replace("[", "").replace("]", "")
                 : "No Installed Plugins.";
     }
 
     public final boolean allowPluginEvents() {
-        return p.plugins.size() != 0 && !EOption.blockEventCalls.get();
+        return p.plugins.size() > 0 && !EOption.blockEventCalls.b;
     }
 
     public boolean isHTTPSRedirect(URL old, URL newu) {
@@ -359,14 +355,11 @@ public abstract class ZunoAPI extends Application {
             say("Unable to download addon. " + e.getMessage());
             return;
         }
-        if (theme) say("Downloaded theme");
-        else say("Downloaded plugin\nRestart is required to enable plugin.");
-
-        return;
+        say("Downloaded " + (theme ? "theme" : "plugin\nRestart is required to enable."));
     }
 
-    public void mkDirIfNotExist(File... fs) {
-        for (File f : fs) if (!f.exists()) f.mkdir();
+    public void mkDirs(File... fs) {
+        for (File f : fs) f.mkdir();
     }
 
     public static String updateCheck() {
@@ -377,20 +370,22 @@ public abstract class ZunoAPI extends Application {
             line = r.readLine().trim();
             r.close();
         } catch (IOException e) {
-            e.printStackTrace();
-            return "Error fetching update infomation: " + e;
+            return "error: " + e;
         }
 
         if (line.equalsIgnoreCase(i.version())) return "You are running the latest version";
         if (i.version().toLowerCase().endsWith("dev")) return "Your using a snapshot build of " + i.name();
 
-        return i.name() + " is outdated!\nIt is recommended that you update to the latest version\n";
+        return "You are outdated!\nIt is recommended that you update to the latest version";
+    }
+
+    public final void createTab(boolean isStart) {
+        createTab(isStart, EOption.useDuck.b ? "https://start.duckduckgo.com" : "https://google.com/");
     }
 
     public abstract void start(Stage stage, Scene scene, StackPane root, BorderPane pane) throws Exception;
-
     public abstract void createTab(boolean b, String s2);
-    
+
     public static void bmct(boolean b, String s2) {
         getInstance().createTab(b,s2);
     }

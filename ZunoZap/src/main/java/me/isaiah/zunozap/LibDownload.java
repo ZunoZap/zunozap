@@ -23,7 +23,7 @@ import me.isaiah.downloadmanager.Download;
  * Download JxBrowser libraries for operating system.
  */
 public class LibDownload {
-    private static String ver = "6.15";
+    private static String ver = "6.16";
     private static File lib = new File(ZunoAPI.home, "libs");
     public static void main(String[] args) throws MalformedURLException {
         lib.mkdirs();
@@ -44,6 +44,8 @@ public class LibDownload {
                 ZunoZap.main(args);
             } catch (IOException e) { e.printStackTrace(); }
             return;
+        } else {
+            if (lib.listFiles() != null && lib.listFiles().length > 0) for (File fi : lib.listFiles()) fi.delete();
         }
         Download smalljar = new Download(new URL("http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/jxbrowser/" + ver + "/jxbrowser-" + ver + ".jar"), lib);
         Download d = new Download(new URL(getJarName()), lib);
@@ -99,15 +101,16 @@ public class LibDownload {
     }
 
     private static String getJarName() {
+        String base = "http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/";
         switch (getOS()) {
             case WINDOWS:
-                return "http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/jxbrowser-win/" + ver + "/jxbrowser-win-" + ver + ".jar";
+                return base + "jxbrowser-win/" + ver + "/jxbrowser-win-" + ver + ".jar";
             case LINUX:
-                return "http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/jxbrowser-linux64/" + ver + "/jxbrowser-linux64-" + ver + ".jar";
+                return base + "jxbrowser-linux64/" + ver + "/jxbrowser-linux64-" + ver + ".jar";
             case MAC:
-                return "http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/jxbrowser-mac/" + ver + "/jxbrowser-mac-" + ver + ".jar";
+                return base + "jxbrowser-mac/" + ver + "/jxbrowser-mac-" + ver + ".jar";
             default:
-                return "http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/jxbrowser-win/" + ver + "/jxbrowser-win-" + ver + ".jar";
+                return base + "jxbrowser-win/" + ver + "/jxbrowser-win-" + ver + ".jar";
         }
     }
 
@@ -119,15 +122,13 @@ public class LibDownload {
             Method method = sysclass.getDeclaredMethod("addURL", URL.class);
             method.setAccessible(true);
             method.invoke(sysloader, u);
-        } catch (Throwable t) {
-            throw new IOException("Error, could not add URL to system classloader");
-        }
+        } catch (Throwable t) { throw new IOException("Could not add URL to system classloader"); }
     }
 
     private static OS getOS() {
-        String os = System.getProperty("os.name");
-        if (os.toLowerCase().startsWith("windows")) return OS.WINDOWS;
-        if (os.toLowerCase().startsWith("mac")) return OS.MAC;
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.startsWith("windows")) return OS.WINDOWS;
+        if (os.startsWith("mac")) return OS.MAC;
 
         return OS.LINUX;
     }

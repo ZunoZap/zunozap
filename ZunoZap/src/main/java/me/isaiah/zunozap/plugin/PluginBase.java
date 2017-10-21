@@ -42,32 +42,30 @@ public abstract class PluginBase {
     /**
      * Called when the page URL changes
      * 
-     * @param webEngine - Java 8's WebEngine.
-     * @param urlField - the address field.
-     * @param oldURL - URL changing from.
+     * @param engine - Java 8's WebEngine.
+     * @param field - the address field.
+     * @param old - URL changing from.
      * @param newURL - URL changing to.
      * 
-     * @deprecated ZunoZap 0.3.6+ uses the Chromium engine instead of JavaFX
+     * @deprecated ZunoZap 0.4.0+ uses the Chromium engine instead of JavaFX
      */
     @Deprecated
-    public void onURLChange(WebEngine webEngine, TextField urlField, URL oldURL, URL newURL){/**/}
+    public void onURLChange(WebEngine engine, TextField field, URL old, URL newURL){/**/}
 
     /**
      * Called when a pop-up pops up.
      * 
-     * @param badPopup
-     *            - true if the pop-up set off the build-in anti-virus alarm,
-     *            false otherwise.
+     * @param bad - true if the pop-up set off the build-in anti-virus alarm, false otherwise.
      */
-    public void onPopup(boolean badPopup){/**/}
+    public void onPopup(boolean bad){/**/}
 
     /**
      * Called when the page URL changes
      * 
-     * @param engine - Chromium engine.
+     * @param e - Chromium engine.
      * @param urlField - the address field.
-     * @param oldURL - URL changing from.
+     * @param old - URL changing from.
      * @param newURL - URL changing to.
      */
-    public void onURLChange(Browser engine, TextField field, Object oldURL, URL newURL) {/**/}
+    public void onURLChange(Browser e, TextField field, Object old, URL newURL) {/**/}
 }

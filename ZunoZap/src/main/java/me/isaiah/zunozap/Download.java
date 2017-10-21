@@ -3,11 +3,11 @@ package me.isaiah.zunozap;
 import me.isaiah.downloadmanager.DownloadManager;
 
 public class Download {
-    private DownloadManager instance = null;
+    private DownloadManager dm = null;
     public Download(String url) {
-        if (instance == null) instance = new DownloadManager();
+        if (dm == null) dm = new DownloadManager();
 
-        instance.addDownload(url);
-        instance.setVisible(true);
+        dm.addDownload(url);
+        dm.setVisible(true);
     }
 }
