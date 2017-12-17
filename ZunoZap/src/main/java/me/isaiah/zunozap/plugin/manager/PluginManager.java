@@ -7,7 +7,7 @@ import java.util.Properties;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import me.isaiah.zunozap.ZunoZap;
+import me.isaiah.zunozap.ZFile;
 import me.isaiah.zunozap.plugin.PluginBase;
 import me.isaiah.zunozap.plugin.PluginInfo;
 
@@ -17,11 +17,10 @@ public class PluginManager {
     public PluginClassLoader classLoader;
 
     public void loadPlugins() {
-        System.out.println("Loading Plugins...");
-        File pluginFolder = new File(ZunoZap.home, "plugins");
-        if (!pluginFolder.exists()) pluginFolder.mkdir();
+        ZFile pluginFolder = new ZFile("plugins");
+        pluginFolder.mkdir();
         for (File f : pluginFolder.listFiles()) {
-            if ((!f.isDirectory()) && (f.getName().endsWith(".jar"))) {
+            if (!f.isDirectory() && f.getName().endsWith(".jar")) {
                 Properties p = new Properties();
                 try (JarFile jar = new JarFile(f)) {
                     JarEntry entry = jar.getJarEntry("plugin.txt");
@@ -41,10 +40,9 @@ public class PluginManager {
                     names.add(info.name);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    System.out.println(f.getName() + " is not a valid plugin.");
+                    System.err.println(f.getName() + " is not a valid plugin.");
                 }
             }
         }
-        System.out.println("Found " + names.size() + " plugins: " + names.toString());
     }
 }

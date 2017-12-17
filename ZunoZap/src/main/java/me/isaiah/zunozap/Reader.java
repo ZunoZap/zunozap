@@ -31,7 +31,7 @@ public class Reader {
     public void readd() {
         bm.forEach((s1, s2) -> {
             MenuItem item = new MenuItem(s1);
-            item.setOnAction((t) -> { ZunoAPI.bmct(false, s2); });
+            item.setOnAction((t) -> ZunoAPI.bmct(false, s2));
             book.getItems().add(item);
         });
     }
@@ -39,7 +39,7 @@ public class Reader {
     public void refresh() throws IOException {
         ZFile dat = new ZFile("bookmarks.dat", false);
         BufferedWriter bw = new BufferedWriter(new FileWriter(dat.getAbsoluteFile()));
-        bw.write("# Bookmark data DO NOT EDIT!");
+        bw.write("# do not edit");
         bw.newLine();
 
         bm.forEach((s1, s2) -> {

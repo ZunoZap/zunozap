@@ -4,9 +4,9 @@ import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -18,19 +18,33 @@ import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
 import me.isaiah.downloadmanager.Download;
+import me.isaiah.zunozap.UniversalEngine.Engine;
 
 /**
- * Download JxBrowser libraries for operating system.
+ * Download JxBrowser libraries & launch
  */
 public class LibDownload {
-    private static String ver = "6.16";
+    private static String ver = "6.17";
     private static File lib = new File(ZunoAPI.home, "libs");
-    public static void main(String[] args) throws MalformedURLException {
+    
+    public static void main(String[] args) {
+        try {
+            main0(args);
+        } catch (IOException e) { e.printStackTrace(); }
+        System.exit(0);
+    }
+
+    public static void main0(String[] args) throws IOException {
+        if (OptionMenu.init()) {
+            if (ZunoAPI.en == Engine.WEBKIT) {
+                ZunoZapWebView.main(args);
+                return;
+            }
+        }
         lib.mkdirs();
-        JFrame f = new JFrame("ZunoZap Installer");
         File file = new File(lib, getJarName().substring(getJarName().lastIndexOf("/")));
         File sfile = new File(lib, "jxbrowser-" + ver + ".jar");
-        
+
         File fileT = new File(lib, getJarName().substring(getJarName().lastIndexOf("/")).replace(".jar", ".temp"));
         File sfileT = new File(lib, "jxbrowser-" + ver + ".temp");
 
@@ -38,27 +52,22 @@ public class LibDownload {
             try {
                 addURL(sfile.toURI().toURL());
                 addURL(file.toURI().toURL());
-            } catch (IOException e) { e.printStackTrace(); }
-            try {
-                f.dispose();
-                ZunoZap.main(args);
-            } catch (IOException e) { e.printStackTrace(); }
+            } catch (IOException e) { ZunoZapWebView.main(args); return; }
+            try { ZunoZap.main(args); } catch (IOException e) {}
             return;
-        } else {
-            if (lib.listFiles() != null && lib.listFiles().length > 0) for (File fi : lib.listFiles()) fi.delete();
-        }
+        } else if (lib.listFiles() != null && lib.listFiles().length > 0) for (File fi : lib.listFiles()) fi.delete();
+
+        JFrame f = new JFrame("ZunoZap Installer");
         Download smalljar = new Download(new URL("http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/jxbrowser/" + ver + "/jxbrowser-" + ver + ".jar"), lib);
         Download d = new Download(new URL(getJarName()), lib);
-        JProgressBar bar0 = new JProgressBar();
-        JProgressBar bar = new JProgressBar();
-        String s = "\tDownloading required Chromium libaries";
-        String a = "\tDownloaded %s out of %s";
-        JTextField text = new JTextField(s);
-        JTextField text2 = new JTextField();
+        JProgressBar pb0 = new JProgressBar();
+        JProgressBar pb = new JProgressBar();
+        JTextField txt = new JTextField("\tDownloading required Chromium libaries");
+        JTextField txt2 = new JTextField();
         new Thread(() -> { Timer t = new Timer();t.schedule(new TimerTask() { @Override public void run() {
-            bar.setValue((int)d.getProgress());
-            bar0.setValue((int)smalljar.getProgress());
-            text2.setText(String.format(a, formatSize(d.getDownloaded() + smalljar.getDownloaded() - 1), formatSize(d.getSize() + smalljar.getSize()))
+            pb.setValue((int)d.getProgress());
+            pb0.setValue((int)smalljar.getProgress());
+            txt2.setText(String.format("\tDownloaded %s out of %s", formatSize(d.getDownloaded() + smalljar.getDownloaded() - 1), formatSize(d.getSize() + smalljar.getSize()))
             + "  |  Status: " + Download.STATUSES[d.getStatus()]);
             if (d.getStatus() == 2) {
                 fileT.renameTo(file);
@@ -67,26 +76,28 @@ public class LibDownload {
                     addURL(smalljar.getAsFile().toURI().toURL());
                     addURL(d.getAsFile().toURI().toURL());
                 } catch (IOException e) { e.printStackTrace(); }
+                t.cancel();
+                f.dispose();
                 try {
                     t.cancel();
-                    f.dispose();
                     ZunoZap.main(args);
-                } catch (IOException e) { e.printStackTrace(); }
+                } catch (IOException e) { try {
+                    ZunoZapWebView.main(args);
+                } catch (IOException e1) { e1.printStackTrace(); }}
             }
         }}, 10, 400);}).start();
         JPanel p = new JPanel();
-        bar0.setStringPainted(true);
-        bar.setStringPainted(true);
-        bar0.setString(smalljar.getUrl().substring(smalljar.getUrl().lastIndexOf("/")));
-        bar.setString(d.getUrl().substring(d.getUrl().lastIndexOf("/")));
-        p.add(text);
-        p.add(text2);
-        p.add(bar);
-        p.add(bar0);
-        text.setEditable(false);
-        text2.setEditable(false);
+        pb0.setStringPainted(true);
+        pb.setStringPainted(true);
+        pb0.setString(smalljar.getUrl().substring(smalljar.getUrl().lastIndexOf("/")));
+        pb.setString(d.getUrl().substring(d.getUrl().lastIndexOf("/")));
+        p.add(txt);
+        p.add(txt2);
+        p.add(pb);
+        p.add(pb0);
+        txt.setEditable(false);
+        txt2.setEditable(false);
         f.setPreferredSize(new Dimension(500,200));
-        f.setTitle("ZunoZap Installer");
         f.setContentPane(p);
         f.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
         f.pack();
@@ -101,20 +112,12 @@ public class LibDownload {
     }
 
     private static String getJarName() {
-        String base = "http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/";
-        switch (getOS()) {
-            case WINDOWS:
-                return base + "jxbrowser-win/" + ver + "/jxbrowser-win-" + ver + ".jar";
-            case LINUX:
-                return base + "jxbrowser-linux64/" + ver + "/jxbrowser-linux64-" + ver + ".jar";
-            case MAC:
-                return base + "jxbrowser-mac/" + ver + "/jxbrowser-mac-" + ver + ".jar";
-            default:
-                return base + "jxbrowser-win/" + ver + "/jxbrowser-win-" + ver + ".jar";
-        }
+        String os = getOS().name().toLowerCase(Locale.ENGLISH);
+        return "http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/jxbrowser-" + os + "/" + ver + "/jxbrowser-" + os + "-" + ver + ".jar";
     }
 
     private static void addURL(URL u) throws IOException {
+        // TODO: Java 9
         URLClassLoader sysloader = (URLClassLoader) LibDownload.class.getClassLoader();
         Class<?> sysclass = URLClassLoader.class;
 
@@ -127,10 +130,10 @@ public class LibDownload {
 
     private static OS getOS() {
         String os = System.getProperty("os.name").toLowerCase();
-        if (os.startsWith("windows")) return OS.WINDOWS;
+        if (os.startsWith("windows")) return OS.WIN;
         if (os.startsWith("mac")) return OS.MAC;
 
-        return OS.LINUX;
+        return OS.LINUX64;
     }
-    private enum OS { WINDOWS, LINUX, MAC; }
+    private enum OS { WIN, LINUX64, MAC; }
 }

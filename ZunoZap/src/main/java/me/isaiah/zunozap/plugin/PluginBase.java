@@ -17,18 +17,16 @@ public abstract class PluginBase {
     public final File dataFolder = new File(new ZFile("plugins"), getPluginInfo().name);
 
     /**
-     * Info about your plug-in
+     * Info about plug-in
      */
-    public PluginInfo getPluginInfo() {
-        return null;
-    }
+    public PluginInfo getPluginInfo() { return null; }
 
     /**
      * Called when the browser is created. 
      * 
      * @param tabBar - Tab bar.
-     * @param scene - {@link javafx.scene.Scene}
-     * @param stage {@link javafx.stage.Stage}
+     * @param scene - JavaFX Scene
+     * @param stage - JavaFX Stage
      */
     public void onLoad(Stage stage, Scene scene, TabPane tabBar){/**/}
 
@@ -40,14 +38,8 @@ public abstract class PluginBase {
     public void onTabCreate(Tab tab){/**/}
 
     /**
-     * Called when the page URL changes
-     * 
-     * @param engine - Java 8's WebEngine.
-     * @param field - the address field.
-     * @param old - URL changing from.
-     * @param newURL - URL changing to.
-     * 
-     * @deprecated ZunoZap 0.4.0+ uses the Chromium engine instead of JavaFX
+     * @deprecated ZunoZap now uses the Chromium engine.
+     * @see #onURLChange(Browser, TextField, Object, URL)
      */
     @Deprecated
     public void onURLChange(WebEngine engine, TextField field, URL old, URL newURL){/**/}
@@ -55,17 +47,17 @@ public abstract class PluginBase {
     /**
      * Called when a pop-up pops up.
      * 
-     * @param bad - true if the pop-up set off the build-in anti-virus alarm, false otherwise.
+     * @param bad - Contains the word "virus"
      */
     public void onPopup(boolean bad){/**/}
 
     /**
      * Called when the page URL changes
      * 
-     * @param e - Chromium engine.
+     * @param e - engine.
      * @param urlField - the address field.
-     * @param old - URL changing from.
-     * @param newURL - URL changing to.
+     * @param old - old URL.
+     * @param newURL - new URL.
      */
     public void onURLChange(Browser e, TextField field, Object old, URL newURL) {/**/}
 }

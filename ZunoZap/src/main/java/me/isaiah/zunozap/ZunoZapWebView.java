@@ -14,7 +14,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
@@ -28,29 +27,28 @@ import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import me.isaiah.zunozap.UniversalEngine.Engine;
 import me.isaiah.zunozap.plugin.PluginBase;
 
-@Info(name="ZunoZap", version="0.3.6-Dev")
-public class ZunoZap_old extends ZunoAPI {
+@Info(name="ZunoZap", version="0.3.7", engine = UniversalEngine.Engine.WEBKIT)
+public class ZunoZapWebView extends ZunoAPI {
     public static final File home = new File(System.getProperty("user.home"), "zunozap");
-    private static final ZFile saveDir = new ZFile("offline-pages"), dataDir = new ZFile("engine"), cssDir = new ZFile("styles"),
-            plDir = new ZFile("plugins"), temp = new ZFile("temp");
-    private final MenuBar menuBar = new MenuBar();
+    private MenuBar menuBar = null;
     protected final static Menu menuFile = new Menu("File"), menuBook = new Menu("Bookmarks");
     private static TabPane tb;
     private static StyleManager sm;
-    public static boolean firstRun = false;
     private static Reader bmread;
 
     public static void main(String[] args) throws IOException {
-        setInstance(new ZunoZap());
-        if (!new File(home, "settings.txt").exists()) {
-            if (!home.exists()) home.mkdir();
-            new File(home, "settings.txt").createNewFile();
+        setInstance(new ZunoZapWebView());
+        File s = new File(home, "settings.txt");
+        if (!s.exists()) {
+            home.mkdir();
+            s.createNewFile();
             OptionMenu.save(false);
             firstRun = true;
         }
-        launch(ZunoZap.class, args);
+        launch(ZunoZapWebView.class, args);
 
         printGCSavedRam();
         getInstance().deleteFolders(temp);
@@ -58,18 +56,10 @@ public class ZunoZap_old extends ZunoAPI {
     }
 
     @Override
-    public void stop() {
-        try {
-            OptionMenu.save(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
     public void start(Stage stage, Scene scene, StackPane root, BorderPane border) throws Exception {
         OptionMenu.init();
         tb = new TabPane();
+        menuBar = new MenuBar();
         bmread = new Reader(menuBook);
         bmread.refresh();
 
@@ -79,7 +69,7 @@ public class ZunoZap_old extends ZunoAPI {
         tb.setPrefSize(1365, 768);
         tb.setSide(Side.TOP);
 
-        /* Setup tabs */
+        /// Setup tabs
         Tab newtab = new Tab(" + ");
         newtab.setClosable(false);
         tb.getTabs().add(newtab);
@@ -91,7 +81,9 @@ public class ZunoZap_old extends ZunoAPI {
         border.setTop(menuBar);
         border.autosize();
 
-        regMenuItems();
+        WebView dummy = new WebView();
+        setUserAgent(dummy.getEngine());
+        regMenuItems(bmread, menuFile, menuBook, aboutPageHTML("Java WebView", dummy.getEngine().getUserAgent(), "ZunoZap/zunozap/master/LICENCE", "LGPLv3", "N/A"), tb, Engine.WEBKIT);
         menuBar.getMenus().addAll(menuFile, menuBook);
         sm = new StyleManager(cssDir, scene);
         scene.getStylesheets().add(ZunoAPI.stylesheet.toURI().toURL().toExternalForm());
@@ -105,12 +97,12 @@ public class ZunoZap_old extends ZunoAPI {
     public final void createTab(boolean isStartTab, String url) {
         tabnum++;
 
-        /* Create Tab */
+        // Create Tab
         final Tab tab = new Tab("Loading...");
-        tab.setTooltip(new Tooltip("Tab #"+tabnum));
+        tab.setTooltip(new Tooltip("Tab " + tabnum));
         tab.setId("tab-"+tabnum);
 
-        /* initialize variables */
+        // init variables
         final Button back = new Button("<"), forward = new Button(">"), goBtn = new Button("Go"), bkmark = new Button("Bookmark");
 
         WebView web = new WebView();
@@ -118,39 +110,20 @@ public class ZunoZap_old extends ZunoAPI {
         TextField urlField = new TextField("http://");
         HBox hBox = new HBox(back, forward, urlField, goBtn, bkmark);
         VBox vBox = new VBox(hBox, web);
+        UniversalEngine e = new UniversalEngine(web);
+        Universal u = new Universal(e);
 
         urlChangeLis(engine, urlField, tab);
 
-        goBtn.setOnAction((v) -> { loadSite(urlField.getText(), engine); });
-        urlField.setOnAction((v) -> { loadSite(urlField.getText(), engine); });
+        goBtn.setOnAction((v) -> loadSite(urlField.getText(), e));
+        urlField.setOnAction((v) -> loadSite(urlField.getText(), e));
 
-        back.setOnAction((v) -> { history(engine, EHistory.BACK); });
-        forward.setOnAction((v) -> { history(engine, EHistory.FORWARD); });
+        back.setOnAction((v) -> history(engine, EHistory.BACK));
+        forward.setOnAction((v) -> history(engine, EHistory.FORWARD));
 
-        bkmark.setOnAction((v) -> {
-            String title = (engine.getTitle() != null ? engine.getTitle() : engine.getLocation());
-            if (!bmread.bm.containsKey(title)) {
-                bmread.bm.put(engine.getTitle(), engine.getLocation());
-                try {
-                    bmread.refresh();
-                } catch (IOException e) { e.printStackTrace(); }
-                MenuItem it = new MenuItem(title);
-                it.setOnAction((t) -> { createTab(false, engine.getLocation()); });
-                menuBook.getItems().add(it);
-                bkmark.setText("Unbookmark");
-            } else {
-                bmread.bm.remove(engine.getTitle());
+        bkmark.setOnAction((v) -> u.bookmarkAction(bmread, ((t) -> createTab(false, engine.getLocation())), bkmark, menuBook));
 
-                try {
-                    bmread.refresh();
-                    bmread = new Reader(menuBook);
-                    bmread.readd();
-                } catch (IOException e) { e.printStackTrace(); }
-                bkmark.setText("Bookmark");
-            }
-        });
-
-        /* Setting Styles */
+        // Setting Styles
         urlField.setId("urlfield");
         urlField.setMaxWidth(400);
         hBox.setId("urlbar");
@@ -160,15 +133,15 @@ public class ZunoZap_old extends ZunoAPI {
 
         engine.setUserDataDirectory(dataDir);
         setUserAgent(engine);
-        engine.javaScriptEnabledProperty().set(EOption.JS.b);
+        engine.javaScriptEnabledProperty().set(EOption.javascript.b);
 
         if (isStartTab) engine.load("https://zunozap.github.io/pages/startpage.html");
-        else loadSite(url, engine);
+        else loadSite(url, e);
 
         tab.setContent(vBox);
 
-        tab.setOnCloseRequest((e) -> {
-            ((WebView) ((VBox) ((Tab) e.getSource()).getContent()).getChildren().get(1)).getEngine().loadContent("Closing tab");
+        tab.setOnCloseRequest((a) -> {
+            ((WebView) ((VBox) ((Tab) a.getSource()).getContent()).getChildren().get(1)).getEngine().loadContent("Closing");
         });
 
         if (allowPluginEvents()) for (PluginBase pl : p.plugins) pl.onTabCreate(tab);
@@ -196,7 +169,7 @@ public class ZunoZap_old extends ZunoAPI {
             }
         });
 
-        engine.locationProperty().addListener((o,oldUrl,newUrl) -> { ZunoZap_old.this.changed(engine, urlField, tab, oldUrl, newUrl); });
+        engine.locationProperty().addListener((o,oU,nU) -> ZunoZapWebView.this.changed(engine, urlField, tab, oU, nU));
 
         engine.setOnAlert((popupText) -> {
             boolean bad = false;
@@ -234,7 +207,9 @@ public class ZunoZap_old extends ZunoAPI {
             return;
         }
 
-        engine.javaScriptEnabledProperty().set(EOption.JS.b);
+        if (!check(engine, newUrl)) return;
+
+        engine.javaScriptEnabledProperty().set(EOption.javascript.b);
 
         if (isUrlDownload(newUrl)) {
             new Download(newUrl.replace("?zunozapforcedownload", ""));
@@ -271,34 +246,10 @@ public class ZunoZap_old extends ZunoAPI {
             }
         }
 
-        if (EOption.offlineStorage.b) new Thread(() -> DownloadPage(saveDir, temp, engine.getLocation(), true)).start();
+        if (EOption.offlineStorage.b) new Thread(() -> downloadPage(saveDir, temp, engine.getLocation(), true)).start();
     }
 
-    public final void regMenuItems() {
-        MenuItem clear = new MenuItem("Clear offline data"), about = new MenuItem("About ZunoZap " + getInfo().version());
-        MenuItem settings = new MenuItem("Settings"), update = new MenuItem("Check for Update");
-
-        clear.setOnAction((t) -> { deleteFolders(temp,saveDir); });
-        settings.setOnAction((t) -> { new OptionMenu(); });
-        update.setOnAction((t) -> { say(updateCheck()); });
-
-        about.setOnAction((a) -> {
-            Tab t = new Tab("About");
-            WebView w = new WebView();
-            WebEngine e = w.getEngine();
-            setUserAgent(w.getEngine());
-            e.javaScriptEnabledProperty().set(EOption.JS.b);
-            e.loadContent(String.format(aboutPageHTML(), "ZunoZap", e.getUserAgent(), e.javaScriptEnabledProperty().get(), "ZunoZap/zunozap/master/LICENCE", "LGPLv3") + getPluginNames());
-            t.setContent(w);
-            tb.getTabs().add(tb.getTabs().size() - 1, t);
-            tb.getSelectionModel().select(t);
-        });
-
-        bmread.bm.forEach((s1, s2) -> {
-            MenuItem it = new MenuItem(s1);
-            it.setOnAction((t) -> { createTab(false, s2); });
-            menuBook.getItems().add(it);
-        });
-        menuFile.getItems().addAll(clear, about, update, settings);
+    @Override
+    void onTabClosed(Object source) {
     }
 }

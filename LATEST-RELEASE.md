@@ -1,3 +1,3 @@
-0.4.1
+0.5.0
 
 <b>IMPORTANT to update every release</b> <i>or updater won't work.</i>

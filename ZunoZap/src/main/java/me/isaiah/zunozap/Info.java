@@ -11,4 +11,5 @@ public @interface Info {
     public String version() default "Unknown";
     public String updateURL() default "https://raw.githubusercontent.com/ZunoZap/zunozap/master/LATEST-RELEASE.md";
     public boolean enableGC() default true;
+    public UniversalEngine.Engine engine();
 }

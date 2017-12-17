@@ -8,11 +8,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -25,18 +27,27 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.parser.ParserDelegator;
 
+import com.teamdev.jxbrowser.chromium.Browser;
+import com.teamdev.jxbrowser.chromium.javafx.BrowserView;
+
 import javafx.application.Application;
+import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import me.isaiah.zunozap.UniversalEngine.Engine;
 import me.isaiah.zunozap.plugin.manager.PluginManager;
 
 public abstract class ZunoAPI extends Application {
     public static File home = new File(System.getProperty("user.home"), "ZunoZap");
-    private static String version;
+    protected static String version;
     public static File stylesheet = null;
     public static String styleName = "None";
     public static double totalRamGCsaved = 0;
@@ -48,6 +59,13 @@ public abstract class ZunoAPI extends Application {
     private boolean debug = false;
     public HashMap<String, String> bm = new HashMap<>();
     private Hooks hooks = new Hooks(p);
+    protected static Log log = new Log(System.out);
+    public static boolean firstRun = false;
+    protected static ArrayList<String> block = new ArrayList<>();
+    protected static UniversalEngine.Engine en;
+
+    protected static final ZFile saveDir = new ZFile("offline-pages"), dataDir = new ZFile("engine"), cssDir = new ZFile("styles"),
+            plDir = new ZFile("plugins"), temp = new ZFile("temp");
 
     public static ZunoAPI getInstance() {
         return instance;
@@ -63,20 +81,18 @@ public abstract class ZunoAPI extends Application {
         ZunoAPI.stylesheet = new File(home, "style.css");
     }
 
-    public final String aboutPageHTML() {
-        return "<header><h1>About ZunoZap</h1></header><body><p>%s is a web browser made with the Java web engine</p>"
-                + " Version: " + version + "<br> UserAgent: %s<br> JavaScript Enabled: %s<br>"
-                + " Licence: <a href='https://raw.githubusercontent.com/%s'>%s</a><hr></body>";
+    public final String aboutPageHTML(String... s) {
+        return String.format("<h1>%s <small>%s</small></h1><p>A web browser made with the %s engine<br>"
+                + " Useragent: %s <br> Javascript: " + EOption.javascript.b
+                + "<br> Licence: <a href='https://raw.githubusercontent.com/%s'>%s</a><hr><br>"
+                + "<b>Note: The Chromium engine is provided by JxBrowser by <a href='https://teamdev.com/'>TeamDev</a></b></p>"
+                + "ZunoZap Plugins: " + getPluginNames() + "<br>Chromium Plugins: " + s[4],
+                getInfo().name(), getInfo().version(), s[0], s[1], s[2], s[3]);
     }
 
     public static void setUserAgent(WebEngine e) {
-        if (!e.getUserAgent().contains("ZunoZap"))
-            e.setUserAgent(e.getUserAgent() + " ZunoZap/" + version + " Chrome/60.0.3112");
+        if (!e.getUserAgent().contains("ZunoZap")) e.setUserAgent(e.getUserAgent() + " ZunoZap/" + version + " Chrome/60.0.3112");
         else System.err.println("Useragent has already been set!");
-    }
-
-    @Deprecated public final static void setStyle(String s, Button... bts) {
-        for (Button b : bts) b.setStyle(s);
     }
 
     public final static void history(WebEngine e, EHistory go) {
@@ -85,93 +101,76 @@ public abstract class ZunoAPI extends Application {
 
     public enum EHistory { BACK,FORWARD; }
 
-    public static final void loadSite(String url, WebEngine e) {
+    public static final void loadSite(String url, UniversalEngine e) {
         if (url.startsWith("zunozap:")) {
-            if (url.substring(8).startsWith("update")) e.loadContent(updateCheck());
-            else if (url.substring(8).startsWith("home")) e.load("https://zunozap.github.io/");
+            if (url.substring(8).startsWith("home")) e.load("https://zunozap.github.io/");
             else if (url.substring(8).startsWith("start")) e.load("https://zunozap.github.io/pages/startpage.html");
 
             return;
         }
 
         if ((url.replaceAll("[ . ]", "").equalsIgnoreCase(url.replaceAll(" ", "")))) {
-            if (!EOption.useDuck.b) e.load("https://google.com/search?q=" + url.replace(" ", "%20"));
-            else e.load("https://duckduckgo.com/?q=" + url.replace(" ", "%20")); 
-
+            e.load("https://" + (EOption.onTheDuckSide.b ? "duckduckgo.com" : "google.com/search") + "?q=" + url.replace(" ", "%20"));
             return;
         }
 
-        if (EOption.forceHTTPS.b) e.load(url.startsWith("http") ? url : "https://" + url);
-        else e.load(url.startsWith("http") ? url : "http://" + url);
+        e.load(url.startsWith("http") ? url : "http" + (EOption.forceHTTPS.b ? "s://" : "://") + url);
     }
 
     public static String getUrlSource(String url) {
-        try {
-            URLConnection urlc = new URL(url).openConnection();
-            BufferedReader in = new BufferedReader(new InputStreamReader(urlc.getInputStream(), "UTF-8"));
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL(url).openConnection().getInputStream(), "UTF-8"))) {
             String line;
             StringBuilder a = new StringBuilder();
             while ((line = in.readLine()) != null) a.append(line);
-            in.close();
+
             return a.toString();
-        } catch (IOException e){return null;}
+        } catch (IOException e) { return null; }
     }
 
-    public static void DownloadPage(File dp, File temp, String loc, boolean all) {
+    public static void downloadPage(File dp, File temp, String loc, boolean all) {
         try {
             String regex = "[ : / . ? ]";
             File html = new File(temp, loc.replaceAll(regex, "-").trim() + ".html");
 
             String toWrite = getUrlSource(loc.trim());
             Files.write(Paths.get(html.toURI()), toWrite.getBytes());
-            System.out.println("Downloaded " + loc);
+            log.println("Downloaded " + loc);
             if (html.length() > 2) {
                 File hsdp = new File(new File(dp, loc.replaceAll(regex, "-").trim()), loc.replaceAll(regex, "-").trim() + ".html");
-                if (!hsdp.getParentFile().exists()) hsdp.getParentFile().mkdirs();
+                hsdp.getParentFile().mkdirs();
                 hsdp.delete();
                 if (all) downloadAssetsFromPage(loc.trim(), hsdp.getParentFile());
                 if (hsdp.exists()) hsdp.delete();
                 Files.move(Paths.get(html.toURI()), Paths.get(hsdp.toURI()), StandardCopyOption.REPLACE_EXISTING);
             } else html.delete();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
-    public static void downloadAssetsFromPage(String site, File folder) {
-        run(() -> {
-            try { downloadAssetsFromPage0(site, folder); } catch (IOException e) { e.printStackTrace(); }
-        });
-    }
-
-    public static void run(Runnable run) {
-        (new Thread(() -> { (new Thread(run)).start(); })).start();
+    public static void downloadAssetsFromPage(String site, File f) {
+        new Thread(() -> { (new Thread(() -> { try { downloadAssetsFromPage0(site, f); } catch (IOException e) { e.printStackTrace(); }})).start(); }).start();
     }
 
     public static void downloadAssetsFromPage0(String site, File folder) throws IOException {
-        URL url;
-        url = new URL(site);
+        URL url = new URL(site);
         URLConnection connection = url.openConnection();
         InputStream is = connection.getInputStream();
         InputStreamReader isr = new InputStreamReader(is);
         BufferedReader br = new BufferedReader(isr);
 
-        HTMLEditorKit htmlKit = new HTMLEditorKit();
-        HTMLDocument htmlDoc = (HTMLDocument) htmlKit.createDefaultDocument();
-        HTMLEditorKit.Parser parser = new ParserDelegator();
-        HTMLEditorKit.ParserCallback callback = htmlDoc.getReader(0);
-        parser.parse(br, callback, true);
+        HTMLDocument doc = (HTMLDocument) new HTMLEditorKit().createDefaultDocument();
+        HTMLEditorKit.ParserCallback callback = doc.getReader(0);
+        new ParserDelegator().parse(br, callback, true);
 
-        for (HTMLDocument.Iterator iterator = htmlDoc.getIterator(HTML.Tag.IMG); iterator.isValid(); iterator.next()) {
+        for (HTMLDocument.Iterator iterator = doc.getIterator(HTML.Tag.IMG); iterator.isValid(); iterator.next()) {
             String src = (String) iterator.getAttributes().getAttribute(HTML.Attribute.SRC);
             if (src != null) downloadImage(site, src, folder);
-            else System.err.println("Source is null: " + src);
+            else System.err.println("null source");
         }
-        
-        for (HTMLDocument.Iterator iterator = htmlDoc.getIterator(HTML.Tag.LINK); iterator.isValid(); iterator.next()) {
+
+        for (HTMLDocument.Iterator iterator = doc.getIterator(HTML.Tag.LINK); iterator.isValid(); iterator.next()) {
             String src = (String) iterator.getAttributes().getAttribute(HTML.Attribute.HREF);
             if (src != null) downloadAsset(site, src, folder);
-            else System.err.println("Source is null: " + src);
+            else System.err.println("null source");
         }
     }
 
@@ -228,13 +227,12 @@ public abstract class ZunoAPI extends Application {
         JOptionPane.showMessageDialog(null, msg, getInfo().name(), type);
     }
 
-    @Override
-    public void init() {
-        System.out.println("[ZunoAPI] Loading...");
+    @Override public void init() {
+        System.setOut(log);
+        log.println("Loading");
     }
 
-    @Override
-    public void start(Stage stage) throws Exception {
+    @Override public void start(Stage stage) throws Exception {
         StackPane root = new StackPane();
         BorderPane borderPane = new BorderPane();
 
@@ -242,7 +240,9 @@ public abstract class ZunoAPI extends Application {
         Scene scene = new Scene(root, 1200, 600);
 
         if (isValid()) version = getInfo().version();
-        else System.out.println("Note: This program is not valid.");
+        else log.println("Note: This program is not valid.");
+
+        en = getInfo().engine();
 
         start(stage, scene, root, borderPane);
 
@@ -250,8 +250,12 @@ public abstract class ZunoAPI extends Application {
         stage.setScene(scene);
         stage.show();
 
-        System.out.println("[GC]: Starting garbage collecter...");
+        log.println("[GC]: Starting GC");
         if (getInfo().enableGC()) startGC();
+    }
+
+    @Override public void stop() {
+        OptionMenu.save(true);
     }
 
     public boolean isValid() {
@@ -279,18 +283,18 @@ public abstract class ZunoAPI extends Application {
     }
 
     private void startGC() {
-        System.out.println("[GC]: GC is set to run every 9 sec (8.9)");
+        log.println("[GC]: GC is set to run every 9 sec");
         t = new Timer();
         t.schedule(new TimerTask() {
             @Override public void run() {
                 long l = Runtime.getRuntime().freeMemory();
                 String sl = formatSize(l);
                 double e = Double.valueOf(sl.substring(0, (sl.length() - 3)));
-                if (e > 140 && e <= 600) {
+                if (e > 140 && e < 601) {
                     if (shouldGC) {
                         System.gc();
                         String l2 = formatSize(Runtime.getRuntime().freeMemory() - l);
-                        System.out.println("[GC]: Saved " + l2 + " of RAM.");
+                        log.println("[GC] Saved " + l2 + " of RAM.");
                         double a = Double.valueOf(l2.substring(0, (l2.length() - 3)));
                         if (l2.endsWith("MB")) totalRamGCsaved += a;
                         else if (l2.endsWith("GB")) totalRamGCsaved += ((long) a * 1024);
@@ -298,7 +302,7 @@ public abstract class ZunoAPI extends Application {
                         if (l2.startsWith("-")) shouldGC = false;
                     } else shouldGC = true;
                 } else {
-                    if (debug) System.out.println("[GC]: RAM is normal.");
+                    if (debug) log.println("[GC] RAM normal");
 
                     shouldGC = true;
                 }
@@ -307,10 +311,10 @@ public abstract class ZunoAPI extends Application {
     }
 
     public static void printGCSavedRam() {
-        double total = totalRamGCsaved;
+        double t = totalRamGCsaved;
 
-        System.out.println("[GC]: Total saved: " + (total > 1024 ? Math.floor((total / 1024) * 10 + 0.5) / 10 + " GB" 
-                : Math.floor(total * 10 + 0.5) / 10 + " MB"));
+        log.println("[GC]: Total saved " + (t > 1024 ? Math.floor((t / 1024) * 10 + 0.5) / 10 + " GB" 
+                : Math.floor(t * 10 + 0.5) / 10 + " MB"));
     }
 
     public static final String getPluginNames() {
@@ -370,17 +374,17 @@ public abstract class ZunoAPI extends Application {
             line = r.readLine().trim();
             r.close();
         } catch (IOException e) {
-            return "error: " + e;
+            return "error " + e;
         }
 
-        if (line.equalsIgnoreCase(i.version())) return "You are running the latest version";
-        if (i.version().toLowerCase().endsWith("dev")) return "Your using a snapshot build of " + i.name();
+        if (line.equalsIgnoreCase(i.version())) return "Uptodate";
+        if (i.version().toLowerCase().endsWith("dev")) return "Running a snapshot";
 
-        return "You are outdated!\nIt is recommended that you update to the latest version";
+        return "You are outdated!";
     }
 
     public final void createTab(boolean isStart) {
-        createTab(isStart, EOption.useDuck.b ? "https://start.duckduckgo.com" : "https://google.com/");
+        createTab(isStart, "https://" + (EOption.onTheDuckSide.b ? "start.duckduckgo" : "google") + ".com");
     }
 
     public abstract void start(Stage stage, Scene scene, StackPane root, BorderPane pane) throws Exception;
@@ -389,4 +393,64 @@ public abstract class ZunoAPI extends Application {
     public static void bmct(boolean b, String s2) {
         getInstance().createTab(b,s2);
     }
+    
+    public static void setup(URL url, boolean clear) throws IOException {
+        BufferedReader in = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
+
+        String site;
+        while ((site = in.readLine()) != null) block.add(site);
+        in.close();
+    }
+
+    public final void regMenuItems(Reader bmread, Menu file, Menu book, String html, TabPane tb, Engine en) {
+        MenuItem clear = new MenuItem("Clear offline data"), about = new MenuItem("About ZunoZap " + getInfo().version());
+        MenuItem settings = new MenuItem("Settings"), update = new MenuItem("Check for Update");
+
+        clear.setOnAction((t) -> deleteFolders(temp, saveDir));
+        settings.setOnAction((t) -> new OptionMenu());
+        update.setOnAction((t) -> say(updateCheck()));
+
+        about.setOnAction((a) -> {
+            Tab t = new Tab("About");
+            UniversalEngine c = null;
+            Object v = null;
+            if (en == Engine.CHROME) {
+                Browser b = new Browser();
+                v = new BrowserView(b);
+                b.getPreferences().setJavaScriptEnabled(EOption.javascript.b);
+                c = new UniversalEngine(b);
+            } else c = new UniversalEngine((WebView) (v = new WebView()));
+
+            c.loadHTML(html);
+            t.setContent((Node) v);
+            t.setOnCloseRequest((e) -> onTabClosed(e.getSource()));
+            tb.getTabs().add(tb.getTabs().size() - 1, t);
+            tb.getSelectionModel().select(t);
+        });
+
+        bmread.bm.forEach((s1, s2) -> {
+            MenuItem it = new MenuItem(s1);
+            it.setOnAction((t) -> createTab(false, s2));
+            book.getItems().add(it);
+        });
+        file.getItems().addAll(clear, about, update, settings);
+    }
+
+    public final boolean check(WebEngine e, String u) {
+        if (!EOption.blockMalware.b) return true;
+
+        try {
+            URL url = new URL(u);
+            if (ZunoAPI.block == null || ZunoAPI.block.isEmpty() || ZunoAPI.block.size() < 1) return true;
+
+            if (ZunoAPI.block.contains(url.toURI().getHost())) {
+                e.getLoadWorker().cancel();
+                e.load("https://zunozap.github.io/pages/blocked.html?" + url.toURI().getHost());
+                return false;
+            }
+        } catch (IOException | URISyntaxException e1) {}
+        return true;
+    }
+
+    abstract void onTabClosed(Object source);
 }

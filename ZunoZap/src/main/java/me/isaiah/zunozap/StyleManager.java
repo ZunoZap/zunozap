@@ -1,44 +1,42 @@
 package me.isaiah.zunozap;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 
 import javafx.scene.Scene;
 
 public class StyleManager {
-    private static Scene scene;
+    private static StyleManager sm;
+    public final Scene s;
     public static HashMap<String, File> b = new HashMap<>();
 
-    public static Scene staticGetScene() {
-        return scene;
-    }
-
-    public StyleManager() {}
-
-    public StyleManager(File folder) {
-        System.out.println("Starting StyleManager...");
-        try { init(folder); } catch (Exception e) { e.printStackTrace(); }
+    public static void setStyle(String name) {
+        try {
+            sm.s.getStylesheets().setAll(b.get(name).toURI().toURL().toExternalForm());
+        } catch (MalformedURLException e) { e.printStackTrace(); }
     }
 
     public StyleManager(File folder, Scene sc) {
-        StyleManager.scene = sc;
-        System.out.println("Starting StyleManager...");
-        try { init(folder); } catch (Exception e) { e.printStackTrace(); }
+        s = sc;
+        sm = this;
+        System.out.println("Enabling StyleManager");
+        init(folder);
     }
 
-    public void init(File folder) throws Exception {
+    public void init(File folder) {
         ZunoAPI.exportResource("style.css", ZunoAPI.home);
         ZFile f = new ZFile("style.css", false);
         b.put("ZunoZap default", f);
-        if (ZunoAPI.styleName.equalsIgnoreCase("none") || ZunoZap_old.firstRun || ZunoZap.firstRun) {
+        if (ZunoAPI.styleName.equalsIgnoreCase("none") || ZunoZapWebView.firstRun || ZunoZap.firstRun) {
             ZunoAPI.stylesheet = f;
             ZunoAPI.styleName = "ZunoZap default";
         } else OptionMenu.init();
 
         for (File fi : folder.listFiles()) b.put(fi.getName(), fi);
 
-        ZFile temp = new ZFile("temp");
-        File.createTempFile("blank-style", ".css", temp);
+        ZFile temp = new ZFile("blank.css", false);
+        temp.deleteOnExit();
         b.put("Java", temp);
     }
 }

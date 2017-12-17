@@ -1,8 +1,6 @@
 package me.isaiah.zunozap;
 
-import java.util.Properties;
-
-public class ZunoProperties extends Properties {
+public class ZunoProperties extends java.util.Properties {
     private static final long serialVersionUID = 1L;
 
     public void set(String s, boolean b) {
