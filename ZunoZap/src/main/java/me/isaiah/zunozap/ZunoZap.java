@@ -47,7 +47,7 @@ import javafx.stage.Stage;
 import me.isaiah.zunozap.UniversalEngine.Engine;
 import me.isaiah.zunozap.plugin.PluginBase;
 
-@Info(name="ZunoZap", version="0.5.0", enableGC=false, engine = UniversalEngine.Engine.CHROME)
+@Info(name="ZunoZap", version="0.5.1", enableGC=false, engine = UniversalEngine.Engine.CHROME)
 public class ZunoZap extends ZunoAPI {
     public static final File home = new File(System.getProperty("user.home"), "zunozap");
     protected static MenuBar menuBar;
@@ -75,7 +75,7 @@ public class ZunoZap extends ZunoAPI {
             firstRun = true;
         }
 
-        loading.setSize(new java.awt.Dimension(200, 100));
+        loading.setSize(new java.awt.Dimension(600, 100));
         loading.setVisible(true);
 
         try {
@@ -89,6 +89,7 @@ public class ZunoZap extends ZunoAPI {
         log.println("Shutting down Chromium...");
         BrowserCore.shutdown();
         try { t.cancel(); } catch (NullPointerException ingore) {}
+        System.exit(0);
     }
 
     @Override

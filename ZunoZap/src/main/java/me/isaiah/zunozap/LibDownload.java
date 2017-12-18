@@ -24,14 +24,13 @@ import me.isaiah.zunozap.UniversalEngine.Engine;
  * Download JxBrowser libraries & launch
  */
 public class LibDownload {
-    private static String ver = "6.17";
+    private static String ver = "6.18";
     private static File lib = new File(ZunoAPI.home, "libs");
     
     public static void main(String[] args) {
         try {
             main0(args);
         } catch (IOException e) { e.printStackTrace(); }
-        System.exit(0);
     }
 
     public static void main0(String[] args) throws IOException {
