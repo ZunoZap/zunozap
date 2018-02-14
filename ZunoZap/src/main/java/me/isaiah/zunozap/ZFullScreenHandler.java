@@ -13,13 +13,13 @@ public class ZFullScreenHandler implements FullScreenHandler {
     @Override public void onFullScreenEnter() { change(true); }
     @Override public void onFullScreenExit() { change(false); }
 
-    public void change(boolean full) {
+    public void change(boolean b) {
         Platform.runLater(() -> {
-            ZunoZap.tb.setVisible(!full);
+            ZunoZap.tb.setVisible(!b);
             StackPane header = (StackPane) ZunoZap.tb.lookup(".tab-header-area");
-            if(header != null) header.setPrefHeight(full ? 0 : -1);
-            ZunoZap.menuBar.setDisable(full);
-            s.setFullScreen(full);
+            if(header != null) header.setPrefHeight(b ? 0 : -1);
+            ZunoZap.menuBar.setDisable(b);
+            s.setFullScreen(b);
         });
     }
 }

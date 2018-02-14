@@ -11,6 +11,8 @@ import com.teamdev.jxbrowser.chromium.events.LoadListener;
 import com.teamdev.jxbrowser.chromium.events.ProvisionalLoadingEvent;
 import com.teamdev.jxbrowser.chromium.events.StartLoadingEvent;
 
+import me.isaiah.zunozap.Settings.Options;
+
 public abstract class LoadLis implements LoadListener {
     @Override public void onDocumentLoadedInFrame(FrameLoadEvent e){}
     @Override public void onDocumentLoadedInMainFrame(LoadEvent e){}
@@ -18,7 +20,7 @@ public abstract class LoadLis implements LoadListener {
     @Override public void onProvisionalLoadingFrame(ProvisionalLoadingEvent e){}
 
     @Override public void onStartLoadingFrame(StartLoadingEvent e) {
-        if (!EOption.blockMalware.b) return;
+        if (!Options.blockMalware.b) return;
 
         try {
             URL url = new URL(e.getBrowser().getURL());

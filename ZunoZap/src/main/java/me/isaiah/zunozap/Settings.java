@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.HashMap;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -18,22 +20,41 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+import javafx.scene.Scene;
 import me.isaiah.zunozap.UniversalEngine.Engine;
 
-public class OptionMenu {
+public class Settings {
     private static ZFile settings = new ZFile("settings.txt", false);
     private static ZunoProperties p = new ZunoProperties();
-    private int i = 1;
-    private JButton odf = new JButton("Open data folder");
-    private JButton aps = new JButton("Apply settings");
+    private static int i = 1;
+    private static JButton odf = new JButton("Open data folder");
     public static JFrame f;
     public static JPanel panel;
+    protected static Scene s;
+    public static HashMap<String, File> b = new HashMap<>();
 
-    public OptionMenu() {
-        try { createMenu(); } catch (IOException e) { e.printStackTrace(); }
+    public static void set(File folder, Scene sc) {
+        s = sc;
     }
 
-    public static final boolean init() {
+    public enum Options {
+        forceHTTPS("Force HTTPS", false), blockEventCalls("Block plugin events", false), createPluginDataFolders("Create plugin folders", true),
+        onTheDuckSide("Use DuckDuckGO", true), offlineStorage("Store web pages for offline browsing", false), javascript(true),
+        blockMalware("Block Malware sites", true);
+
+        private final static HashMap<Integer, Options> map = new HashMap<>();
+        public boolean b, def;
+        public String n;
+
+        private Options(boolean d) { this.b = d; this.def = d; this.n = toString(); }
+        private Options(String n, boolean d) { this.b = d; this.def = d; this.n = n; }
+
+        public static Options getById(int id){ return map.get(id - 1); }
+
+        static { for (Options m : values()) map.put(m.ordinal(), m); }
+    }
+
+    public static final boolean initMenu() {
         try {
             settings.createNewFile();
             ZunoProperties p = new ZunoProperties();
@@ -41,7 +62,7 @@ public class OptionMenu {
             p.load(s);
             addDefaults();
 
-            for (EOption e : EOption.values()) e.b = p.get(e.toString());
+            for (Options e : Options.values()) e.b = p.get(e.toString());
 
             ZunoAPI.styleName = String.valueOf(p.getStr("style"));
             ZunoAPI.stylesheet = new File(String.valueOf(p.getStr("stylefile")));
@@ -57,9 +78,31 @@ public class OptionMenu {
         } catch (IOException e) { return false; }
     }
 
+    public static void initCss(File fold) {
+        ZunoAPI.exportResource("style.css", ZunoAPI.home);
+        ZFile f = new ZFile("style.css", false);
+        b.put("ZunoZap default", f);
+        if (ZunoAPI.styleName.equalsIgnoreCase("none") || ZunoZapWebView.firstRun || ZunoZap.firstRun) {
+            ZunoAPI.stylesheet = f;
+            ZunoAPI.styleName = "ZunoZap default";
+        } else Settings.initMenu();
+
+        for (File fi : fold.listFiles()) b.put(fi.getName(), fi);
+
+        ZFile temp = new ZFile("blank.css", false);
+        temp.deleteOnExit();
+        b.put("Java", temp);
+    }
+
+    public static void setStyle(String name) {
+        try {
+            s.getStylesheets().setAll(b.get(name).toURI().toURL().toExternalForm());
+        } catch (MalformedURLException e) { e.printStackTrace(); }
+    }
+
     @SuppressWarnings("unchecked")
-    public final void createMenu() throws IOException {
-        f = new JFrame();
+    public final static void createMenu() throws IOException {
+        f = new JFrame("ZunoZap Settings");
         panel = new JPanel();
 
         settings.createNewFile();
@@ -69,17 +112,14 @@ public class OptionMenu {
 
         addDefaults();
 
-        for (EOption e : EOption.values()) e.b = p.get(e.toString());
+        for (Options e : Options.values()) e.b = p.get(e.toString());
 
-        p.store(new FileOutputStream(settings), "config");
+        p.store(new FileOutputStream(settings), "conf");
 
         i = 1; // Reset
-        for (EOption e : EOption.values()) addCheckBox(e.n, e.b);
+        for (Options e : Options.values()) addCheckBox(e.n, e.b);
 
-        aps.setEnabled(true);
-        aps.addActionListener((a) -> save());
-
-        odf.setEnabled(true);
+        odf.setEnabled(Desktop.isDesktopSupported());
         odf.addActionListener((a) -> { try { Desktop.getDesktop().open(ZunoAPI.home); } catch (IOException e) {}});
 
         JTextField t = new JTextField("Style:");
@@ -96,17 +136,15 @@ public class OptionMenu {
         e.setMargin(new Insets(20, 0, 0, 0));
         e.setMaximumSize(new Dimension(50, 25));
 
-        JComboBox<Object> style = new JComboBox<>(StyleManager.b.keySet().toArray());
+        JComboBox<Object> style = new JComboBox<>(b.keySet().toArray());
         style.setSelectedItem(ZunoAPI.styleName);
         style.setMaximumSize(new Dimension(150, 20));
         style.addActionListener((a) -> {
             String name = (String) ((JComboBox<String>) a.getSource()).getSelectedItem();
-            ZunoAPI.stylesheet = StyleManager.b.get(name);
+            ZunoAPI.stylesheet = b.get(name);
             ZunoAPI.styleName = name;
-            StyleManager.setStyle(name);
-
-            System.out.println("New Style: " + name);
-            save();
+            setStyle(name);
+            save(true);
         });
 
         JComboBox<Object> en = new JComboBox<>(UniversalEngine.Engine.values());
@@ -122,38 +160,35 @@ public class OptionMenu {
         p.setBorder(new EmptyBorder(0, 0, 0, 0));
         p.setMaximumSize(new Dimension(10, 20));
 
-        Component[] cs = {t, style, e, en, p, odf, aps};
+        Component[] cs = {t, style, e, en, p, odf};
         for (Component c : cs) panel.add(c);
-        
+
         s.close();
         f.setDefaultCloseOperation(2);
         panel.setSize(5500, 2500);
 
-        f.setTitle("ZunoZap Settings");
         f.setPreferredSize(new Dimension(400, 300));
         f.setContentPane(panel);
         f.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         f.addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override public void windowClosing(java.awt.event.WindowEvent w) { save(); }
+            @Override public void windowClosing(java.awt.event.WindowEvent w) { save(true); }
         });
         f.pack();
         f.setVisible(true);
     }
 
-    private void addCheckBox(String text, boolean b) {
+    private static void addCheckBox(String text, boolean b) {
         final int it = i;
         JCheckBox box = new JCheckBox(text);
         box.setSelected(b);
         box.setName(String.valueOf(i));
         box.addActionListener((a) -> {
-            EOption.getById(it).b = box.isSelected();
-            save();
+            Options.getById(it).b = box.isSelected();
+            save(true);
         });
         panel.add(box);
         i++;
     }
-
-    @Deprecated public static void save() { save(true); }
 
     public static boolean save(boolean all) {
         try {
@@ -162,7 +197,7 @@ public class OptionMenu {
             FileInputStream s = new FileInputStream(settings);
             p.load(s);
 
-            for (EOption e : EOption.values()) p.set(e.toString(), e.b);
+            for (Options e : Options.values()) p.set(e.toString(), e.b);
 
             if (all) {
                 p.setProperty("style", ZunoAPI.styleName);
@@ -175,11 +210,7 @@ public class OptionMenu {
         } catch (IOException e) { return false; }
     }
 
-    protected static void addDefault(String key, boolean b) {
-        if (!p.containsKey(key)) p.set(key, b); 
-    }
-
     private static void addDefaults() {
-        for (EOption e : EOption.values()) addDefault(e.name(), e.def);
+        for (Options e : Options.values()) if (!p.containsKey(e.name())) p.set(e.name(), e.def);
     }
 }

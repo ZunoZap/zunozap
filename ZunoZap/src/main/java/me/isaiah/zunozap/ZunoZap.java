@@ -3,8 +3,6 @@ package me.isaiah.zunozap;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -31,7 +29,6 @@ import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -44,16 +41,13 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import me.isaiah.zunozap.Settings.Options;
 import me.isaiah.zunozap.UniversalEngine.Engine;
 import me.isaiah.zunozap.plugin.PluginBase;
 
-@Info(name="ZunoZap", version="0.5.1", enableGC=false, engine = UniversalEngine.Engine.CHROME)
+@Info(name="ZunoZap", version="0.5.2", enableGC=false, engine = UniversalEngine.Engine.CHROME)
 public class ZunoZap extends ZunoAPI {
     public static final File home = new File(System.getProperty("user.home"), "zunozap");
-    protected static MenuBar menuBar;
-    protected final static Menu menuFile = new Menu("File"), menuBook = new Menu("Bookmarks");
-    protected static TabPane tb;
-    private static StyleManager sm;
     private static Reader bmread;
     private Stage stage;
     private static JFrame loading = new JFrame("ZunoZap is loading");
@@ -71,24 +65,17 @@ public class ZunoZap extends ZunoAPI {
         if (!settings.exists()) {
             home.mkdir();
             settings.createNewFile();
-            OptionMenu.save(false);
+            Settings.save(false);
             firstRun = true;
         }
 
         loading.setSize(new java.awt.Dimension(600, 100));
         loading.setVisible(true);
 
-        try {
-            setup(new URL("https://raw.githubusercontent.com/ZunoZap/Blacklist/master/list.dat"), true);
-        } catch (Exception e) {}
-
         launch(ZunoZap.class, args);
 
-        printGCSavedRam();
-        getInstance().deleteFolders(temp);
-        log.println("Shutting down Chromium...");
+        log.println("Shutting down Chromium");
         BrowserCore.shutdown();
-        try { t.cancel(); } catch (NullPointerException ingore) {}
         System.exit(0);
     }
 
@@ -100,7 +87,7 @@ public class ZunoZap extends ZunoAPI {
         bmread.refresh();
         this.stage = stage;
 
-        mkDirs(home, saveDir, temp, cssDir);
+        mkDirs(home, saves, temp, cssDir);
 
         stage.getIcons().add(new Image(ZunoZap.class.getClassLoader().getResourceAsStream("zunozaplogo.gif")));
         tb.setPrefSize(1365, 768);
@@ -117,7 +104,7 @@ public class ZunoZap extends ZunoAPI {
         border.setTop(menuBar);
         border.autosize();
 
-        for (int i = 0; i < 10; i++) deleteDir(new ZFile("engine" + i));
+        for (int i = 0; i < 10; i++) deleteDirs(new ZFile("engine" + i));
 
         Browser b = null;
         try {
@@ -131,23 +118,19 @@ public class ZunoZap extends ZunoAPI {
 
         createTab(true);
         b.setUserAgent(b.getUserAgent() + " ZunoZap/" + version);
-        regMenuItems(bmread, menuFile, menuBook, aboutPageHTML("Java WebView", b.getUserAgent(), "ZunoZap/zunozap/master/LICENCE", "LGPLv3", getJxPluginNames(b)), tb, Engine.CHROME);
+        regMenuItems(bmread, menuFile, menuBook, aboutPageHTML("Chromium", b.getUserAgent(), "ZunoZap/zunozap/master/LICENCE", "LGPLv3", getJxPluginNames(b)), tb, Engine.CHROME);
         menuBar.getMenus().addAll(menuFile, menuBook);
-        sm = new StyleManager(cssDir, scene);
+        Settings.set(cssDir, scene);
         scene.getStylesheets().add(ZunoAPI.stylesheet.toURI().toURL().toExternalForm());
 
-        BrowserPreferences.setChromiumDir(dataDir.getAbsolutePath());
+        BrowserPreferences.setChromiumDir(data.getAbsolutePath());
         BrowserPreferences.setUserAgent("ZunoZap/" + getInfo().version());
         b.dispose(false);
+
         p.loadPlugins();
         getHooks().onStart(stage, scene, tb);
         loading.setVisible(false);
         loading.dispose();
-    }
-
-    private void deleteDir(File f) {
-        if (f.isDirectory() && f.list().length > 0) for (File z : f.listFiles()) if (z.isDirectory()) deleteDir(z); else z.delete();
-        f.delete();
     }
 
     @Override
@@ -177,9 +160,8 @@ public class ZunoZap extends ZunoAPI {
         HBox hBox = new HBox(back, forward, urlField, goBtn, bkmark);
         VBox vBox = new VBox(hBox, web);
         UniversalEngine e = new UniversalEngine(b);
-        Universal u = new Universal(e);
 
-        urlChangeLis(b, urlField, tab, bkmark);
+        urlChangeLis(e, b, urlField, tab, bkmark);
 
         goBtn.setOnAction((v) -> loadSite(urlField.getText(), e));
         urlField.setOnAction((v) -> loadSite(urlField.getText(), e));
@@ -187,7 +169,7 @@ public class ZunoZap extends ZunoAPI {
         back.setOnAction((v) -> b.goBack());
         forward.setOnAction((v) -> b.goForward());
 
-        bkmark.setOnAction((v) -> u.bookmarkAction(bmread, ((t) -> createTab(false, b.getURL())), bkmark, menuBook));
+        bkmark.setOnAction((v) -> bookmarkAction(e, bmread, ((t) -> createTab(false, b.getURL())), bkmark, menuBook));
 
         String title = (b.getTitle() != null ? b.getTitle() : b.getURL());
         if (bmread.bm.containsKey(title)) bkmark.setText("Unbookmark");
@@ -200,10 +182,10 @@ public class ZunoZap extends ZunoAPI {
         VBox.setVgrow(web, Priority.ALWAYS);
         vBox.autosize();
 
-        b.getPreferences().setJavaScriptEnabled(EOption.javascript.b);
+        b.getPreferences().setJavaScriptEnabled(Options.javascript.b);
 
         if (load)
-            if (isStartTab) b.loadURL("https://zunozap.github.io/pages/startpage.html"); else loadSite(url, e);
+               if (isStartTab) b.loadURL("https://zunozap.github.io/pages/startpage.html"); else loadSite(url, e);
 
         b.setFullScreenHandler(new ZFullScreenHandler(stage));
 
@@ -219,13 +201,13 @@ public class ZunoZap extends ZunoAPI {
     }
 
     @Override
-    void onTabClosed(Object s) {
+    protected void onTabClosed(Object s) {
         try {
             ((BrowserView) ((VBox) ((Tab) s).getContent()).getChildren().get(1)).getBrowser().dispose();
         } catch (Exception e) { ((BrowserView) ((Tab) s).getContent()).getBrowser().dispose(); }
     }
 
-    public final void urlChangeLis(final Browser engine, final TextField urlField, final Tab tab, final Button bkmark) {
+    public final void urlChangeLis(UniversalEngine u, final Browser engine, final TextField urlField, final Tab tab, final Button bkmark) {
         engine.setDownloadHandler(new DownloadHandler() {
             @Override public boolean allowDownload(DownloadItem i) { return !isUrlDownload(i.getURL()); }
         });
@@ -233,11 +215,10 @@ public class ZunoZap extends ZunoAPI {
         engine.setPopupHandler(new PopupHandler() {
             @Override public PopupContainer handlePopup(PopupParams pp) {
                 if (allowPluginEvents()) for (PluginBase pl : p.plugins) pl.onPopup(pp.getTargetName().toLowerCase().contains("virus"));
-                return new PopupContainer() {
-                    @Override public void insertBrowser(Browser b, Rectangle r) {
-                        createTab(false, b.getURL());
-                        b.dispose();
-                    }};
+                return new PopupContainer() { @Override public void insertBrowser(Browser b, Rectangle r) {
+                    createTab(false, b.getURL());
+                    b.dispose();
+                }};
             }
         });
 
@@ -246,66 +227,18 @@ public class ZunoZap extends ZunoAPI {
                 String url = e.getBrowser().getURL();
                 Platform.runLater(() -> {
                     tab.setText(engine.getTitle());
-                    String title = (engine.getTitle() != null ? engine.getTitle() : engine.getURL());
+                    String title = engine.getTitle() != null ? engine.getTitle() : engine.getURL();
                     if (bmread.bm.containsKey(title)) bkmark.setText("Unbookmark");
-                    ZunoZap.this.changed(engine, urlField, tab, urlField.getText(), url, bkmark);
+                    ZunoZap.this.changed(u, urlField, tab, urlField.getText(), url, bkmark, bmread);
                 });
-                File s = new File(saveDir, url.replaceAll("[ : / . ? ]", "-"));
+                File s = new File(saves, url.replaceAll("[ : / . ? ]", "-"));
                 s.mkdir();
-                if (EOption.offlineStorage.b && !url.contains("mail")) new Thread(() -> {
-                    ZunoAPI.downloadPage(saveDir, temp, url, false);
+                if (Options.offlineStorage.b && !url.contains("mail")) new Thread(() -> {
+                    ZunoAPI.downloadPage(saves, temp, url, false);
                     engine.saveWebPage(url.replaceAll("[ : / . ? ]", "-"), s.getPath(), SavePageType.COMPLETE_HTML);
                 }).start();
             }
         });
-    }
-
-    public void changed(final Browser engine, final TextField field, final Tab tab, String old, String newUrl, final Button bkmark) {
-        if (old == null && (newUrl.contains("zunozap.github.io/pages/startpage") || newUrl.contains("start.duckduckgo.com"))) return;
-
-        if (old == null || old.isEmpty()) {
-            field.setText(newUrl);
-            getHooks().onUrlChange(engine, field, null, newUrl);
-            return;
-        }
-
-        if (newUrl.toLowerCase().contains("zunozap.github.io/addons/")) {
-            if (newUrl.toLowerCase().contains("zunozap.github.io/addons/themes/")) {
-                downloadAddon(newUrl, true, cssDir, sm);
-                return;
-            }
-            if (newUrl.toLowerCase().contains("zunozap.github.io/addons/plugins/")) {
-                downloadAddon(newUrl, false, plDir, sm);
-                return;
-            }
-        }
-
-        engine.getPreferences().setJavaScriptEnabled(EOption.javascript.b);
-        engine.getPreferences().setPluginsEnabled(!EOption.blockEventCalls.b);
-
-        if (isUrlDownload(newUrl)) {
-            new Download(newUrl.replace("?zunozapforcedownload", ""));
-            return;
-        }
-
-        boolean httpsredirect = false;
-        if (newUrl.contains("file://")) {
-            field.setText(newUrl);
-            return;
-        } else {
-            if (old.startsWith("http")) {
-                try {
-                    httpsredirect = isHTTPSRedirect(new URL(old), new URL(newUrl));
-                } catch (MalformedURLException e) { httpsredirect = true; }
-            }
-        }
-
-        field.setText(newUrl);
-
-        String title = (engine.getTitle() != null ? engine.getTitle() : engine.getURL());
-        if (bmread.bm.containsKey(title)) bkmark.setText("Unbookmark");
-
-        if (!httpsredirect && !(newUrl.replaceAll("[ . ]", "").equalsIgnoreCase(newUrl) || newUrl.startsWith("http"))) getHooks().onUrlChange(engine, field, old, newUrl);
     }
 
     public static final String getJxPluginNames(Browser b) {
@@ -316,7 +249,6 @@ public class ZunoZap extends ZunoAPI {
             if (!names.contains(s)) names.add(s);
             else size--;
         }
-        return "<br>" + (size != 0 ? "Chromium plugins (" + size + "): " + names.toString().substring(1).replace("]", "")
-                : "No installed Chromium plugins.");
+        return (size != 0 ? "(" + size + "): " + names.toString().substring(1).replace("]", "") : "No Chromium plugins");
     }
 }

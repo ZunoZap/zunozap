@@ -3,7 +3,6 @@ package me.isaiah.zunozap;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Locale;
@@ -28,13 +27,11 @@ public class LibDownload {
     private static File lib = new File(ZunoAPI.home, "libs");
     
     public static void main(String[] args) {
-        try {
-            main0(args);
-        } catch (IOException e) { e.printStackTrace(); }
+        try { main0(args); } catch (IOException e) { e.printStackTrace(); }
     }
 
     public static void main0(String[] args) throws IOException {
-        if (OptionMenu.init()) {
+        if (Settings.initMenu()) {
             if (ZunoAPI.en == Engine.WEBKIT) {
                 ZunoZapWebView.main(args);
                 return;
@@ -49,8 +46,7 @@ public class LibDownload {
 
         if (file.exists() && sfile.exists()) {
             try {
-                addURL(sfile.toURI().toURL());
-                addURL(file.toURI().toURL());
+                addURLs(file.toURI().toURL(), sfile.toURI().toURL());
             } catch (IOException e) { ZunoZapWebView.main(args); return; }
             try { ZunoZap.main(args); } catch (IOException e) {}
             return;
@@ -72,8 +68,7 @@ public class LibDownload {
                 fileT.renameTo(file);
                 sfileT.renameTo(sfile);
                 try {
-                    addURL(smalljar.getAsFile().toURI().toURL());
-                    addURL(d.getAsFile().toURI().toURL());
+                    addURLs(smalljar.getAsFile().toURI().toURL(), d.getAsFile().toURI().toURL());
                 } catch (IOException e) { e.printStackTrace(); }
                 t.cancel();
                 f.dispose();
@@ -115,16 +110,8 @@ public class LibDownload {
         return "http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/jxbrowser-" + os + "/" + ver + "/jxbrowser-" + os + "-" + ver + ".jar";
     }
 
-    private static void addURL(URL u) throws IOException {
-        // TODO: Java 9
-        URLClassLoader sysloader = (URLClassLoader) LibDownload.class.getClassLoader();
-        Class<?> sysclass = URLClassLoader.class;
-
-        try {
-            Method method = sysclass.getDeclaredMethod("addURL", URL.class);
-            method.setAccessible(true);
-            method.invoke(sysloader, u);
-        } catch (Throwable t) { throw new IOException("Could not add URL to system classloader"); }
+    private static void addURLs(URL... u) throws IOException {
+        Thread.currentThread().setContextClassLoader(new URLClassLoader(u));
     }
 
     private static OS getOS() {

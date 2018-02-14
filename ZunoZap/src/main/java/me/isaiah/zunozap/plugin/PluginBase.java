@@ -3,14 +3,12 @@ package me.isaiah.zunozap.plugin;
 import java.io.File;
 import java.net.URL;
 
-import com.teamdev.jxbrowser.chromium.Browser;
-
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
-import javafx.scene.web.WebEngine;
 import javafx.stage.Stage;
+import me.isaiah.zunozap.UniversalEngine;
 import me.isaiah.zunozap.ZFile;
 
 public abstract class PluginBase {
@@ -32,17 +30,8 @@ public abstract class PluginBase {
 
     /**
      * Called when a new tab is created.
-     * 
-     * @param tab - The tab.
      */
     public void onTabCreate(Tab tab){/**/}
-
-    /**
-     * @deprecated ZunoZap now uses the Chromium engine.
-     * @see #onURLChange(Browser, TextField, Object, URL)
-     */
-    @Deprecated
-    public void onURLChange(WebEngine engine, TextField field, URL old, URL newURL){/**/}
 
     /**
      * Called when a pop-up pops up.
@@ -59,5 +48,5 @@ public abstract class PluginBase {
      * @param old - old URL.
      * @param newURL - new URL.
      */
-    public void onURLChange(Browser e, TextField field, Object old, URL newURL) {/**/}
+    public void onURLChange(UniversalEngine e, TextField field, Object old, URL newURL) {/**/}
 }

@@ -34,7 +34,7 @@ public class UniversalEngine {
     public void loadHTML(String html) {
         if (e == Engine.CHROME) b.loadHTML(html); else en.loadContent(html);
     }
-    
+
     public String getTitle() {
         return (e == Engine.CHROME ? b.getTitle() : en.getTitle());
     }
@@ -45,5 +45,9 @@ public class UniversalEngine {
 
     public void stop() {
        if (e == Engine.CHROME) b.stop(); else en.loadContent("forced stop");
+    }
+
+    public void js(boolean bo) {
+        if (e == Engine.CHROME) b.getPreferences().setJavaScriptEnabled(bo); else en.setJavaScriptEnabled(bo);
     }
 }

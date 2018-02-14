@@ -7,6 +7,6 @@ public class Log extends PrintStream {
     public Log(OutputStream out) { super(out); }
 
     @Override public void println(String o) {
-        super.println("[INFO]: " + o);
+        super.println("[INFO] " + o);
     }
 }
