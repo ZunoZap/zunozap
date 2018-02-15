@@ -3,6 +3,7 @@ package me.isaiah.zunozap;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Locale;
@@ -111,7 +112,15 @@ public class LibDownload {
     }
 
     private static void addURLs(URL... u) throws IOException {
-        Thread.currentThread().setContextClassLoader(new URLClassLoader(u));
+        URLClassLoader load = new URLClassLoader(u);
+        Thread.currentThread().setContextClassLoader(load);
+        Class<?> sysclass = URLClassLoader.class;
+
+        try {
+            Method method = sysclass.getDeclaredMethod("addURL", URL.class);
+            method.setAccessible(true);
+            for (URL ur : u) method.invoke(load, ur);
+        } catch (Throwable t) { throw new IOException("Could not add URL to system classloader"); }
     }
 
     private static OS getOS() {

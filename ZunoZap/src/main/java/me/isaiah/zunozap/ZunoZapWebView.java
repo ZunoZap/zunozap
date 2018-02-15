@@ -29,7 +29,7 @@ import me.isaiah.zunozap.Settings.Options;
 import me.isaiah.zunozap.UniversalEngine.Engine;
 import me.isaiah.zunozap.plugin.PluginBase;
 
-@Info(name="ZunoZap", version="0.5.2", engine = UniversalEngine.Engine.WEBKIT)
+@Info(name="ZunoZap", version="0.5.3", engine = UniversalEngine.Engine.WEBKIT)
 public class ZunoZapWebView extends ZunoAPI {
     public static final File home = new File(System.getProperty("user.home"), "zunozap");
     private static Reader bmread;
