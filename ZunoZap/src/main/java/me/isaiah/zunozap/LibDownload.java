@@ -113,13 +113,15 @@ public class LibDownload {
 
     private static void addURLs(URL... u) throws IOException {
         URLClassLoader load = new URLClassLoader(u);
-        Thread.currentThread().setContextClassLoader(load);
+        try { load = (URLClassLoader) LibDownload.class.getClassLoader(); } catch (Exception e) {}
         Class<?> sysclass = URLClassLoader.class;
 
         try {
             Method method = sysclass.getDeclaredMethod("addURL", URL.class);
             method.setAccessible(true);
-            for (URL ur : u) method.invoke(load, ur);
+            for (URL ur : u) {
+                method.invoke(load, ur);
+            }
         } catch (Throwable t) { throw new IOException("Could not add URL to system classloader"); }
     }
 
