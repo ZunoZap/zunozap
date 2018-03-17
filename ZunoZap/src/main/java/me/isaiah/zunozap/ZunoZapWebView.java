@@ -16,7 +16,6 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -29,7 +28,7 @@ import me.isaiah.zunozap.Settings.Options;
 import me.isaiah.zunozap.UniversalEngine.Engine;
 import me.isaiah.zunozap.plugin.PluginBase;
 
-@Info(name="ZunoZap", version="0.5.3", engine = UniversalEngine.Engine.WEBKIT)
+@Info(name="ZunoZap", version="0.5.4", engine = UniversalEngine.Engine.WEBKIT)
 public class ZunoZapWebView extends ZunoAPI {
     public static final File home = new File(System.getProperty("user.home"), "zunozap");
     private static Reader bmread;
@@ -53,9 +52,6 @@ public class ZunoZapWebView extends ZunoAPI {
         bmread = new Reader(menuBook);
         bmread.refresh();
 
-        mkDirs(home, saves, temp, cssDir);
-
-        stage.getIcons().add(new Image(ZunoZap.class.getClassLoader().getResourceAsStream("zunozaplogo.gif")));
         tb.setPrefSize(1365, 768);
         tb.setSide(Side.TOP);
 
@@ -147,9 +143,7 @@ public class ZunoZapWebView extends ZunoAPI {
                 if (f.exists()) {
                     try {
                         en.load(f.toURI().toURL().toExternalForm());
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    }
+                    } catch (MalformedURLException e) { e.printStackTrace(); }
                     return;
                 }
                 en.loadContent("Unable to load " + en.getLocation().trim());
@@ -163,7 +157,7 @@ public class ZunoZapWebView extends ZunoAPI {
             boolean bad = false;
             if (popupText.toString().toLowerCase().contains("virus")) {
                 bad = true;
-                JOptionPane.showMessageDialog(null, "The site you are visting has tryed to create an popup with the word 'virus' in it, Please be carefull on this site", "ZunoZap AntiPopupVirus", JOptionPane.WARNING_MESSAGE);
+                say("The site you are visting has tryed to create an popup with the word 'virus' in it, Please be carefull on this site", 2);
             }
             if (allowPluginEvents()) for (PluginBase pl : p.plugins) pl.onPopup(bad);
 

@@ -27,7 +27,7 @@ public class Reader {
             }
         }
     }
-    
+
     public void readd() {
         bm.forEach((s1, s2) -> {
             MenuItem item = new MenuItem(s1);
@@ -35,7 +35,7 @@ public class Reader {
             book.getItems().add(item);
         });
     }
-    
+
     public void refresh() throws IOException {
         ZFile dat = new ZFile("bookmarks.dat", false);
         BufferedWriter bw = new BufferedWriter(new FileWriter(dat.getAbsoluteFile()));

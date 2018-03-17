@@ -20,29 +20,26 @@ import javax.swing.WindowConstants;
 import me.isaiah.downloadmanager.Download;
 import me.isaiah.zunozap.UniversalEngine.Engine;
 
-/**
- * Download JxBrowser libraries & launch
- */
+// ZunoZap main class
 public class LibDownload {
-    private static String ver = "6.18";
+    private static String ver = "6.19.1";
     private static File lib = new File(ZunoAPI.home, "libs");
-    
+    public static URLClassLoader load;
+
     public static void main(String[] args) {
         try { main0(args); } catch (IOException e) { e.printStackTrace(); }
     }
 
     public static void main0(String[] args) throws IOException {
-        if (Settings.initMenu()) {
-            if (ZunoAPI.en == Engine.WEBKIT) {
-                ZunoZapWebView.main(args);
-                return;
-            }
+        if (Settings.initMenu() && ZunoAPI.en == Engine.WEBKIT) {
+            ZunoZapWebView.main(args);
+            return;
         }
         lib.mkdirs();
         File file = new File(lib, getJarName().substring(getJarName().lastIndexOf("/")));
         File sfile = new File(lib, "jxbrowser-" + ver + ".jar");
 
-        File fileT = new File(lib, getJarName().substring(getJarName().lastIndexOf("/")).replace(".jar", ".temp"));
+        File fileT = new File(lib, file.getName().replace(".jar", ".temp"));
         File sfileT = new File(lib, "jxbrowser-" + ver + ".temp");
 
         if (file.exists() && sfile.exists()) {
@@ -112,7 +109,7 @@ public class LibDownload {
     }
 
     private static void addURLs(URL... u) throws IOException {
-        URLClassLoader load = new URLClassLoader(u);
+        load = new URLClassLoader(u);
         try { load = (URLClassLoader) LibDownload.class.getClassLoader(); } catch (Exception e) {}
         Class<?> sysclass = URLClassLoader.class;
 

@@ -19,13 +19,15 @@ public class Hooks {
     }
 
     public void onUrlChange(UniversalEngine engine, TextField field, String old, String url) {
-        if (a()) for (PluginBase pl : p.plugins) {
+        System.out.println("debug");
+        if (a()) {
+            for (PluginBase pl : p.plugins) {
             try {
                 pl.onURLChange(engine, field, (old != null ? new URL(old) : null), new URL(url));
             } catch (MalformedURLException e) {
                 System.err.println("Cant pass url change to plugin " + pl.getPluginInfo().name + " " + pl.getPluginInfo().version + " [" + e.getMessage() + "]");
             }
-        }
+        }}
     }
 
     private boolean a() {

@@ -31,6 +31,7 @@ import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.javafx.BrowserView;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -42,6 +43,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
@@ -52,7 +54,7 @@ import me.isaiah.zunozap.UniversalEngine.Engine;
 import me.isaiah.zunozap.plugin.manager.PluginManager;
 
 public abstract class ZunoAPI extends Application {
-    public static File home = new File(System.getProperty("user.home"), "ZunoZap");
+    public static File home = new File(System.getProperty("user.home"), "zunozap");
     protected static String version;
     public static File stylesheet = null;
     public static String styleName = "None";
@@ -115,6 +117,9 @@ public abstract class ZunoAPI extends Application {
             setup(new URL("https://raw.githubusercontent.com/ZunoZap/Blacklist/master/list.dat"), true);
         } catch (Exception e) {}
 
+        mkDirs(home, saves, temp, cssDir);
+
+        stage.getIcons().add(new Image(ZunoZap.class.getClassLoader().getResourceAsStream("zunozaplogo.gif")));
         start(stage, scene, root, borderPane);
 
         stage.setTitle(getInfo().name() + " " + version);
@@ -132,6 +137,7 @@ public abstract class ZunoAPI extends Application {
         deleteDirs(temp);
 
         try { t.cancel(); } catch (NullPointerException ingore) {}
+        Platform.exit();
     }
 
     public final String aboutPageHTML(String... s) {
@@ -144,7 +150,8 @@ public abstract class ZunoAPI extends Application {
     }
 
     public static void setUserAgent(WebEngine e) {
-        if (!e.getUserAgent().contains("ZunoZap")) e.setUserAgent(e.getUserAgent() + " ZunoZap/" + version + " Chrome/60.0.3112");
+        if (!e.getUserAgent().contains("ZunoZap")) 
+            e.setUserAgent(e.getUserAgent() + " ZunoZap/" + version + " Firefox/58.0 Chrome/60.0.3112");
         else System.err.println("Useragent has already been set!");
     }
 
@@ -186,7 +193,9 @@ public abstract class ZunoAPI extends Application {
             File html = new File(temp, loc.replaceAll(regex, "-").trim() + ".html");
 
             String to = getUrlSource(loc.trim());
-            Files.write(Paths.get(html.toURI()), to.getBytes());
+            try {
+                Files.write(Paths.get(html.toURI()), to.getBytes());
+            } catch (NullPointerException e) {}
             log.println("Downloaded " + loc);
             if (html.length() > 2) {
                 File hsdp = new File(new File(dp, loc.replaceAll(regex, "-").trim()), loc.replaceAll(regex, "-").trim() + ".html");
@@ -281,7 +290,7 @@ public abstract class ZunoAPI extends Application {
     }
 
     public boolean isValid() {
-        return inst.getClass().isAnnotationPresent(Info.class);
+        return inst != null && inst.getClass().isAnnotationPresent(Info.class);
     }
 
     public Info getInfo() {
@@ -393,10 +402,7 @@ public abstract class ZunoAPI extends Application {
             s = getUrlSource(i.updateURL());
         } catch (Exception e) { return "error " + e; }
 
-        if (s.equalsIgnoreCase(i.version())) return "Uptodate";
-        if (i.version().toLowerCase().endsWith("dev")) return "Running a snapshot";
-
-        return "You are outdated!";
+        return s.equalsIgnoreCase(i.version()) ? "Uptodate" : "You are outdated!";
     }
 
     public final void createTab(boolean isStart) {
@@ -504,8 +510,7 @@ public abstract class ZunoAPI extends Application {
         String title = (engine.getTitle() != null ? engine.getTitle() : engine.getURL());
         if (r.bm.containsKey(title)) bkmark.setText("Unbookmark");
 
-        if (!httpsredirect && !(url.replaceAll("[ . ]", "").equalsIgnoreCase(url) || url.startsWith("http")))
-            getHooks().onUrlChange(engine, field, old, url);
+        if (!httpsredirect || url.startsWith("http")) getHooks().onUrlChange(engine, field, old, url);
 
         if (Options.offlineStorage.b && engine.e == Engine.WEBKIT) new Thread(() -> downloadPage(saves, temp, engine.getURL(), true)).start();
     }

@@ -34,7 +34,6 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -45,7 +44,7 @@ import me.isaiah.zunozap.Settings.Options;
 import me.isaiah.zunozap.UniversalEngine.Engine;
 import me.isaiah.zunozap.plugin.PluginBase;
 
-@Info(name="ZunoZap", version="0.5.3", enableGC=false, engine = UniversalEngine.Engine.CHROME)
+@Info(name="ZunoZap", version="0.5.4", enableGC=false, engine = UniversalEngine.Engine.CHROME)
 public class ZunoZap extends ZunoAPI {
     public static final File home = new File(System.getProperty("user.home"), "zunozap");
     private static Reader bmread;
@@ -61,10 +60,10 @@ public class ZunoZap extends ZunoAPI {
 
     public static void main(String[] args) throws IOException {
         setInstance(new ZunoZap());
-        File settings = new File(home, "settings.txt");
-        if (!settings.exists()) {
+        File se = new File(home, "settings.txt");
+        if (!se.exists()) {
             home.mkdir();
-            settings.createNewFile();
+            se.createNewFile();
             Settings.save(false);
             firstRun = true;
         }
@@ -87,9 +86,6 @@ public class ZunoZap extends ZunoAPI {
         bmread.refresh();
         this.stage = stage;
 
-        mkDirs(home, saves, temp, cssDir);
-
-        stage.getIcons().add(new Image(ZunoZap.class.getClassLoader().getResourceAsStream("zunozaplogo.gif")));
         tb.setPrefSize(1365, 768);
 
         // Setup tabs
@@ -117,7 +113,7 @@ public class ZunoZap extends ZunoAPI {
         }
 
         createTab(true);
-        b.setUserAgent(b.getUserAgent() + " ZunoZap/" + version);
+        b.setUserAgent("Firefox/58.0" + " ZunoZap/" + version);
         regMenuItems(bmread, menuFile, menuBook, aboutPageHTML("Chromium", b.getUserAgent(), "ZunoZap/zunozap/master/LICENCE", "LGPLv3", getJxPluginNames(b)), tb, Engine.CHROME);
         menuBar.getMenus().addAll(menuFile, menuBook);
         Settings.set(cssDir, scene);
@@ -144,6 +140,7 @@ public class ZunoZap extends ZunoAPI {
             f.deleteOnExit();
             b = new Browser(new BrowserContext(new BrowserContextParams(f.getAbsolutePath())));
         }
+        b.setUserAgent("ZunoZap/" + version + " Firefox/60.0 " + b.getUserAgent());
         createTab(isStartTab, url, true, b, new BrowserView(b));
     }
 
@@ -156,15 +153,15 @@ public class ZunoZap extends ZunoAPI {
 
         final Button back = new Button("<"), forward = new Button(">"), goBtn = new Button("Go"), bkmark = new Button("Bookmark");
 
-        TextField urlField = new TextField("http://");
-        HBox hBox = new HBox(back, forward, urlField, goBtn, bkmark);
+        TextField field = new TextField("http://");
+        HBox hBox = new HBox(back, forward, field, goBtn, bkmark);
         VBox vBox = new VBox(hBox, web);
         UniversalEngine e = new UniversalEngine(b);
 
-        urlChangeLis(e, b, urlField, tab, bkmark);
+        urlChangeLis(e, b, field, tab, bkmark);
 
-        goBtn.setOnAction((v) -> loadSite(urlField.getText(), e));
-        urlField.setOnAction((v) -> loadSite(urlField.getText(), e));
+        goBtn.setOnAction((v) -> loadSite(field.getText(), e));
+        field.setOnAction((v) -> loadSite(field.getText(), e));
 
         back.setOnAction((v) -> b.goBack());
         forward.setOnAction((v) -> b.goForward());
@@ -175,10 +172,10 @@ public class ZunoZap extends ZunoAPI {
         if (bmread.bm.containsKey(title)) bkmark.setText("Unbookmark");
 
         // Setting Styles
-        urlField.setId("urlfield");
-        urlField.setMaxWidth(400);
+        field.setId("urlfield");
+        field.setMaxWidth(400);
         hBox.setId("urlbar");
-        HBox.setHgrow(urlField, Priority.ALWAYS);
+        HBox.setHgrow(field, Priority.ALWAYS);
         VBox.setVgrow(web, Priority.ALWAYS);
         vBox.autosize();
 
@@ -244,8 +241,8 @@ public class ZunoZap extends ZunoAPI {
     public static final String getJxPluginNames(Browser b) {
         ArrayList<String> names = new ArrayList<>();
         int size = b.getPluginManager().getPluginsInfo().size();
-        for (PluginInfo info : b.getPluginManager().getPluginsInfo()) {
-            String s = info.getName() + " " + info.getVersion();
+        for (PluginInfo i : b.getPluginManager().getPluginsInfo()) {
+            String s = i.getName() + " " + i.getVersion();
             if (!names.contains(s)) names.add(s);
             else size--;
         }

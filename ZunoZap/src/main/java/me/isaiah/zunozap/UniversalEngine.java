@@ -6,8 +6,7 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
 /**
- * Collection of methods that are the same between engines.
- * TODO: Fully add by 0.7.0
+ * Collection of methods that are the same between engines
  */
 public class UniversalEngine {
     public enum Engine { WEBKIT, CHROME }
@@ -15,39 +14,42 @@ public class UniversalEngine {
     protected WebView w;
     private WebEngine en;
     protected Browser b;
+    private boolean c;
 
     public UniversalEngine(WebView w) {
         this.e = Engine.WEBKIT;
         this.w = w;
         this.en = w.getEngine();
+        this.c = false;
     }
 
     public UniversalEngine(Browser b) {
         this.e = Engine.CHROME;
         this.b = b;
+        this.c = true;
     }
 
     public void load(String url) {
-        if (e == Engine.CHROME) b.loadURL(url); else en.load(url);
+        if (c) b.loadURL(url); else en.load(url);
     }
 
     public void loadHTML(String html) {
-        if (e == Engine.CHROME) b.loadHTML(html); else en.loadContent(html);
+        if (c) b.loadHTML(html); else en.loadContent(html);
     }
 
     public String getTitle() {
-        return (e == Engine.CHROME ? b.getTitle() : en.getTitle());
+        return (c ? b.getTitle() : en.getTitle());
     }
 
     public String getURL() {
-        return (e == Engine.CHROME ? b.getURL() : en.getLocation());
+        return (c ? b.getURL() : en.getLocation());
     }
 
     public void stop() {
-       if (e == Engine.CHROME) b.stop(); else en.loadContent("forced stop");
+       if (c) b.stop(); else en.loadContent("forced stop");
     }
 
     public void js(boolean bo) {
-        if (e == Engine.CHROME) b.getPreferences().setJavaScriptEnabled(bo); else en.setJavaScriptEnabled(bo);
+        if (c) b.getPreferences().setJavaScriptEnabled(bo); else en.setJavaScriptEnabled(bo);
     }
 }
