@@ -3,7 +3,6 @@ package me.isaiah.zunozap;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
-import java.awt.Insets;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -11,6 +10,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.HashMap;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -39,7 +39,7 @@ public class Settings {
 
     public enum Options {
         forceHTTPS("Force HTTPS", false), blockEventCalls("Block plugin events", false), createPluginDataFolders("Create plugin folders", true),
-        onTheDuckSide("Use DuckDuckGO", true), offlineStorage("Store web pages for offline browsing", false), javascript(true),
+        /*onTheDuckSide("Use DuckDuckGO", true),*/ offlineStorage("Store web pages for offline browsing", false), javascript(true),
         blockMalware("Block Malware sites", true);
 
         private final static HashMap<Integer, Options> map = new HashMap<>();
@@ -66,6 +66,8 @@ public class Settings {
 
             ZunoAPI.styleName = String.valueOf(p.getStr("style"));
             ZunoAPI.stylesheet = new File(String.valueOf(p.getStr("stylefile")));
+            if (p.containsKey("tabpage")) ZunoAPI.tabPage = p.getStr("tabpage");
+            if (p.containsKey("search")) ZunoAPI.searchEn = p.getStr("search");
             try {
                 ZunoAPI.en = Engine.valueOf(p.getStr("engine"));
             } catch (Exception e) {
@@ -122,23 +124,10 @@ public class Settings {
         odf.setEnabled(Desktop.isDesktopSupported());
         odf.addActionListener((a) -> { try { Desktop.getDesktop().open(ZunoAPI.home); } catch (IOException e) {}});
 
-        JTextField t = new JTextField("Style:");
-        t.setEditable(false);
-        panel.setBorder(new EmptyBorder(2, 10, 2, 2));
-        t.setBorder(new EmptyBorder(0, 0, 0, 0));
-        t.setMargin(new Insets(20, 0, 0, 0));
-        t.setMaximumSize(new Dimension(50, 25));
-
-        JTextField e = new JTextField("Engine:");
-        e.setEditable(false);
-        panel.setBorder(new EmptyBorder(2, 10, 2, 2));
-        e.setBorder(new EmptyBorder(0, 0, 0, 0));
-        e.setMargin(new Insets(20, 0, 0, 0));
-        e.setMaximumSize(new Dimension(50, 25));
-
         JComboBox<Object> style = new JComboBox<>(b.keySet().toArray());
         style.setSelectedItem(ZunoAPI.styleName);
-        style.setMaximumSize(new Dimension(150, 20));
+        style.setMaximumSize(new Dimension(250, 50));
+        style.setBorder(BorderFactory.createTitledBorder("Style"));
         style.addActionListener((a) -> {
             String name = (String) ((JComboBox<String>) a.getSource()).getSelectedItem();
             ZunoAPI.stylesheet = b.get(name);
@@ -149,7 +138,8 @@ public class Settings {
 
         JComboBox<Object> en = new JComboBox<>(UniversalEngine.Engine.values());
         en.setSelectedItem(ZunoAPI.en);
-        en.setMaximumSize(new Dimension(150, 20));
+        en.setMaximumSize(new Dimension(250, 50));
+        en.setBorder(BorderFactory.createTitledBorder("Web Engine"));
         en.addActionListener((a) -> {
             ZunoAPI.en = (Engine) ((JComboBox<String>) a.getSource()).getSelectedItem(); 
             save(true);
@@ -159,15 +149,52 @@ public class Settings {
         p.setEditable(false);
         p.setBorder(new EmptyBorder(0, 0, 0, 0));
         p.setMaximumSize(new Dimension(10, 20));
+        
+        JPanel tabp = new JPanel();
+        JTextField tab = new JTextField(ZunoAPI.tabPage);
+        tabp.add(tab);
+        tabp.setBorder(BorderFactory.createTitledBorder("New Tab Page"));
+        tab.setMaximumSize(new Dimension(400, 50));
+        tabp.setMaximumSize(new Dimension(400, 50));
+        JButton jb1 = new JButton("Save");
+        jb1.addActionListener(a -> {
+            ZunoAPI.tabPage = tab.getText();
+            save(true);
+        });
+        tabp.add(jb1);
+        tab.addActionListener(a -> {
+            ZunoAPI.tabPage = tab.getText();
+            save(true);
+        });
 
-        Component[] cs = {t, style, e, en, p, odf};
+        JPanel sep = new JPanel();
+        JTextField se = new JTextField(ZunoAPI.searchEn);
+        sep.add(se);
+        sep.setBorder(BorderFactory.createTitledBorder("Search engine (%s for data)"));
+        se.setMaximumSize(new Dimension(600, 50));
+        sep.setMaximumSize(new Dimension(600, 50));
+        JButton jb = new JButton("Save");
+        jb.addActionListener(a -> {
+            ZunoAPI.searchEn = se.getText();
+            save(true);
+        });
+        sep.add(jb);
+        se.addActionListener(a -> {
+            ZunoAPI.searchEn = se.getText();
+            save(true);
+        });
+        JPanel zzz = new JPanel();
+        zzz.add(tabp); zzz.add(sep);
+        JPanel zz = new JPanel();
+        zz.add(style); zz.add(en);
+        Component[] cs = {zz, zzz, p, odf};
         for (Component c : cs) panel.add(c);
 
         s.close();
         f.setDefaultCloseOperation(2);
-        panel.setSize(5500, 2500);
+        panel.setSize(5500, 3000);
 
-        f.setPreferredSize(new Dimension(400, 300));
+        f.setPreferredSize(new Dimension(500, 353));
         f.setContentPane(panel);
         f.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         f.addWindowListener(new java.awt.event.WindowAdapter() {
@@ -203,6 +230,8 @@ public class Settings {
                 p.setProperty("style", ZunoAPI.styleName);
                 p.setProperty("stylefile", ZunoAPI.stylesheet.getAbsolutePath());
                 p.setProperty("engine", ZunoAPI.en.name());
+                p.setProperty("search", ZunoAPI.searchEn);
+                p.setProperty("tabpage", ZunoAPI.tabPage);
             }
             p.store(new FileOutputStream(settings), null);
             s.close();

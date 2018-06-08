@@ -22,7 +22,7 @@ import me.isaiah.zunozap.UniversalEngine.Engine;
 
 // ZunoZap main class
 public class LibDownload {
-    private static String ver = "6.19.1";
+    private static String ver = "6.20";
     private static File lib = new File(ZunoAPI.home, "libs");
     public static URLClassLoader load;
 

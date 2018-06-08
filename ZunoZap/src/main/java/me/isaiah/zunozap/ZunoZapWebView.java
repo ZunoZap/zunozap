@@ -28,7 +28,7 @@ import me.isaiah.zunozap.Settings.Options;
 import me.isaiah.zunozap.UniversalEngine.Engine;
 import me.isaiah.zunozap.plugin.PluginBase;
 
-@Info(name="ZunoZap", version="0.5.4", engine = UniversalEngine.Engine.WEBKIT)
+@Info(name="ZunoZap", version="0.6", engine = UniversalEngine.Engine.WEBKIT)
 public class ZunoZapWebView extends ZunoAPI {
     public static final File home = new File(System.getProperty("user.home"), "zunozap");
     private static Reader bmread;
@@ -69,9 +69,12 @@ public class ZunoZapWebView extends ZunoAPI {
 
         WebView dummy = new WebView();
         setUserAgent(dummy.getEngine());
-        regMenuItems(bmread, menuFile, menuBook, aboutPageHTML("Java WebView", dummy.getEngine().getUserAgent(), "ZunoZap/zunozap/master/LICENCE", "LGPLv3", "N/A"), tb, Engine.WEBKIT);
+        regMenuItems(bmread, menuFile, menuBook, aboutPageHTML(dummy.getEngine().getUserAgent(), "N/A"), tb, Engine.WEBKIT);
         menuBar.getMenus().addAll(menuFile, menuBook);
         Settings.set(cssDir, scene);
+        Settings.initCss(cssDir);
+        Settings.setStyle("ZunoZap default");
+        Settings.save(false);
         scene.getStylesheets().add(ZunoAPI.stylesheet.toURI().toURL().toExternalForm());
 
         p.loadPlugins();
@@ -119,7 +122,7 @@ public class ZunoZapWebView extends ZunoAPI {
         setUserAgent(engine);
         engine.javaScriptEnabledProperty().set(Options.javascript.b);
 
-        if (isStartTab) engine.load("https://zunozap.github.io/pages/startpage.html");
+        if (isStartTab) engine.load(tabPage);
         else loadSite(url, e);
 
         tab.setContent(vBox);

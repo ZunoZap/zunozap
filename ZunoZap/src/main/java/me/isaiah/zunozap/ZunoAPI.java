@@ -75,6 +75,9 @@ public abstract class ZunoAPI extends Application {
 
     protected static MenuBar menuBar;
     protected final static Menu menuFile = new Menu("File"), menuBook = new Menu("Bookmarks");
+    
+    protected static String tabPage = "http://start.duckduckgo.com/";
+    protected static String searchEn = "http://duckduckgo.com/?q=%s";
 
     protected static final ZFile saves = new ZFile("offline-pages"), data = new ZFile("engine"), cssDir = new ZFile("styles"),
             plDir = new ZFile("plugins"), temp = new ZFile("temp");
@@ -119,7 +122,7 @@ public abstract class ZunoAPI extends Application {
 
         mkDirs(home, saves, temp, cssDir);
 
-        stage.getIcons().add(new Image(ZunoZap.class.getClassLoader().getResourceAsStream("zunozaplogo.gif")));
+        stage.getIcons().add(new Image(ZunoZap.class.getClassLoader().getResourceAsStream("zunozaplogo.png")));
         start(stage, scene, root, borderPane);
 
         stage.setTitle(getInfo().name() + " " + version);
@@ -141,12 +144,12 @@ public abstract class ZunoAPI extends Application {
     }
 
     public final String aboutPageHTML(String... s) {
-        return String.format("<h1>%s <small>%s</small></h1><p>A web browser made with the %s engine<br>"
+        return String.format("<h1>ZunoZap <small>%s</small></h1><p>A web browser made with the WebKit & Chromium engines<br>"
                 + " Useragent: %s <br> Javascript: " + Options.javascript.b
-                + "<br> Licence: <a href='https://raw.githubusercontent.com/%s'>%s</a><hr><br>"
+                + "<br> Licence: <a href='https://gnu.org/licenses/lgpl-3.0.txt'>LGPLv3</a><hr><br>"
                 + "<b>Note: The Chromium engine is provided by JxBrowser by <a href='https://teamdev.com/'>TeamDev</a></b></p>"
-                + "ZunoZap Plugins: " + getPluginNames() + "<br>Chromium Plugins: " + s[4],
-                getInfo().name(), getInfo().version(), s[0], s[1], s[2], s[3]);
+                + "ZunoZap Plugins: " + getPluginNames() + "<br>Chromium Plugins: " + s[1],
+                getInfo().version(), s[0]);
     }
 
     public static void setUserAgent(WebEngine e) {
@@ -163,14 +166,14 @@ public abstract class ZunoAPI extends Application {
 
     public static final void loadSite(String url, UniversalEngine e) {
         if (url.startsWith("zunozap:")) {
-            if (url.substring(8).startsWith("home")) e.load("https://zunozap.github.io/");
-            else if (url.substring(8).startsWith("start")) e.load("https://zunozap.github.io/pages/startpage.html");
+            if (url.substring(8).startsWith("home")) e.load("http://www.zunozap.com/");
+            else if (url.substring(8).startsWith("start")) e.load(tabPage);
 
             return;
         }
 
         if ((url.replaceAll("[ . ]", "").equalsIgnoreCase(url.replaceAll(" ", "")))) {
-            e.load("https://" + (Options.onTheDuckSide.b ? "duckduckgo.com" : "google.com/search") + "?q=" + url.replace(" ", "%20"));
+            e.load(String.format(searchEn, url.replace(" ", "%20")));
             return;
         }
 
@@ -406,7 +409,8 @@ public abstract class ZunoAPI extends Application {
     }
 
     public final void createTab(boolean isStart) {
-        createTab(isStart, "https://" + (Options.onTheDuckSide.b ? "start.duckduckgo" : "google") + ".com");
+        //createTab(isStart, "https://" + (Options.onTheDuckSide.b ? "start.duckduckgo" : "google") + ".com");
+        createTab(isStart, tabPage);
     }
 
     public static void setup(URL url, boolean clear) throws IOException {

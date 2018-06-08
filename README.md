@@ -14,9 +14,9 @@ ZunoZap has:
 - Light as a feather.
 - Works on all platforms due to being coded in Java.
 
-Website: https://zunozap.github.io/
+Website: https://www.zunozap.com/
 
-Download: [Desktop Download for Windows, Mac, & Linux](https://zunozap.github.io/download) | [Download APK for Android - COMING SOON](#comingsoon)
+Download: [Desktop Download for Windows, Mac, & Linux](https://zunozap.com/download) | [Download APK for Android - COMING SOON](http://zunozap.com/)
 
 Github: https://github.com/ZunoZap/
 

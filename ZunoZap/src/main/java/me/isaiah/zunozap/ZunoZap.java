@@ -44,7 +44,7 @@ import me.isaiah.zunozap.Settings.Options;
 import me.isaiah.zunozap.UniversalEngine.Engine;
 import me.isaiah.zunozap.plugin.PluginBase;
 
-@Info(name="ZunoZap", version="0.5.4", enableGC=false, engine = UniversalEngine.Engine.CHROME)
+@Info(name="ZunoZap", version="0.6", enableGC=false, engine = UniversalEngine.Engine.CHROME)
 public class ZunoZap extends ZunoAPI {
     public static final File home = new File(System.getProperty("user.home"), "zunozap");
     private static Reader bmread;
@@ -114,13 +114,16 @@ public class ZunoZap extends ZunoAPI {
 
         createTab(true);
         b.setUserAgent("Firefox/58.0" + " ZunoZap/" + version);
-        regMenuItems(bmread, menuFile, menuBook, aboutPageHTML("Chromium", b.getUserAgent(), "ZunoZap/zunozap/master/LICENCE", "LGPLv3", getJxPluginNames(b)), tb, Engine.CHROME);
+        regMenuItems(bmread, menuFile, menuBook, aboutPageHTML(b.getUserAgent(), getJxPluginNames(b)), tb, Engine.CHROME);
         menuBar.getMenus().addAll(menuFile, menuBook);
         Settings.set(cssDir, scene);
+        Settings.initCss(cssDir);
+        Settings.setStyle("ZunoZap default");
+        Settings.save(false);
         scene.getStylesheets().add(ZunoAPI.stylesheet.toURI().toURL().toExternalForm());
 
         BrowserPreferences.setChromiumDir(data.getAbsolutePath());
-        BrowserPreferences.setUserAgent("ZunoZap/" + getInfo().version());
+        BrowserPreferences.setUserAgent(BrowserPreferences.getUserAgent() + " ZunoZap/" + getInfo().version());
         b.dispose(false);
 
         p.loadPlugins();
@@ -182,7 +185,7 @@ public class ZunoZap extends ZunoAPI {
         b.getPreferences().setJavaScriptEnabled(Options.javascript.b);
 
         if (load)
-               if (isStartTab) b.loadURL("https://zunozap.github.io/pages/startpage.html"); else loadSite(url, e);
+               if (isStartTab) b.loadURL(tabPage); else loadSite(url, e);
 
         b.setFullScreenHandler(new ZFullScreenHandler(stage));
 
