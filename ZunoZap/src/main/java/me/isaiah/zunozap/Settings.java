@@ -39,8 +39,7 @@ public class Settings {
 
     public enum Options {
         forceHTTPS("Force HTTPS", false), blockEventCalls("Block plugin events", false), createPluginDataFolders("Create plugin folders", true),
-        /*onTheDuckSide("Use DuckDuckGO", true),*/ offlineStorage("Store web pages for offline browsing", false), javascript(true),
-        blockMalware("Block Malware sites", true);
+        offlineStorage("Store web pages for offline browsing", false), javascript(true), blockMalware("Block Malware sites", true);
 
         private final static HashMap<Integer, Options> map = new HashMap<>();
         public boolean b, def;
@@ -170,7 +169,7 @@ public class Settings {
         JPanel sep = new JPanel();
         JTextField se = new JTextField(ZunoAPI.searchEn);
         sep.add(se);
-        sep.setBorder(BorderFactory.createTitledBorder("Search engine (%s for data)"));
+        sep.setBorder(BorderFactory.createTitledBorder("Search engine (%s = data)"));
         se.setMaximumSize(new Dimension(600, 50));
         sep.setMaximumSize(new Dimension(600, 50));
         JButton jb = new JButton("Save");
@@ -209,7 +208,7 @@ public class Settings {
         JCheckBox box = new JCheckBox(text);
         box.setSelected(b);
         box.setName(String.valueOf(i));
-        box.addActionListener((a) -> {
+        box.addActionListener(a -> {
             Options.getById(it).b = box.isSelected();
             save(true);
         });

@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.web.WebEvent;
 import javafx.stage.Stage;
 import me.isaiah.zunozap.UniversalEngine;
 import me.isaiah.zunozap.ZFile;
@@ -15,16 +16,12 @@ public abstract class PluginBase {
     public final File dataFolder = new File(new ZFile("plugins"), getPluginInfo().name);
 
     /**
-     * Info about plug-in
+     * Info about addon
      */
-    public PluginInfo getPluginInfo() { return null; }
+    public abstract PluginInfo getPluginInfo();
 
     /**
-     * Called when the browser is created. 
-     * 
-     * @param tabBar - Tab bar.
-     * @param scene - JavaFX Scene
-     * @param stage - JavaFX Stage
+     * On ZunoZap startup
      */
     public void onLoad(Stage stage, Scene scene, TabPane tabBar){/**/}
 
@@ -33,20 +30,16 @@ public abstract class PluginBase {
      */
     public void onTabCreate(Tab tab){/**/}
 
-    /**
-     * Called when a pop-up pops up.
-     * 
-     * @param bad - Contains the word "virus"
-     */
+    @Deprecated
     public void onPopup(boolean bad){/**/}
 
     /**
-     * Called when the page URL changes
-     * 
-     * @param e - engine.
-     * @param urlField - the address field.
-     * @param old - old URL.
-     * @param newURL - new URL.
+     * Called when a JS pop-up pops up
      */
-    public void onURLChange(UniversalEngine e, TextField field, Object old, URL newURL) {/**/}
+    public void onPopup(WebEvent<String> popupText) { onPopup(false); } // if not overrided in plugin call old method
+
+    /**
+     * Called when the page URL changes
+     */
+    public void onURLChange(UniversalEngine e, TextField field, Object oldURL, URL newURL) {/**/}
 }

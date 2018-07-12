@@ -1,7 +1,6 @@
 package me.isaiah.zunozap;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 
 import javax.swing.JOptionPane;
@@ -28,20 +27,13 @@ import me.isaiah.zunozap.Settings.Options;
 import me.isaiah.zunozap.UniversalEngine.Engine;
 import me.isaiah.zunozap.plugin.PluginBase;
 
-@Info(name="ZunoZap", version="0.6", engine = UniversalEngine.Engine.WEBKIT)
+@Info(name="ZunoZap", version="0.6.1", engine = UniversalEngine.Engine.WEBKIT)
 public class ZunoZapWebView extends ZunoAPI {
     public static final File home = new File(System.getProperty("user.home"), "zunozap");
     private static Reader bmread;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         setInstance(new ZunoZapWebView());
-        File s = new File(home, "settings.txt");
-        if (!s.exists()) {
-            home.mkdir();
-            s.createNewFile();
-            Settings.save(false);
-            firstRun = true;
-        }
         launch(ZunoZapWebView.class, args);
     }
 
@@ -55,7 +47,7 @@ public class ZunoZapWebView extends ZunoAPI {
         tb.setPrefSize(1365, 768);
         tb.setSide(Side.TOP);
 
-        /// Setup tabs
+        // Setup tabs
         Tab newtab = new Tab(" + ");
         newtab.setClosable(false);
         tb.getTabs().add(newtab);
@@ -102,13 +94,13 @@ public class ZunoZapWebView extends ZunoAPI {
 
         urlChangeLis(e, web, engine, urlField, tab, bkmark);
 
-        goBtn.setOnAction((v) -> loadSite(urlField.getText(), e));
-        urlField.setOnAction((v) -> loadSite(urlField.getText(), e));
+        goBtn.setOnAction(v -> loadSite(urlField.getText(), e));
+        urlField.setOnAction(v -> loadSite(urlField.getText(), e));
 
-        back.setOnAction((v) -> history(engine, EHistory.BACK));
-        forward.setOnAction((v) -> history(engine, EHistory.FORWARD));
+        back.setOnAction(v -> history(engine, "back"));
+        forward.setOnAction(v -> history(engine, "forward"));
 
-        bkmark.setOnAction((v) -> bookmarkAction(e, bmread, ((t) -> createTab(false, engine.getLocation())), bkmark, menuBook));
+        bkmark.setOnAction(v -> bookmarkAction(e, bmread, (t -> createTab(false, engine.getLocation())), bkmark, menuBook));
 
         // Setting Styles
         urlField.setId("urlfield");
@@ -122,14 +114,11 @@ public class ZunoZapWebView extends ZunoAPI {
         setUserAgent(engine);
         engine.javaScriptEnabledProperty().set(Options.javascript.b);
 
-        if (isStartTab) engine.load(tabPage);
-        else loadSite(url, e);
+        if (isStartTab) engine.load(tabPage); else loadSite(url, e);
 
         tab.setContent(vBox);
 
-        tab.setOnCloseRequest((a) -> {
-            ((WebView) ((VBox) ((Tab) a.getSource()).getContent()).getChildren().get(1)).getEngine().loadContent("Closing");
-        });
+        tab.setOnCloseRequest(a -> onTabClosed(a.getSource()));
 
         if (allowPluginEvents()) for (PluginBase pl : p.plugins) pl.onTabCreate(tab);
 
@@ -156,13 +145,8 @@ public class ZunoZapWebView extends ZunoAPI {
 
         en.locationProperty().addListener((o,oU,nU) -> ZunoZapWebView.this.changed(u, urlField, tab, oU, nU, bkmark, bmread));
 
-        en.setOnAlert((popupText) -> {
-            boolean bad = false;
-            if (popupText.toString().toLowerCase().contains("virus")) {
-                bad = true;
-                say("The site you are visting has tryed to create an popup with the word 'virus' in it, Please be carefull on this site", 2);
-            }
-            if (allowPluginEvents()) for (PluginBase pl : p.plugins) pl.onPopup(bad);
+        en.setOnAlert(popupText -> {
+            if (allowPluginEvents()) for (PluginBase pl : p.plugins) pl.onPopup(popupText);
 
             JOptionPane.showMessageDialog(null, popupText.getData(), "JS Popup", JOptionPane.INFORMATION_MESSAGE);
         });
@@ -171,5 +155,6 @@ public class ZunoZapWebView extends ZunoAPI {
 
     @Override
     protected void onTabClosed(Object s) {
+        ((WebView) ((VBox) ((Tab) s).getContent()).getChildren().get(1)).getEngine().loadContent("Closing");
     }
 }

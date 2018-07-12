@@ -39,7 +39,7 @@ public class Reader {
     public void refresh() throws IOException {
         ZFile dat = new ZFile("bookmarks.dat", false);
         BufferedWriter bw = new BufferedWriter(new FileWriter(dat.getAbsoluteFile()));
-        bw.write("# do not edit");
+        bw.write("# dont edit");
         bw.newLine();
 
         bm.forEach((s1, s2) -> {

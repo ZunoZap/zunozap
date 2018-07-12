@@ -28,7 +28,7 @@ final class PluginClassLoader extends URLClassLoader {
             Class<? extends PluginBase> pluginClass;
             try {
                 pluginClass = jarClass.asSubclass(PluginBase.class);
-            } catch (ClassCastException e) { throw new Exception("main class '" + name + "' does not extend PluginBase", e); }
+            } catch (ClassCastException e) { throw new Exception("Class '" + name + "' does not extend PluginBase", e); }
 
             plugin = pluginClass.newInstance();
         } catch (IOException e) { e.printStackTrace(); }
@@ -39,7 +39,7 @@ final class PluginClassLoader extends URLClassLoader {
     }
 
     Class<?> findClass(String name, boolean checkGlobal) throws ClassNotFoundException {
-        if (name.startsWith("me.isaiah.zunozap") || name.startsWith("io.github.zunozap")) throw new ClassNotFoundException(name);
+        if (name.startsWith("me.isaiah.zunozap") || name.startsWith("com.zunozap")) throw new ClassNotFoundException(name);
 
         Class<?> result = classes.get(name);
 

@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Properties;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import me.isaiah.zunozap.ZFile;
@@ -20,28 +19,19 @@ public class PluginManager {
         ZFile pluginFolder = new ZFile("plugins");
         pluginFolder.mkdir();
         for (File f : pluginFolder.listFiles()) {
-            if (!f.isDirectory() && f.getName().endsWith(".jar")) {
+            if (f.getName().endsWith(".jar")) {
                 Properties p = new Properties();
                 try (JarFile jar = new JarFile(f)) {
-                    JarEntry entry = jar.getJarEntry("plugin.txt");
-                    InputStream stream = jar.getInputStream(entry);
+                    InputStream stream = jar.getInputStream(jar.getJarEntry("plugin.txt"));
                     p.load(stream);
                     stream.close();
                     classLoader = new PluginClassLoader(new PluginLoader(), getClass().getClassLoader(), p.getProperty("mainClass"), f);
                     PluginBase plugin = classLoader.plugin;
                     PluginInfo info = plugin.getPluginInfo();
-
-                    if (info == null) {
-                        info = new PluginInfo();
-                        info.name = f.getName().replace(".jar", "");
-                    }
                     info.internal_reference = plugin;
                     plugins.add(plugin);
                     names.add(info.name);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.err.println(f.getName() + " is not a valid plugin.");
-                }
+                } catch (Exception e) { System.err.println(f.getName() + " is not a valid plugin: " + e.getMessage()); }
             }
         }
     }

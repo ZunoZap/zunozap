@@ -73,9 +73,7 @@ public class LibDownload {
                 try {
                     t.cancel();
                     ZunoZap.main(args);
-                } catch (IOException e) { try {
-                    ZunoZapWebView.main(args);
-                } catch (IOException e1) { e1.printStackTrace(); }}
+                } catch (IOException e) { ZunoZapWebView.main(args);}
             }
         }}, 10, 400);}).start();
         JPanel p = new JPanel();
@@ -109,16 +107,13 @@ public class LibDownload {
     }
 
     private static void addURLs(URL... u) throws IOException {
-        load = new URLClassLoader(u);
-        try { load = (URLClassLoader) LibDownload.class.getClassLoader(); } catch (Exception e) {}
-        Class<?> sysclass = URLClassLoader.class;
+        ClassLoader load = ClassLoader.getSystemClassLoader();
 
         try {
-            Method method = sysclass.getDeclaredMethod("addURL", URL.class);
+            Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             method.setAccessible(true);
-            for (URL ur : u) {
-                method.invoke(load, ur);
-            }
+            for (URL ur : u) method.invoke(load, ur);
+            Thread.currentThread().setContextClassLoader(load);
         } catch (Throwable t) { throw new IOException("Could not add URL to system classloader"); }
     }
 

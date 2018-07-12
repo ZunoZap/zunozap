@@ -44,7 +44,7 @@ import me.isaiah.zunozap.Settings.Options;
 import me.isaiah.zunozap.UniversalEngine.Engine;
 import me.isaiah.zunozap.plugin.PluginBase;
 
-@Info(name="ZunoZap", version="0.6", enableGC=false, engine = UniversalEngine.Engine.CHROME)
+@Info(name="ZunoZap", version="0.6.1", enableGC=false, engine = UniversalEngine.Engine.CHROME)
 public class ZunoZap extends ZunoAPI {
     public static final File home = new File(System.getProperty("user.home"), "zunozap");
     private static Reader bmread;
@@ -53,20 +53,13 @@ public class ZunoZap extends ZunoAPI {
     private Random r = new Random();
 
     @Override
-    public void init() {
+    public void init() throws IOException {
         if (Environment.isMac()) BrowserCore.initialize();
         super.init();
     }
 
     public static void main(String[] args) throws IOException {
         setInstance(new ZunoZap());
-        File se = new File(home, "settings.txt");
-        if (!se.exists()) {
-            home.mkdir();
-            se.createNewFile();
-            Settings.save(false);
-            firstRun = true;
-        }
 
         loading.setSize(new java.awt.Dimension(600, 100));
         loading.setVisible(true);
@@ -88,8 +81,7 @@ public class ZunoZap extends ZunoAPI {
 
         tb.setPrefSize(1365, 768);
 
-        // Setup tabs
-        Tab newtab = new Tab(" + ");
+        Tab newtab = new Tab(" + "); // Setup tabs
         newtab.setClosable(false);
         newtab.setId("createtab");
         tb.getTabs().add(newtab);
@@ -113,7 +105,7 @@ public class ZunoZap extends ZunoAPI {
         }
 
         createTab(true);
-        b.setUserAgent("Firefox/58.0" + " ZunoZap/" + version);
+        b.setUserAgent("ZunoZap/" + version + " " + b.getUserAgent());
         regMenuItems(bmread, menuFile, menuBook, aboutPageHTML(b.getUserAgent(), getJxPluginNames(b)), tb, Engine.CHROME);
         menuBar.getMenus().addAll(menuFile, menuBook);
         Settings.set(cssDir, scene);
@@ -124,10 +116,11 @@ public class ZunoZap extends ZunoAPI {
 
         BrowserPreferences.setChromiumDir(data.getAbsolutePath());
         BrowserPreferences.setUserAgent(BrowserPreferences.getUserAgent() + " ZunoZap/" + getInfo().version());
+
         b.dispose(false);
 
         p.loadPlugins();
-        getHooks().onStart(stage, scene, tb);
+        hookonStart(stage, scene, tb);
         loading.setVisible(false);
         loading.dispose();
     }
@@ -143,7 +136,7 @@ public class ZunoZap extends ZunoAPI {
             f.deleteOnExit();
             b = new Browser(new BrowserContext(new BrowserContextParams(f.getAbsolutePath())));
         }
-        b.setUserAgent("ZunoZap/" + version + " Firefox/60.0 " + b.getUserAgent());
+        b.setUserAgent("ZunoZap/" + version + " " + b.getUserAgent());
         createTab(isStartTab, url, true, b, new BrowserView(b));
     }
 
@@ -163,13 +156,13 @@ public class ZunoZap extends ZunoAPI {
 
         urlChangeLis(e, b, field, tab, bkmark);
 
-        goBtn.setOnAction((v) -> loadSite(field.getText(), e));
-        field.setOnAction((v) -> loadSite(field.getText(), e));
+        goBtn.setOnAction(v -> loadSite(field.getText(), e));
+        field.setOnAction(v -> loadSite(field.getText(), e));
 
-        back.setOnAction((v) -> b.goBack());
-        forward.setOnAction((v) -> b.goForward());
+        back.setOnAction(v -> b.goBack());
+        forward.setOnAction(v -> b.goForward());
 
-        bkmark.setOnAction((v) -> bookmarkAction(e, bmread, ((t) -> createTab(false, b.getURL())), bkmark, menuBook));
+        bkmark.setOnAction(v -> bookmarkAction(e, bmread, (t -> createTab(false, b.getURL())), bkmark, menuBook));
 
         String title = (b.getTitle() != null ? b.getTitle() : b.getURL());
         if (bmread.bm.containsKey(title)) bkmark.setText("Unbookmark");
@@ -190,7 +183,7 @@ public class ZunoZap extends ZunoAPI {
         b.setFullScreenHandler(new ZFullScreenHandler(stage));
 
         tab.setContent(vBox);
-        tab.setOnCloseRequest((a) -> onTabClosed(a.getSource()));
+        tab.setOnCloseRequest(a -> onTabClosed(a.getSource()));
 
         if (allowPluginEvents()) for (PluginBase pl : p.plugins) pl.onTabCreate(tab);
 
@@ -214,7 +207,6 @@ public class ZunoZap extends ZunoAPI {
 
         engine.setPopupHandler(new PopupHandler() {
             @Override public PopupContainer handlePopup(PopupParams pp) {
-                if (allowPluginEvents()) for (PluginBase pl : p.plugins) pl.onPopup(pp.getTargetName().toLowerCase().contains("virus"));
                 return new PopupContainer() { @Override public void insertBrowser(Browser b, Rectangle r) {
                     createTab(false, b.getURL());
                     b.dispose();
@@ -227,13 +219,15 @@ public class ZunoZap extends ZunoAPI {
                 String url = e.getBrowser().getURL();
                 Platform.runLater(() -> {
                     tab.setText(engine.getTitle());
-                    String title = engine.getTitle() != null ? engine.getTitle() : engine.getURL();
-                    if (bmread.bm.containsKey(title)) bkmark.setText("Unbookmark");
-                    ZunoZap.this.changed(u, urlField, tab, urlField.getText(), url, bkmark, bmread);
+                    if (bmread.bm.containsKey(engine.getTitle() != null ? engine.getTitle() : engine.getURL())) 
+                        bkmark.setText("Unbookmark");
+
+                    System.out.println("finishedLoading");
+                    changed(u, urlField, tab, urlField.getText(), url, bkmark, bmread);
                 });
-                File s = new File(saves, url.replaceAll("[ : / . ? ]", "-"));
-                s.mkdir();
                 if (Options.offlineStorage.b && !url.contains("mail")) new Thread(() -> {
+                    File s = new File(saves, url.replaceAll("[ : / . ? ]", "-"));
+                    s.mkdir();
                     ZunoAPI.downloadPage(saves, temp, url, false);
                     engine.saveWebPage(url.replaceAll("[ : / . ? ]", "-"), s.getPath(), SavePageType.COMPLETE_HTML);
                 }).start();
