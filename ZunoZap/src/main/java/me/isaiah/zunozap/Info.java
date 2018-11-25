@@ -7,9 +7,11 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.TYPE)
 public @interface Info {
-    public String name() default "Unknown";
-    public String version() default "Unknown";
+
+    public String name() default "ZunoZap";
+    public String version() default "0.7";
     public String updateURL() default "https://raw.githubusercontent.com/ZunoZap/zunozap/master/LATEST-RELEASE.md";
     public boolean enableGC() default true;
     public UniversalEngine.Engine engine();
+
 }

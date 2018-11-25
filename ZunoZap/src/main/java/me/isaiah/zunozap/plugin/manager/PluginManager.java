@@ -11,14 +11,15 @@ import me.isaiah.zunozap.plugin.PluginBase;
 import me.isaiah.zunozap.plugin.PluginInfo;
 
 public class PluginManager {
+
     public ArrayList<PluginBase> plugins = new ArrayList<>();
     public ArrayList<String> names = new ArrayList<>();
     public PluginClassLoader classLoader;
 
     public void loadPlugins() {
-        ZFile pluginFolder = new ZFile("plugins");
-        pluginFolder.mkdir();
-        for (File f : pluginFolder.listFiles()) {
+        ZFile fold = new ZFile("plugins");
+        fold.mkdir();
+        for (File f : fold.listFiles()) {
             if (f.getName().endsWith(".jar")) {
                 Properties p = new Properties();
                 try (JarFile jar = new JarFile(f)) {
@@ -31,8 +32,9 @@ public class PluginManager {
                     info.internal_reference = plugin;
                     plugins.add(plugin);
                     names.add(info.name);
-                } catch (Exception e) { System.err.println(f.getName() + " is not a valid plugin: " + e.getMessage()); }
+                } catch (Exception e) { System.err.println(f.getName() + " is not a plugin: " + e.getMessage()); }
             }
         }
     }
+
 }

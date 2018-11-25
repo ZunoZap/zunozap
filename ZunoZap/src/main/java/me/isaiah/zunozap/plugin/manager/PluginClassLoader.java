@@ -11,6 +11,7 @@ import java.util.Set;
 import me.isaiah.zunozap.plugin.PluginBase;
 
 final class PluginClassLoader extends URLClassLoader {
+
     private final PluginLoader loader;
     private final Map<String, Class<?>> classes = new HashMap<>();
     public PluginBase plugin;
@@ -20,17 +21,13 @@ final class PluginClassLoader extends URLClassLoader {
 
         this.loader = loader;
         try {
-            Class<?> jarClass;
+            Class<? extends PluginBase> clazz;
             try {
-                jarClass = Class.forName(name, true, this);
-            } catch (ClassNotFoundException e) { throw new Exception("Cannot find main class '" + name + "'", e); }
+                clazz = Class.forName(name, true, this).asSubclass(PluginBase.class);
+            } catch (ClassCastException | ClassNotFoundException e) { 
+                throw new Exception("Class " + name + " does not exist or not subclass of PluginBase", e); }
 
-            Class<? extends PluginBase> pluginClass;
-            try {
-                pluginClass = jarClass.asSubclass(PluginBase.class);
-            } catch (ClassCastException e) { throw new Exception("Class '" + name + "' does not extend PluginBase", e); }
-
-            plugin = pluginClass.newInstance();
+            plugin = clazz.newInstance();
         } catch (IOException e) { e.printStackTrace(); }
     }
 
@@ -39,7 +36,7 @@ final class PluginClassLoader extends URLClassLoader {
     }
 
     Class<?> findClass(String name, boolean checkGlobal) throws ClassNotFoundException {
-        if (name.startsWith("me.isaiah.zunozap") || name.startsWith("com.zunozap")) throw new ClassNotFoundException(name);
+        if (name.startsWith("me.isaiah.zunozap")) throw new ClassNotFoundException(name);
 
         Class<?> result = classes.get(name);
 
@@ -61,4 +58,5 @@ final class PluginClassLoader extends URLClassLoader {
     Set<String> getClasses() {
         return classes.keySet();
     }
+
 }

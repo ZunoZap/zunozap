@@ -3,10 +3,11 @@ package me.isaiah.zunozap.plugin;
 import java.util.ArrayList;
 
 public class PluginInfo {
+
     public String name = null;
     public String description = "None";
     public String version = "1.0";
-    public String minBrowserVersion = "0.1.0";
+    public String minBrowserVersion = "0.5.0";
     public ArrayList<Object> optionalData = new ArrayList<>();
     public PluginBase internal_reference = null;
 
@@ -21,4 +22,5 @@ public class PluginInfo {
         this.description = des;
         this.version = ver;
     }
+
 }

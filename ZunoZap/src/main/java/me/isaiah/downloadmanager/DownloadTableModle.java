@@ -9,6 +9,7 @@ import javax.swing.table.AbstractTableModel;
  
 // This class manages the download table's data.
 class DownloadsTableModel extends AbstractTableModel implements Observer {
+
     private static final long serialVersionUID = 1L;
 
     private static final String[] columnNames = {"URL", "Size", "Progress", "Status"};  // Names for the table's columns.
@@ -32,9 +33,8 @@ class DownloadsTableModel extends AbstractTableModel implements Observer {
         return downloadList;
     }
 
-    // Remove a download from the list.
     public void clearDownload(int row) {
-        downloadList.remove(row);
+        downloadList.remove(row); // Remove a download from the list.
 
         fireTableRowsDeleted(row, row);
     }
@@ -87,4 +87,5 @@ class DownloadsTableModel extends AbstractTableModel implements Observer {
         int z = (63 - Long.numberOfLeadingZeros(v)) / 10;
         return String.format("%.1f %sB", (double)v / (1L << (z*10)), " KMGTPE".charAt(z));
     }
+
 }

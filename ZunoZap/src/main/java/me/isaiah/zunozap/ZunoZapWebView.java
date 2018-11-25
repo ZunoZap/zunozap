@@ -25,10 +25,12 @@ import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import me.isaiah.zunozap.Settings.Options;
 import me.isaiah.zunozap.UniversalEngine.Engine;
+import me.isaiah.zunozap.lang.Lang;
 import me.isaiah.zunozap.plugin.PluginBase;
 
-@Info(name="ZunoZap", version="0.6.1", engine = UniversalEngine.Engine.WEBKIT)
+@Info(engine = UniversalEngine.Engine.WEBKIT)
 public class ZunoZapWebView extends ZunoAPI {
+
     public static final File home = new File(System.getProperty("user.home"), "zunozap");
     private static Reader bmread;
 
@@ -47,7 +49,14 @@ public class ZunoZapWebView extends ZunoAPI {
         tb.setPrefSize(1365, 768);
         tb.setSide(Side.TOP);
 
-        // Setup tabs
+        Tab m = new Tab();
+        m.setClosable(false);
+        menuBar.setBackground(null);
+        m.setGraphic(menuBar);
+        m.setId("createtab");
+        tb.getTabs().add(m);
+        tb.setRotateGraphic(true);
+
         Tab newtab = new Tab(" + ");
         newtab.setClosable(false);
         tb.getTabs().add(newtab);
@@ -65,7 +74,7 @@ public class ZunoZapWebView extends ZunoAPI {
         menuBar.getMenus().addAll(menuFile, menuBook);
         Settings.set(cssDir, scene);
         Settings.initCss(cssDir);
-        Settings.setStyle("ZunoZap default");
+        Settings.changeStyle("ZunoZap default");
         Settings.save(false);
         scene.getStylesheets().add(ZunoAPI.stylesheet.toURI().toURL().toExternalForm());
 
@@ -83,7 +92,8 @@ public class ZunoZapWebView extends ZunoAPI {
         tab.setTooltip(new Tooltip("Tab " + tabnum));
         tab.setId("tab-"+tabnum);
 
-        final Button back = new Button("<"), forward = new Button(">"), goBtn = new Button("Go"), bkmark = new Button("Bookmark");
+        final Button back = new Button("<"), forward = new Button(">"), goBtn = new Button("Go"), bkmark = new Button("\u2606");
+        Lang.b(() -> goBtn.setText(Lang.GO.tl));
 
         WebView web = new WebView();
         WebEngine engine = web.getEngine();
@@ -157,4 +167,5 @@ public class ZunoZapWebView extends ZunoAPI {
     protected void onTabClosed(Object s) {
         ((WebView) ((VBox) ((Tab) s).getContent()).getChildren().get(1)).getEngine().loadContent("Closing");
     }
+
 }

@@ -14,22 +14,28 @@ import com.teamdev.jxbrowser.chromium.events.StartLoadingEvent;
 import me.isaiah.zunozap.Settings.Options;
 
 public abstract class LoadLis implements LoadListener {
+
     @Override public void onDocumentLoadedInFrame(FrameLoadEvent e){}
     @Override public void onDocumentLoadedInMainFrame(LoadEvent e){}
     @Override public void onFailLoadingFrame(FailLoadingEvent e){}
     @Override public void onProvisionalLoadingFrame(ProvisionalLoadingEvent e){}
 
     @Override public void onStartLoadingFrame(StartLoadingEvent e) {
-        if (!Options.blockMalware.b) return;
+        String url = e.getValidatedURL();
+        
+        if (Options.blockMalware.b) {
+            try {
+                URL ur = new URL(url);
+                if (ZunoAPI.block == null || ZunoAPI.block.isEmpty() || ZunoAPI.block.size() < 1) return;
+    
+                if (ZunoAPI.block.contains(ur.toURI().getHost())) {
+                    e.getBrowser().stop();
+                    e.getBrowser().loadURL("https://zunozap.github.io/pages/blocked.html?" + url);
+                }
+            } catch (IOException | URISyntaxException e1) {}
+        }
 
-        try {
-            URL url = new URL(e.getBrowser().getURL());
-            if (ZunoAPI.block == null || ZunoAPI.block.isEmpty() || ZunoAPI.block.size() < 1) return;
-
-            if (ZunoAPI.block.contains(url.toURI().getHost())) {
-                e.getBrowser().stop();
-                e.getBrowser().loadURL("https://zunozap.github.io/pages/blocked.html?" + url.toURI().getHost());
-            }
-        } catch (IOException | URISyntaxException e1) {}
+        if (ZunoAPI.isUrlDownload(url)) new Download(url);
     }
+
 }

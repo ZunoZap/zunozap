@@ -3,6 +3,7 @@ package me.isaiah.zunozap;
 import java.io.File;
 
 public class ZFile extends File {
+
     private static final long serialVersionUID = 1L;
     private static File h = new File(System.getProperty("user.home"), "ZunoZap");
     private boolean isDir;
@@ -34,4 +35,5 @@ public class ZFile extends File {
 
         try { return createNewFile(); } catch (java.io.IOException e) { return false; }
     }
+
 }

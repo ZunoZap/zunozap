@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.Observable;
 
 public class Download extends Observable implements Runnable {
+
     private static final int MAX_BUFFER_SIZE = 1024;
 
     public static final String STATUSES[] = {"Downloading", "Paused", "Complete", "Cancelled", "Error"}; // status names
@@ -83,11 +84,9 @@ public class Download extends Observable implements Runnable {
 
             connection.connect(); // Connect to server.
 
-            // Make sure response code is in the 200 range.
-            if (connection.getResponseCode() / 100 != 2) stat(4);
+            if (connection.getResponseCode() / 100 != 2) stat(4); // Make sure response code is in the 200 range
 
-            // Check for valid content length.
-           int contentLength = connection.getContentLength();
+            int contentLength = connection.getContentLength();
             if (contentLength < 1) stat(4);
 
             // Set the size for this download if it hasn't been already set.
@@ -96,44 +95,41 @@ public class Download extends Observable implements Runnable {
                 stateChanged();
             }
 
-            // Open file and seek to the end of it.
             folder.mkdir();
             file = new RandomAccessFile(folder.getAbsolutePath() + File.separator + getFileName(url), "rw");
             file.seek(downloaded);
 
             stream = connection.getInputStream();
             while (status == DOWNLOADING) {
-                // Size buffer according to how much of the file is left to download.
-                byte buffer[];
+                byte buffer[]; // Size buffer according to how much of the file is left to download
                 if (size - downloaded > MAX_BUFFER_SIZE) {
                     buffer = new byte[MAX_BUFFER_SIZE];
                 } else buffer = new byte[size - downloaded];
 
-                // Read from server into buffer.
-                int read = stream.read(buffer);
+                int read = stream.read(buffer); // Read from server into buffer
                 if (read == -1) break;
 
-                // Write buffer to file.
-                file.write(buffer, 0, read);
+                file.write(buffer, 0, read); // Write buffer to file
                 downloaded += read;
                 stateChanged();
             }
 
-            // Change status to complete if this point was reached because downloading has finished.
+            // Change status to complete if this point was reached because downloading has finished
             if (status == 0) {
                 status = 2;
                 stateChanged();
             }
         } catch (Exception e) { stat(4); } finally {
-            // Close file & Close connection to server.
+            // Close file & connection to server.
             if (file != null) try { file.close(); } catch (Exception e) {}
             if (stream != null) try { stream.close(); } catch (Exception e) {}
         }
     }
 
-    // Notify observers that this download's status has changed.
+    // Notify observers that this download's status has changed
     private void stateChanged() {
         setChanged();
         notifyObservers();
     }
+
 }

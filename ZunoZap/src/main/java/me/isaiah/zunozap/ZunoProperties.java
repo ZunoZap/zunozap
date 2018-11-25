@@ -1,6 +1,7 @@
 package me.isaiah.zunozap;
 
 public class ZunoProperties extends java.util.Properties {
+
     private static final long serialVersionUID = 1L;
 
     public void set(String s, boolean b) {
@@ -12,4 +13,5 @@ public class ZunoProperties extends java.util.Properties {
     }
 
     public String getStr(String s) { return (String) super.get(s); }
+
 }

@@ -8,7 +8,6 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -22,6 +21,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 
 public class DownloadManager extends JFrame implements Observer {
+
     private static final long serialVersionUID = 1L;
 
     private JTextField addTextField;
@@ -39,30 +39,29 @@ public class DownloadManager extends JFrame implements Observer {
 
        addWindowListener(new WindowAdapter() { @Override public void windowClosing(WindowEvent e){ setVisible(false); }});
 
-       // Set up add panel.
+       // Set up add panel
        JPanel addPanel = new JPanel();
        addTextField = new JTextField(30);
 
-       // Set up Downloads table.
+       // Set up Downloads table
        tableModel = new DownloadsTableModel();
        table = new JTable(tableModel);
-       table.getSelectionModel().addListSelectionListener((l) -> tableSelectionChanged());
+       table.getSelectionModel().addListSelectionListener(l -> tableSelectionChanged());
 
-       table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Allow only one row at a time to be selected.
+       table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Allow only one row at a time to be selected
 
-       // Set up ProgressBar as renderer for progress column.
+       // Set up ProgressBar as renderer for progress column
        ProgressRenderer renderer = new ProgressRenderer(0, 100);
-       renderer.setStringPainted(true); // show text
+       renderer.setStringPainted(true);
        table.setDefaultRenderer(JProgressBar.class, renderer);
 
        table.setRowHeight((int) renderer.getPreferredSize().getHeight());
 
-       // Set up downloads panel.
        JPanel downloadsPanel = new JPanel();
        downloadsPanel.setBorder(BorderFactory.createTitledBorder("Download Manager"));
        downloadsPanel.setLayout(new BorderLayout());
        downloadsPanel.add(new JScrollPane(table), BorderLayout.CENTER);
-        
+
        // Set up s panel.
        JPanel sPanel = new JPanel();
        pause = new JButton("Pause");
@@ -71,23 +70,23 @@ public class DownloadManager extends JFrame implements Observer {
        clear = new JButton("Clear");
        JButton exit = new JButton("Exit");
 
-       pause.addActionListener((l) -> action(1));
+       pause.addActionListener(l -> action(1));
        pause.setEnabled(false);
        sPanel.add(pause);
 
-       resume.addActionListener((l) -> action(0));
+       resume.addActionListener(l -> action(0));
        resume.setEnabled(false);
        sPanel.add(resume);
 
-       cancel.addActionListener((l) -> action(3));
+       cancel.addActionListener(l -> action(3));
        cancel.setEnabled(false);
        sPanel.add(cancel);
 
-       clear.addActionListener((l) -> actionClear());
+       clear.addActionListener(l -> actionClear());
        clear.setEnabled(false);
        sPanel.add(clear);
 
-       exit.addActionListener((l) -> setVisible(false));
+       exit.addActionListener(l -> setVisible(false));
        sPanel.add(exit);
 
        // Add panels to display.
@@ -111,15 +110,15 @@ public class DownloadManager extends JFrame implements Observer {
                        t.cancel();
                    }
                }
-           }}}, 100, TimeUnit.SECONDS.toMillis(10));
+        }}}, 100, 10000);
     }
 
     public void addDownload(String s) {
         String url = s;
         if (!s.startsWith("http")) url = "http://" + s;
-        URL verifiedUrl = verifyUrl(url);
-        if (verifiedUrl != null) {
-           tableModel.addDownload(new Download(verifiedUrl));
+        URL verified = verifyUrl(url);
+        if (verified != null) {
+           tableModel.addDownload(new Download(verified));
            addTextField.setText(""); // reset
         } else JOptionPane.showMessageDialog(this, "Invalid Download URL", "Error", JOptionPane.ERROR_MESSAGE);
     }
@@ -127,16 +126,16 @@ public class DownloadManager extends JFrame implements Observer {
     private URL verifyUrl(String url) {
        if (!url.toLowerCase().startsWith("http")) return null;
 
-       URL verifiedUrl = null;
+       URL verified = null;
        try {
-          verifiedUrl = new URL(url);
+          verified = new URL(url);
        } catch (Exception e) { return null; }
 
-       if (verifiedUrl.getFile().length() < 2)  return null; // Make sure URL specifies a file.
+       if (verified.getFile().length() < 2)  return null; // Make sure URL specifies a file.
 
-       return verifiedUrl;
+       return verified;
     }
-    
+
     // Called when table row selection changes.
     private void tableSelectionChanged() {
         // Unregister from receiving notifications from the last selected download
@@ -190,4 +189,5 @@ public class DownloadManager extends JFrame implements Observer {
     public static void run(DownloadManager instance) {
         instance.setVisible(true);
     }
+
 }

@@ -4,7 +4,7 @@
 
   <groupId>me.isaiah.zunozap</groupId>
   <artifactId>ZunoZap</artifactId>
-  <version>0.4.0</version>
+  <version>0.7.x</version>
 
   <name>ZunoZap</name>
   <url>https://zunozap.github.io/</url>
@@ -62,32 +62,9 @@
   
   <dependencies>
     <dependency>
-      <groupId>me.isaiah.zunozap</groupId>
-      <artifactId>DownloadManager</artifactId>
-      <version>0.0.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.teamdev.jxbrowser</groupId>
-      <artifactId>jxbrowser-win</artifactId>
-      <version>6.15</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.teamdev.jxbrowser</groupId>
-      <artifactId>jxbrowser-mac</artifactId>
-      <version>6.15</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.teamdev.jxbrowser</groupId>
-      <artifactId>jxbrowser-linux64</artifactId>
-      <version>6.15</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>com.teamdev.jxbrowser</groupId>
       <artifactId>jxbrowser</artifactId>
-      <version>6.15</version>
+      <version>6.20</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>

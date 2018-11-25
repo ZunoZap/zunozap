@@ -12,26 +12,29 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 
 public class Reader {
+
     public HashMap<String, String> bm = ZunoAPI.getInstance().bm;
     private Menu book;
 
-    public Reader(Menu bk) throws IOException {
+    public Reader(Menu bk) {
         File dat = new ZFile("bookmarks.dat", false);
         this.book = bk;
         bk.getItems().clear();
-        for (String s : Files.readAllLines(Paths.get(dat.toURI()))) {
-            if (!s.startsWith("#")) {
-                String key = s.substring(0, s.indexOf("="));
-                String value = s.substring(s.indexOf("=") + 1);
-                if (!bm.containsKey(key)) bm.put(decode(key, 12), decode(value, 12));
+        try {
+            for (String s : Files.readAllLines(Paths.get(dat.toURI()))) {
+                if (!s.startsWith("#")) {
+                    String key = s.substring(0, s.indexOf("="));
+                    String value = s.substring(s.indexOf("=") + 1);
+                    if (!bm.containsKey(key)) bm.put(decode(key, 12), decode(value, 12));
+                }
             }
-        }
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
     public void readd() {
-        bm.forEach((s1, s2) -> {
-            MenuItem item = new MenuItem(s1);
-            item.setOnAction((t) -> ZunoAPI.getInstance().createTab(false, s2));
+        bm.forEach((a, b) -> {
+            MenuItem item = new MenuItem(a);
+            item.setOnAction(t -> ZunoAPI.getInstance().createTab(false, b));
             book.getItems().add(item);
         });
     }
@@ -66,4 +69,5 @@ public class Reader {
         }
         return encoded.toString();
     }
+
 }

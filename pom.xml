@@ -4,7 +4,7 @@
 
   <groupId>me.isaiah.zunozap</groupId>
   <artifactId>ZunoZap-parent</artifactId>
-  <version>0.3.6-dev</version>
+  <version>0.7.x</version>
 
   <name>ZunoZap-parent</name>
   <url>https://zunozap.github.io/</url>

@@ -13,10 +13,11 @@ import me.isaiah.zunozap.UniversalEngine;
 import me.isaiah.zunozap.ZFile;
 
 public abstract class PluginBase {
+
     public final File dataFolder = new File(new ZFile("plugins"), getPluginInfo().name);
 
     /**
-     * Info about addon
+     * Plugin's info
      */
     public abstract PluginInfo getPluginInfo();
 
@@ -42,4 +43,5 @@ public abstract class PluginBase {
      * Called when the page URL changes
      */
     public void onURLChange(UniversalEngine e, TextField field, Object oldURL, URL newURL) {/**/}
+
 }

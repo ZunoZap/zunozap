@@ -9,6 +9,7 @@ import javafx.scene.web.WebView;
  * Collection of methods that are the same between engines
  */
 public class UniversalEngine {
+
     public enum Engine { WEBKIT, CHROME }
     public Engine e;
     protected WebView w;
@@ -38,18 +39,19 @@ public class UniversalEngine {
     }
 
     public String getTitle() {
-        return (c ? b.getTitle() : en.getTitle());
+        return c ? b.getTitle() : en.getTitle();
     }
 
     public String getURL() {
-        return (c ? b.getURL() : en.getLocation());
+        return c ? b.getURL() : en.getLocation();
     }
 
     public void stop() {
-       if (c) b.stop(); else en.loadContent("forced stop");
+       if (c) b.stop(); else en.loadContent("force stop");
     }
 
     public void js(boolean bo) {
         if (c) b.getPreferences().setJavaScriptEnabled(bo); else en.setJavaScriptEnabled(bo);
     }
+
 }

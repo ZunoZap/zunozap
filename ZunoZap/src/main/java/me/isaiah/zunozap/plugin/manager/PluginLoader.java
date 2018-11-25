@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public final class PluginLoader {
+
     private final Pattern[] fileFilters = new Pattern[] {Pattern.compile("\\.jar$"), };
     private final Map<String, Class<?>> classes = new HashMap<>();
     private final Map<String, PluginClassLoader> loaders = new LinkedHashMap<>();
@@ -30,4 +31,5 @@ public final class PluginLoader {
     void setClass(final String name, final Class<?> clazz) {
         if (!classes.containsKey(name)) classes.put(name, clazz);
     }
+
 }

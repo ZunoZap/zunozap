@@ -1,0 +1,15 @@
+#lang=English
+
+HTTPS=Force HTTPS
+DIS_PL=Disable plugins
+OFFLINE=Store sites for offline browsing
+MAL=Malware blocker
+LOAD=Loading
+GO=Go
+NO_PL=No Installed Plugins
+CLEAR_OFFLNE=Clear offline data
+SETT=Settings
+UPDATE_CHECK=Check for update
+ABOUT=About
+LANG=Language
+PRIV=Private Browsing (Chrome engine only)

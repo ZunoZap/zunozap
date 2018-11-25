@@ -17,11 +17,13 @@ import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
+import javafx.embed.swing.JFXPanel;
 import me.isaiah.downloadmanager.Download;
 import me.isaiah.zunozap.UniversalEngine.Engine;
 
 // ZunoZap main class
 public class LibDownload {
+
     private static String ver = "6.20";
     private static File lib = new File(ZunoAPI.home, "libs");
     public static URLClassLoader load;
@@ -31,10 +33,13 @@ public class LibDownload {
     }
 
     public static void main0(String[] args) throws IOException {
+        new JFXPanel(); // initialize toolkit 
+
         if (Settings.initMenu() && ZunoAPI.en == Engine.WEBKIT) {
             ZunoZapWebView.main(args);
             return;
         }
+
         lib.mkdirs();
         File file = new File(lib, getJarName().substring(getJarName().lastIndexOf("/")));
         File sfile = new File(lib, "jxbrowser-" + ver + ".jar");
@@ -53,10 +58,13 @@ public class LibDownload {
         JFrame f = new JFrame("ZunoZap Installer");
         Download smalljar = new Download(new URL("http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/jxbrowser/" + ver + "/jxbrowser-" + ver + ".jar"), lib);
         Download d = new Download(new URL(getJarName()), lib);
+
         JProgressBar pb0 = new JProgressBar();
         JProgressBar pb = new JProgressBar();
+
         JTextField txt = new JTextField("\tDownloading required Chromium libaries");
         JTextField txt2 = new JTextField();
+
         new Thread(() -> { Timer t = new Timer();t.schedule(new TimerTask() { @Override public void run() {
             pb.setValue((int)d.getProgress());
             pb0.setValue((int)smalljar.getProgress());
@@ -71,22 +79,25 @@ public class LibDownload {
                 t.cancel();
                 f.dispose();
                 try {
-                    t.cancel();
                     ZunoZap.main(args);
-                } catch (IOException e) { ZunoZapWebView.main(args);}
+                } catch (IOException e) { ZunoZapWebView.main(args); }
             }
         }}, 10, 400);}).start();
+
         JPanel p = new JPanel();
         pb0.setStringPainted(true);
         pb.setStringPainted(true);
         pb0.setString(smalljar.getUrl().substring(smalljar.getUrl().lastIndexOf("/")));
         pb.setString(d.getUrl().substring(d.getUrl().lastIndexOf("/")));
+
         p.add(txt);
         p.add(txt2);
         p.add(pb);
         p.add(pb0);
+
         txt.setEditable(false);
         txt2.setEditable(false);
+
         f.setPreferredSize(new Dimension(500,200));
         f.setContentPane(p);
         f.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
@@ -124,5 +135,7 @@ public class LibDownload {
 
         return OS.LINUX64;
     }
+
     private enum OS { WIN, LINUX64, MAC; }
+
 }

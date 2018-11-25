@@ -11,6 +11,10 @@
     -fx-border-insets: 5px;
 }
 
+#createtab {
+    -fx-background-color: transparent;
+}
+
 .tab .tab-label { 
     -fx-alignment: CENTER;
     -fx-text-fill: #828282;
@@ -25,12 +29,12 @@
 .button {
     -fx-background-color: transparent;
     -fx-border: solid;
-    -fx-border-color: teal;
+    -fx-border-color: transparent;
     -fx-border-radius: 2px;
 }
 
 #urlfield {
-    -fx-background-color: rgba(10,10,10,0.1);
+    -fx-background-color: rgba(3,3,3,0.4);
     -fx-text-fill: white;
     -fx-border: solid;
     -fx-border-color: teal;
@@ -38,5 +42,8 @@
 }
 
 #urlbar {
-    -fx-background-color: orange;
+    -fx-padding: 5px;
+    -fx-background-color: #e2e2e2;
 }
+
+.private { -fx-background-color: purple; }

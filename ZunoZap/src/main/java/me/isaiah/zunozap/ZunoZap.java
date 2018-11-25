@@ -1,12 +1,16 @@
 package me.isaiah.zunozap;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
-import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JWindow;
+import javax.swing.border.EmptyBorder;
 
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.BrowserContext;
@@ -42,15 +46,30 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import me.isaiah.zunozap.Settings.Options;
 import me.isaiah.zunozap.UniversalEngine.Engine;
+import me.isaiah.zunozap.lang.Lang;
 import me.isaiah.zunozap.plugin.PluginBase;
 
-@Info(name="ZunoZap", version="0.6.1", enableGC=false, engine = UniversalEngine.Engine.CHROME)
+@Info(enableGC=false, engine = UniversalEngine.Engine.CHROME)
 public class ZunoZap extends ZunoAPI {
+
     public static final File home = new File(System.getProperty("user.home"), "zunozap");
     private static Reader bmread;
     private Stage stage;
-    private static JFrame loading = new JFrame("ZunoZap is loading");
+    private static JWindow l = new JWindow();
     private Random r = new Random();
+    
+    private final DownloadHandler dh = new DownloadHandler() {
+        @Override public boolean allowDownload(DownloadItem i) { return !isUrlDownload(i.getDestinationFile().getName()); }
+    };
+
+    private final PopupHandler ph = new PopupHandler() {
+        @Override public PopupContainer handlePopup(PopupParams pp) {
+            return new PopupContainer() { @Override public void insertBrowser(Browser b, Rectangle r) {
+                createTab(false, b.getURL());
+                b.dispose();
+            }};
+        }
+    };
 
     @Override
     public void init() throws IOException {
@@ -59,11 +78,17 @@ public class ZunoZap extends ZunoAPI {
     }
 
     public static void main(String[] args) throws IOException {
+        JLabel z = new JLabel("ZUNOZAP");
+        z.setFont(new Font("Dialog", Font.BOLD, 56));
+        z.setForeground(Color.WHITE);
+        z.setBorder(new EmptyBorder(15,30,15,30));
+        l.setBackground(new Color(0,0,0,200));
+        l.setContentPane(z);
+        l.setVisible(true);
+        l.pack();
+        l.setLocationRelativeTo(null);
+
         setInstance(new ZunoZap());
-
-        loading.setSize(new java.awt.Dimension(600, 100));
-        loading.setVisible(true);
-
         launch(ZunoZap.class, args);
 
         log.println("Shutting down Chromium");
@@ -76,10 +101,18 @@ public class ZunoZap extends ZunoAPI {
         menuBar = new MenuBar();
         tb = new TabPane();
         bmread = new Reader(menuBook);
-        bmread.refresh();
+        //bmread.refresh();
         this.stage = stage;
 
         tb.setPrefSize(1365, 768);
+
+        Tab m = new Tab();
+        m.setClosable(false);
+        menuBar.setBackground(null);
+        m.setGraphic(menuBar);
+        m.setId("createtab");
+        tb.getTabs().add(m);
+        tb.setRotateGraphic(true);
 
         Tab newtab = new Tab(" + "); // Setup tabs
         newtab.setClosable(false);
@@ -89,7 +122,7 @@ public class ZunoZap extends ZunoAPI {
         tb.getSelectionModel().selectedItemProperty().addListener((a,b,c) -> { if (c == newtab) createTab(false); });
 
         border.setCenter(tb);
-        border.setTop(menuBar);
+        //border.setTop(menuBar);
         border.autosize();
 
         for (int i = 0; i < 10; i++) deleteDirs(new ZFile("engine" + i));
@@ -110,7 +143,7 @@ public class ZunoZap extends ZunoAPI {
         menuBar.getMenus().addAll(menuFile, menuBook);
         Settings.set(cssDir, scene);
         Settings.initCss(cssDir);
-        Settings.setStyle("ZunoZap default");
+        Settings.changeStyle("ZunoZap default");
         Settings.save(false);
         scene.getStylesheets().add(ZunoAPI.stylesheet.toURI().toURL().toExternalForm());
 
@@ -121,13 +154,14 @@ public class ZunoZap extends ZunoAPI {
 
         p.loadPlugins();
         hookonStart(stage, scene, tb);
-        loading.setVisible(false);
-        loading.dispose();
+        l.setVisible(false);
+        l.dispose();
     }
 
     @Override
     public final void createTab(boolean isStartTab, String url) {
         Browser b = null;
+
         try {
             b = new Browser();
         } catch (BrowserException e) {
@@ -143,11 +177,12 @@ public class ZunoZap extends ZunoAPI {
     public final void createTab(boolean isStartTab, String url, boolean load, Browser b, BrowserView web) {
         tabnum++;
 
-        final Tab tab = new Tab("Loading");
+        final Tab tab = new Tab(Lang.LOAD.tl);
         tab.setTooltip(new Tooltip("Tab " + tabnum));
         tab.setId("tab-"+tabnum);
 
-        final Button back = new Button("<"), forward = new Button(">"), goBtn = new Button("Go"), bkmark = new Button("Bookmark");
+        final Button back = new Button("<"), forward = new Button(">"), goBtn = new Button(Lang.GO.tl), bkmark = new Button("\u2606");
+        Lang.a(() -> goBtn.setText(Lang.GO.tl));
 
         TextField field = new TextField("http://");
         HBox hBox = new HBox(back, forward, field, goBtn, bkmark);
@@ -165,7 +200,7 @@ public class ZunoZap extends ZunoAPI {
         bkmark.setOnAction(v -> bookmarkAction(e, bmread, (t -> createTab(false, b.getURL())), bkmark, menuBook));
 
         String title = (b.getTitle() != null ? b.getTitle() : b.getURL());
-        if (bmread.bm.containsKey(title)) bkmark.setText("Unbookmark");
+        if (bmread.bm.containsKey(title)) bkmark.setText("\u2605");
 
         // Setting Styles
         field.setId("urlfield");
@@ -200,36 +235,24 @@ public class ZunoZap extends ZunoAPI {
         } catch (Exception e) { ((BrowserView) ((Tab) s).getContent()).getBrowser().dispose(); }
     }
 
-    public final void urlChangeLis(UniversalEngine u, final Browser engine, final TextField urlField, final Tab tab, final Button bkmark) {
-        engine.setDownloadHandler(new DownloadHandler() {
-            @Override public boolean allowDownload(DownloadItem i) { return !isUrlDownload(i.getURL()); }
-        });
+    public final void urlChangeLis(UniversalEngine u, final Browser b, final TextField urlField, final Tab tab, final Button bkmark) {
+        b.setDownloadHandler(dh);
+        b.setPopupHandler(ph);
 
-        engine.setPopupHandler(new PopupHandler() {
-            @Override public PopupContainer handlePopup(PopupParams pp) {
-                return new PopupContainer() { @Override public void insertBrowser(Browser b, Rectangle r) {
-                    createTab(false, b.getURL());
-                    b.dispose();
-                }};
-            }
-        });
-
-        engine.addLoadListener(new LoadLis() {
+        b.addLoadListener(new LoadLis() {
             @Override public void onFinishLoadingFrame(FinishLoadingEvent e) {
                 String url = e.getBrowser().getURL();
                 Platform.runLater(() -> {
-                    tab.setText(engine.getTitle());
-                    if (bmread.bm.containsKey(engine.getTitle() != null ? engine.getTitle() : engine.getURL())) 
-                        bkmark.setText("Unbookmark");
-
-                    System.out.println("finishedLoading");
+                    tab.setText(b.getTitle());
+                    if (bmread.bm.containsKey(b.getTitle() != null ? b.getTitle() : url)) 
+                        bkmark.setText("\u2605");
                     changed(u, urlField, tab, urlField.getText(), url, bkmark, bmread);
                 });
                 if (Options.offlineStorage.b && !url.contains("mail")) new Thread(() -> {
                     File s = new File(saves, url.replaceAll("[ : / . ? ]", "-"));
                     s.mkdir();
                     ZunoAPI.downloadPage(saves, temp, url, false);
-                    engine.saveWebPage(url.replaceAll("[ : / . ? ]", "-"), s.getPath(), SavePageType.COMPLETE_HTML);
+                    b.saveWebPage(url.replaceAll("[ : / . ? ]", "-"), s.getPath(), SavePageType.COMPLETE_HTML);
                 }).start();
             }
         });
@@ -245,4 +268,5 @@ public class ZunoZap extends ZunoAPI {
         }
         return (size != 0 ? "(" + size + "): " + names.toString().substring(1).replace("]", "") : "No Chromium plugins");
     }
+
 }
