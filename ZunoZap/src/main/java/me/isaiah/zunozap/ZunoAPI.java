@@ -23,8 +23,8 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.parser.ParserDelegator;
 
-import com.teamdev.jxbrowser.chromium.Browser;
-import com.teamdev.jxbrowser.chromium.javafx.BrowserView;
+//import com.teamdev.jxbrowser.chromium.Browser;
+//import com.teamdev.jxbrowser.chromium.javafx.BrowserView;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -424,8 +424,8 @@ public abstract class ZunoAPI extends Application {
             UniversalEngine c = null;
             Node v = null;
             if (e == Engine.CHROME) {
-                Browser b = new Browser();
-                v = new BrowserView(b);
+                com.teamdev.jxbrowser.chromium.Browser b = new com.teamdev.jxbrowser.chromium.Browser();
+                v = new com.teamdev.jxbrowser.chromium.javafx.BrowserView(b);
                 b.getPreferences().setJavaScriptEnabled(Options.javascript.b);
                 c = new UniversalEngine(b);
             } else c = new UniversalEngine((WebView) (v = new WebView()));

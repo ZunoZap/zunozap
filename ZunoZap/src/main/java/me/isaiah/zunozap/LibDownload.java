@@ -25,7 +25,7 @@ import me.isaiah.zunozap.UniversalEngine.Engine;
 public class LibDownload {
 
     private static String ver = "6.20";
-    private static File lib = new File(ZunoAPI.home, "libs");
+    private static File lib = new File(new File(System.getProperty("user.home"), "zunozap"), "libs");
     public static URLClassLoader load;
 
     public static void main(String[] args) {
@@ -34,11 +34,6 @@ public class LibDownload {
 
     public static void main0(String[] args) throws IOException {
         new JFXPanel(); // initialize toolkit 
-
-        if (Settings.initMenu() && ZunoAPI.en == Engine.WEBKIT) {
-            ZunoZapWebView.main(args);
-            return;
-        }
 
         lib.mkdirs();
         File file = new File(lib, getJarName().substring(getJarName().lastIndexOf("/")));
@@ -54,6 +49,11 @@ public class LibDownload {
             try { ZunoZap.main(args); } catch (IOException e) {}
             return;
         } else if (lib.listFiles() != null && lib.listFiles().length > 0) for (File fi : lib.listFiles()) fi.delete();
+
+        if (Settings.initMenu() && ZunoAPI.en == Engine.WEBKIT) {
+            ZunoZapWebView.main(args);
+            return;
+        }
 
         JFrame f = new JFrame("ZunoZap Installer");
         Download smalljar = new Download(new URL("http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/jxbrowser/" + ver + "/jxbrowser-" + ver + ".jar"), lib);
@@ -118,13 +118,13 @@ public class LibDownload {
     }
 
     private static void addURLs(URL... u) throws IOException {
-        ClassLoader load = ClassLoader.getSystemClassLoader();
+        URLClassLoader sysloader = (URLClassLoader) ZunoZap.class.getClassLoader();
+        Class<?> sysclass = URLClassLoader.class;
 
         try {
-            Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+            Method method = sysclass.getDeclaredMethod("addURL", URL.class);
             method.setAccessible(true);
-            for (URL ur : u) method.invoke(load, ur);
-            Thread.currentThread().setContextClassLoader(load);
+            for (URL ur : u) method.invoke(sysloader, (Object)ur);
         } catch (Throwable t) { throw new IOException("Could not add URL to system classloader"); }
     }
 
