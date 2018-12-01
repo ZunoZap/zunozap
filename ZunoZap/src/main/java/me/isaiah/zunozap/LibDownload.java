@@ -25,6 +25,7 @@ import me.isaiah.zunozap.UniversalEngine.Engine;
 public class LibDownload {
 
     private static String ver = "6.20";
+    private static String mvn = "http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/";
     private static File lib = new File(new File(System.getProperty("user.home"), "zunozap"), "libs");
     public static URLClassLoader load;
 
@@ -46,17 +47,12 @@ public class LibDownload {
             try {
                 addURLs(file.toURI().toURL(), sfile.toURI().toURL());
             } catch (IOException e) { ZunoZapWebView.main(args); return; }
-            try { ZunoZap.main(args); } catch (IOException e) {}
+            try { start(args); } catch (IOException e) { e.printStackTrace(); }
             return;
         } else if (lib.listFiles() != null && lib.listFiles().length > 0) for (File fi : lib.listFiles()) fi.delete();
 
-        if (Settings.initMenu() && ZunoAPI.en == Engine.WEBKIT) {
-            ZunoZapWebView.main(args);
-            return;
-        }
-
         JFrame f = new JFrame("ZunoZap Installer");
-        Download smalljar = new Download(new URL("http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/jxbrowser/" + ver + "/jxbrowser-" + ver + ".jar"), lib);
+        Download smalljar = new Download(new URL(mvn + "jxbrowser/" + ver + "/jxbrowser-" + ver + ".jar"), lib);
         Download d = new Download(new URL(getJarName()), lib);
 
         JProgressBar pb0 = new JProgressBar();
@@ -79,8 +75,8 @@ public class LibDownload {
                 t.cancel();
                 f.dispose();
                 try {
-                    ZunoZap.main(args);
-                } catch (IOException e) { ZunoZapWebView.main(args); }
+                    start(args);
+                } catch (IOException e) { e.printStackTrace(); }
             }
         }}, 10, 400);}).start();
 
@@ -106,6 +102,12 @@ public class LibDownload {
         f.setVisible(true);
     }
 
+    private static void start(String[] args) throws IOException {
+        if (Settings.initMenu() && ZunoAPI.en == Engine.WEBKIT) {
+            ZunoZapWebView.main(args);
+        } else ZunoZap.main(args);
+    }
+
     public static String formatSize(long v) {
         if (v < 1024) return v + " B";
         int z = (63 - Long.numberOfLeadingZeros(v)) / 10;
@@ -114,7 +116,7 @@ public class LibDownload {
 
     private static String getJarName() {
         String os = getOS().name().toLowerCase(Locale.ENGLISH);
-        return "http://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/jxbrowser-" + os + "/" + ver + "/jxbrowser-" + os + "-" + ver + ".jar";
+        return mvn + "jxbrowser-" + os + "/" + ver + "/jxbrowser-" + os + "-" + ver + ".jar";
     }
 
     private static void addURLs(URL... u) throws IOException {

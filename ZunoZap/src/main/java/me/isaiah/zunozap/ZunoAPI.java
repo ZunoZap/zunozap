@@ -23,9 +23,6 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.parser.ParserDelegator;
 
-//import com.teamdev.jxbrowser.chromium.Browser;
-//import com.teamdev.jxbrowser.chromium.javafx.BrowserView;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -71,10 +68,10 @@ public abstract class ZunoAPI extends Application {
     public int tabnum = 0;
     private boolean shouldGC = true;
     private static ZunoAPI inst;
-    public HashMap<String, String> bm = new HashMap<>();
+    public final HashMap<String, String> bm = new HashMap<>();
     protected static Log log = new Log(System.out);
     public static boolean firstRun = false;
-    protected static ArrayList<String> block = new ArrayList<>();
+    protected final static ArrayList<String> block = new ArrayList<>();
     public static UniversalEngine.Engine en;
     protected static TabPane tb;
     protected static MenuBar menuBar;
@@ -92,7 +89,6 @@ public abstract class ZunoAPI extends Application {
 
     protected static void setInstance(ZunoAPI inst) {
         ZunoAPI.inst = inst;
-        ZunoAPI.home = new File(System.getProperty("user.home"), inst.getInfo().name());
         ZunoAPI.stylesheet = new File(home, "style.css");
     }
 
@@ -115,7 +111,7 @@ public abstract class ZunoAPI extends Application {
         root.getChildren().add(borderPane);
         Scene scene = new Scene(root, 1200, 600);
 
-        if (isValid()) version = getInfo().version(); else log.err("Program not valid.");
+        if (isValid()) version = getInfo().version(); else log.err("Program not valid");
 
         en = getInfo().engine();
 
@@ -216,7 +212,7 @@ public abstract class ZunoAPI extends Application {
     }
 
     public static void downloadAssetsFromPage(String site, File f) {
-        new Thread(() -> { (new Thread(() -> { try { downloadAssetsFromPage0(site, f); } catch (IOException e) { e.printStackTrace(); }})).start(); }).start();
+        new Thread(() -> { try { downloadAssetsFromPage0(site, f); } catch (IOException e) { e.printStackTrace(); }}).start();
     }
 
     public static void downloadAssetsFromPage0(String site, File folder) throws IOException {
@@ -258,7 +254,7 @@ public abstract class ZunoAPI extends Application {
     }
 
     public void say(String msg, int type) {
-        JOptionPane.showMessageDialog(null, /*tl(*/msg/*)*/, getInfo().name(), type); // TODO: Translate
+        JOptionPane.showMessageDialog(null, msg, getInfo().name(), type);
     }
 
     public boolean isValid() {

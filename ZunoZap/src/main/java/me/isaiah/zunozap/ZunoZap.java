@@ -57,7 +57,7 @@ public class ZunoZap extends ZunoAPI {
     private Stage stage;
     private static JWindow l = new JWindow();
     private Random r = new Random();
-    
+
     private final DownloadHandler dh = new DownloadHandler() {
         @Override public boolean allowDownload(DownloadItem i) { return !isUrlDownload(i.getDestinationFile().getName()); }
     };
@@ -73,6 +73,8 @@ public class ZunoZap extends ZunoAPI {
 
     @Override
     public void init() throws IOException {
+        setInstance(this);
+
         if (Environment.isMac()) BrowserCore.initialize();
         super.init();
     }
@@ -88,7 +90,6 @@ public class ZunoZap extends ZunoAPI {
         l.pack();
         l.setLocationRelativeTo(null);
 
-        setInstance(new ZunoZap());
         launch(ZunoZap.class, args);
 
         log.println("Shutting down Chromium");
@@ -175,7 +176,7 @@ public class ZunoZap extends ZunoAPI {
     }
 
     public final void createTab(boolean isStartTab, String url, boolean load, Browser b, BrowserView web) {
-        tabnum++;
+        int tabnum = tb.getTabs().size() + 1;
 
         final Tab tab = new Tab(Lang.LOAD.tl);
         tab.setTooltip(new Tooltip("Tab " + tabnum));

@@ -64,7 +64,7 @@ public class Settings extends VBox {
     public Settings() {
         c = this.getChildren();
 
-        for (Options o : Options.values()) addCheckBox(o, o.def); // CHECKBOXES
+        for (Options o : Options.values()) addCheckBox(o); // CHECKBOXES
 
         // THEME
         comboBox("Theme", a -> changeStyle(((ComboBox<String>) a.getSource()).getValue()),
@@ -185,10 +185,10 @@ public class Settings extends VBox {
         return cb;
     }
 
-    private final void addCheckBox(Options o, boolean b) {
+    private final void addCheckBox(Options o) {
         CheckBox box = new CheckBox(o.n);
         Lang.a(() -> box.setText(o.n));
-        box.setSelected(b);
+        box.setSelected(o.b);
         box.setPadding(new Insets(4,4,4,4));
         box.setOnAction(a -> {
             o.b = box.isSelected();

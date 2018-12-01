@@ -47,6 +47,10 @@
         <id>com.teamdev</id>
         <url>http://maven.teamdev.com/repository/products</url>
     </repository>
+    <repository>
+     <id>jitpack.io</id>
+     <url>https://jitpack.io</url>
+   </repository>
   </repositories>
 
   <properties>
@@ -66,6 +70,11 @@
       <artifactId>jxbrowser</artifactId>
       <version>6.20</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+    <groupId>com.github.micheljung</groupId>
+        <artifactId>FX-BorderlessScene</artifactId>
+        <version>3.2.0</version>
     </dependency>
   </dependencies>
 </project>

@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 public @interface Info {
 
     public String name() default "ZunoZap";
-    public String version() default "0.7";
+    public String version() default "0.7.1";
     public String updateURL() default "https://raw.githubusercontent.com/ZunoZap/zunozap/master/LATEST-RELEASE.md";
     public boolean enableGC() default true;
     public UniversalEngine.Engine engine();
