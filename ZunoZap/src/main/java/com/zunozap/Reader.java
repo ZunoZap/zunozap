@@ -1,4 +1,4 @@
-package me.isaiah.zunozap;
+package com.zunozap;
 
 import java.io.BufferedWriter;
 import java.io.File;

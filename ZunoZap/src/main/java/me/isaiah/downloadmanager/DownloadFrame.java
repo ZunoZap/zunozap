@@ -1,12 +1,10 @@
-package me.isaiah.zunozap;
+package me.isaiah.downloadmanager;
 
-import me.isaiah.downloadmanager.DownloadManager;
-
-public class Download {
+public class DownloadFrame {
 
     private DownloadManager dm = null;
 
-    public Download(String url) {
+    public DownloadFrame(String url) {
         if (dm == null) dm = new DownloadManager();
 
         dm.addDownload(url);

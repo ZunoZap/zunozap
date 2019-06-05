@@ -1,4 +1,4 @@
-package me.isaiah.zunozap.plugin.manager;
+package com.zunozap.plugin.manager;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -20,7 +20,7 @@ public final class PluginLoader {
             for (String current : loaders.keySet()) {
                 PluginClassLoader loader = loaders.get(current);
 
-                try { cachedClass = loader.findClass(name, false); } catch (ClassNotFoundException e) { e.printStackTrace(); }
+                try { cachedClass = loader.findClass(name, false); } catch (Exception e) { e.printStackTrace(); }
 
                 if (cachedClass != null) return cachedClass;
             }

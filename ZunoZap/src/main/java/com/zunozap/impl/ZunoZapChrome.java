@@ -1,4 +1,6 @@
-package me.isaiah.zunozap;
+package com.zunozap.impl;
+
+import static com.zunozap.Log.out;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -28,14 +30,24 @@ import com.teamdev.jxbrowser.chromium.SavePageType;
 import com.teamdev.jxbrowser.chromium.events.FinishLoadingEvent;
 import com.teamdev.jxbrowser.chromium.internal.Environment;
 import com.teamdev.jxbrowser.chromium.javafx.BrowserView;
+import com.zunozap.Info;
+import com.zunozap.LoadLis;
+import com.zunozap.Reader;
+import com.zunozap.Settings;
+import com.zunozap.Settings.Options;
+import com.zunozap.UniversalEngine;
+import com.zunozap.UniversalEngine.Engine;
+import com.zunozap.ZFile;
+import com.zunozap.ZFullScreenHandler;
+import com.zunozap.ZunoAPI;
+import com.zunozap.api.Plugin;
+import com.zunozap.lang.Lang;
 
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.MenuBar;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
@@ -44,15 +56,10 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import me.isaiah.zunozap.Settings.Options;
-import me.isaiah.zunozap.UniversalEngine.Engine;
-import me.isaiah.zunozap.lang.Lang;
-import me.isaiah.zunozap.plugin.PluginBase;
 
-@Info(enableGC=false, engine = UniversalEngine.Engine.CHROME)
-public class ZunoZap extends ZunoAPI {
+@Info(enableGC=false, engine = Engine.CHROME)
+public class ZunoZapChrome extends ZunoAPI {
 
-    public static final File home = new File(System.getProperty("user.home"), "zunozap");
     private static Reader bmread;
     private Stage stage;
     private static JWindow l = new JWindow();
@@ -90,30 +97,20 @@ public class ZunoZap extends ZunoAPI {
         l.pack();
         l.setLocationRelativeTo(null);
 
-        launch(ZunoZap.class, args);
+        launch(ZunoZapChrome.class, args);
 
-        log.println("Shutting down Chromium");
+        out("Shutting down BrowserCore");
         BrowserCore.shutdown();
         System.exit(0);
     }
 
     @Override
     public void start(Stage stage, Scene scene, StackPane root, BorderPane border) throws Exception {
-        menuBar = new MenuBar();
-        tb = new TabPane();
         bmread = new Reader(menuBook);
-        //bmread.refresh();
+        bmread.refresh();
         this.stage = stage;
 
         tb.setPrefSize(1365, 768);
-
-        Tab m = new Tab();
-        m.setClosable(false);
-        menuBar.setBackground(null);
-        m.setGraphic(menuBar);
-        m.setId("createtab");
-        tb.getTabs().add(m);
-        tb.setRotateGraphic(true);
 
         Tab newtab = new Tab(" + "); // Setup tabs
         newtab.setClosable(false);
@@ -123,7 +120,6 @@ public class ZunoZap extends ZunoAPI {
         tb.getSelectionModel().selectedItemProperty().addListener((a,b,c) -> { if (c == newtab) createTab(false); });
 
         border.setCenter(tb);
-        //border.setTop(menuBar);
         border.autosize();
 
         for (int i = 0; i < 10; i++) deleteDirs(new ZFile("engine" + i));
@@ -143,9 +139,9 @@ public class ZunoZap extends ZunoAPI {
         regMenuItems(bmread, menuFile, menuBook, aboutPageHTML(b.getUserAgent(), getJxPluginNames(b)), tb, Engine.CHROME);
         menuBar.getMenus().addAll(menuFile, menuBook);
         Settings.set(cssDir, scene);
-        Settings.initCss(cssDir);
+        Settings.init(cssDir);
         Settings.changeStyle("ZunoZap default");
-        Settings.save(false);
+        Settings.save();
         scene.getStylesheets().add(ZunoAPI.stylesheet.toURI().toURL().toExternalForm());
 
         BrowserPreferences.setChromiumDir(data.getAbsolutePath());
@@ -214,14 +210,14 @@ public class ZunoZap extends ZunoAPI {
         b.getPreferences().setJavaScriptEnabled(Options.javascript.b);
 
         if (load)
-               if (isStartTab) b.loadURL(tabPage); else loadSite(url, e);
+               if (isStartTab) b.loadURL(Settings.tabPage); else loadSite(url, e);
 
         b.setFullScreenHandler(new ZFullScreenHandler(stage));
 
         tab.setContent(vBox);
         tab.setOnCloseRequest(a -> onTabClosed(a.getSource()));
 
-        if (allowPluginEvents()) for (PluginBase pl : p.plugins) pl.onTabCreate(tab);
+        if (allowPluginEvents()) for (Plugin pl : p.plugins) pl.onTabCreate(tab);
 
         final ObservableList<Tab> tabs = tb.getTabs();
 

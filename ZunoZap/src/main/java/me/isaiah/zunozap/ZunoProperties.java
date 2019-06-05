@@ -1,5 +1,6 @@
 package me.isaiah.zunozap;
 
+@Deprecated
 public class ZunoProperties extends java.util.Properties {
 
     private static final long serialVersionUID = 1L;

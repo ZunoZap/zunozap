@@ -1,4 +1,4 @@
-package me.isaiah.zunozap;
+package com.zunozap;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 public @interface Info {
 
     public String name() default "ZunoZap";
-    public String version() default "0.7.1";
+    public String version() default "0.7.2";
     public String updateURL() default "https://raw.githubusercontent.com/ZunoZap/zunozap/master/LATEST-RELEASE.md";
     public boolean enableGC() default true;
     public UniversalEngine.Engine engine();

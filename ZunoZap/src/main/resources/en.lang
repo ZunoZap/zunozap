@@ -12,4 +12,4 @@ SETT=Settings
 UPDATE_CHECK=Check for update
 ABOUT=About
 LANG=Language
-PRIV=Private Browsing (Chrome engine only)
+COMPACT=Compact the Menu into the Tab Bar

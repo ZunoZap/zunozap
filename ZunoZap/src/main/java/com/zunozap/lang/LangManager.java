@@ -1,11 +1,13 @@
-package me.isaiah.zunozap.lang;
+package com.zunozap.lang;
+
+import static com.zunozap.Log.err;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 
-import me.isaiah.zunozap.Settings;
+import com.zunozap.Settings;
 
 public class LangManager {
 
@@ -14,11 +16,11 @@ public class LangManager {
     public static void setLang(File f) throws IOException {
         List<String> l = Files.readAllLines(f.toPath());
         for (String s : l) {
-            if (s.startsWith("#")) continue;
             String[] sp = s.split("=");
+            if (s.startsWith("#") || sp[0].trim().length() < 1) continue;
             try {
                 Lang.valueOf(sp[0].trim()).tl = sp[1].trim();
-            } catch (Exception e) { System.out.println("Unable to get translation " + e.getMessage());}
+            } catch (Exception e) { err("Unable to get translation " + e.getMessage()); }
         }
         lang = f.getName().replace(".lang", "");
         full = l.get(0).replace("#lang=", "");

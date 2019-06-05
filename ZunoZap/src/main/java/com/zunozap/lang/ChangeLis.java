@@ -1,4 +1,4 @@
-package me.isaiah.zunozap.lang;
+package com.zunozap.lang;
 
 public interface ChangeLis {
 

@@ -1,18 +1,26 @@
-package me.isaiah.zunozap;
+package com.zunozap.impl;
 
 import java.io.File;
 import java.net.MalformedURLException;
 
-import javax.swing.JOptionPane;
+import com.zunozap.Info;
+import com.zunozap.Reader;
+import com.zunozap.Settings;
+import com.zunozap.Settings.Options;
+import com.zunozap.UniversalEngine;
+import com.zunozap.UniversalEngine.Engine;
+import com.zunozap.ZunoAPI;
+import com.zunozap.api.Plugin;
+import com.zunozap.lang.Lang;
 
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.MenuBar;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
@@ -23,15 +31,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
-import me.isaiah.zunozap.Settings.Options;
-import me.isaiah.zunozap.UniversalEngine.Engine;
-import me.isaiah.zunozap.lang.Lang;
-import me.isaiah.zunozap.plugin.PluginBase;
 
-@Info(engine = UniversalEngine.Engine.WEBKIT)
+@Info(engine = Engine.WEBKIT)
 public class ZunoZapWebView extends ZunoAPI {
 
-    public static final File home = new File(System.getProperty("user.home"), "zunozap");
     private static Reader bmread;
 
     public static void main(String[] args) {
@@ -41,21 +44,11 @@ public class ZunoZapWebView extends ZunoAPI {
 
     @Override
     public void start(Stage stage, Scene scene, StackPane root, BorderPane border) throws Exception {
-        tb = new TabPane();
-        menuBar = new MenuBar();
         bmread = new Reader(menuBook);
         bmread.refresh();
 
         tb.setPrefSize(1365, 768);
         tb.setSide(Side.TOP);
-
-        Tab m = new Tab();
-        m.setClosable(false);
-        menuBar.setBackground(null);
-        m.setGraphic(menuBar);
-        m.setId("createtab");
-        tb.getTabs().add(m);
-        tb.setRotateGraphic(true);
 
         Tab newtab = new Tab(" + ");
         newtab.setClosable(false);
@@ -73,13 +66,13 @@ public class ZunoZapWebView extends ZunoAPI {
         regMenuItems(bmread, menuFile, menuBook, aboutPageHTML(dummy.getEngine().getUserAgent(), "N/A"), tb, Engine.WEBKIT);
         menuBar.getMenus().addAll(menuFile, menuBook);
         Settings.set(cssDir, scene);
-        Settings.initCss(cssDir);
+        Settings.init(cssDir);
         Settings.changeStyle("ZunoZap default");
-        Settings.save(false);
+        Settings.save();
         scene.getStylesheets().add(ZunoAPI.stylesheet.toURI().toURL().toExternalForm());
 
         p.loadPlugins();
-        if (allowPluginEvents()) for (PluginBase pl : p.plugins) pl.onLoad(stage, scene, tb);
+        if (allowPluginEvents()) for (Plugin pl : p.plugins) pl.onLoad(stage, scene, tb);
     }
 
     @Override
@@ -124,19 +117,20 @@ public class ZunoZapWebView extends ZunoAPI {
         setUserAgent(engine);
         engine.javaScriptEnabledProperty().set(Options.javascript.b);
 
-        if (isStartTab) engine.load(tabPage); else loadSite(url, e);
+        if (isStartTab) engine.load(Settings.tabPage); else loadSite(url, e);
 
         tab.setContent(vBox);
 
         tab.setOnCloseRequest(a -> onTabClosed(a.getSource()));
 
-        if (allowPluginEvents()) for (PluginBase pl : p.plugins) pl.onTabCreate(tab);
+        if (allowPluginEvents()) for (Plugin pl : p.plugins) pl.onTabCreate(tab);
 
         final ObservableList<Tab> tabs = tb.getTabs();
         tabs.add(tabs.size() - 1, tab);
         tb.getSelectionModel().select(tab);
     }
 
+    @SuppressWarnings("deprecation")
     public final void urlChangeLis(UniversalEngine u, WebView web, final WebEngine en, final TextField urlField, final Tab tab, Button bkmark) {
         en.getLoadWorker().stateProperty().addListener((ov, oldState, newState) -> {
             if (newState == Worker.State.FAILED) {
@@ -156,9 +150,12 @@ public class ZunoZapWebView extends ZunoAPI {
         en.locationProperty().addListener((o,oU,nU) -> ZunoZapWebView.this.changed(u, urlField, tab, oU, nU, bkmark, bmread));
 
         en.setOnAlert(popupText -> {
-            if (allowPluginEvents()) for (PluginBase pl : p.plugins) pl.onPopup(popupText);
+            if (allowPluginEvents()) for (Plugin pl : p.plugins) pl.onPopup(popupText);
 
-            JOptionPane.showMessageDialog(null, popupText.getData(), "JS Popup", JOptionPane.INFORMATION_MESSAGE);
+            Alert alert = new Alert(AlertType.NONE);
+            alert.setTitle("JS Popup");
+            alert.setContentText(popupText.getData());
+            alert.show();
         });
         en.titleProperty().addListener((ov, o, n) -> tab.setText(n));
     }

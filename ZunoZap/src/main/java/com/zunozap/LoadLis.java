@@ -1,4 +1,4 @@
-package me.isaiah.zunozap;
+package com.zunozap;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -10,8 +10,9 @@ import com.teamdev.jxbrowser.chromium.events.LoadEvent;
 import com.teamdev.jxbrowser.chromium.events.LoadListener;
 import com.teamdev.jxbrowser.chromium.events.ProvisionalLoadingEvent;
 import com.teamdev.jxbrowser.chromium.events.StartLoadingEvent;
+import com.zunozap.Settings.Options;
 
-import me.isaiah.zunozap.Settings.Options;
+import me.isaiah.downloadmanager.DownloadFrame;
 
 public abstract class LoadLis implements LoadListener {
 
@@ -22,7 +23,7 @@ public abstract class LoadLis implements LoadListener {
 
     @Override public void onStartLoadingFrame(StartLoadingEvent e) {
         String url = e.getValidatedURL();
-        
+
         if (Options.blockMalware.b) {
             try {
                 URL ur = new URL(url);
@@ -30,12 +31,12 @@ public abstract class LoadLis implements LoadListener {
     
                 if (ZunoAPI.block.contains(ur.toURI().getHost())) {
                     e.getBrowser().stop();
-                    e.getBrowser().loadURL("https://zunozap.github.io/pages/blocked.html?" + url);
+                    e.getBrowser().loadURL("http://zunozap.com/pages/blocked.html?" + url);
                 }
             } catch (IOException | URISyntaxException e1) {}
         }
 
-        if (ZunoAPI.isUrlDownload(url)) new Download(url);
+        if (ZunoAPI.isUrlDownload(url)) new DownloadFrame(url);
     }
 
 }

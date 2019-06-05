@@ -1,4 +1,4 @@
-package me.isaiah.zunozap;
+package com.zunozap;
 
 import com.teamdev.jxbrowser.chromium.Browser;
 

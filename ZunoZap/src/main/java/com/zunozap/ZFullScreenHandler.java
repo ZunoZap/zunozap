@@ -1,6 +1,9 @@
-package me.isaiah.zunozap;
+package com.zunozap;
+
+import static com.zunozap.ZunoAPI.tb;
 
 import com.teamdev.jxbrowser.chromium.FullScreenHandler;
+import com.zunozap.impl.ZunoZapChrome;
 
 import javafx.application.Platform;
 import javafx.scene.control.TabPane;
@@ -17,15 +20,15 @@ public class ZFullScreenHandler implements FullScreenHandler {
 
     public void change(boolean b) {
         Platform.runLater(() -> {
-            ZunoZap.tb.setVisible(!b);
-            StackPane header = (StackPane) ZunoZap.tb.lookup(".tab-header-area");
+            tb.setVisible(!b);
+            StackPane header = (StackPane) ZunoZapChrome.tb.lookup(".tab-header-area");
             if(header != null) header.setPrefHeight(b ? 0 : -1);
             header.setVisible(!b);
-            TabPane pane = (TabPane) ZunoZap.tb.lookup(".tab-pane");
+            TabPane pane = (TabPane) tb.lookup(".tab-pane");
             pane.setVisible(!b);
-            ZunoZap.tb.lookup(".tab-header-background").setVisible(false);
-            ZunoZap.menuBar.setDisable(b);
-            ZunoZap.tb.setDisable(b);
+            tb.lookup(".tab-header-background").setVisible(false);
+            ZunoZapChrome.menuBar.setDisable(b);
+            tb.setDisable(b);
             s.setFullScreen(b);
         });
     }
