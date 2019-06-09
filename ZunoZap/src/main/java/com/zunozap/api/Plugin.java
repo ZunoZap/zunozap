@@ -13,7 +13,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
-import javafx.scene.web.WebEvent;
 import javafx.stage.Stage;
 
 public abstract class Plugin {
@@ -42,6 +41,6 @@ public abstract class Plugin {
     public void onPopup(boolean bad){/**/}
 
     @Deprecated
-    public void onPopup(WebEvent<String> popupText) { onPopup(false); }
+    public void onPopup(String popupText) { onPopup(false); }
 
 }

@@ -1,10 +1,6 @@
 package com.zunozap.impl;
 
-import java.io.File;
-import java.net.MalformedURLException;
-
 import com.zunozap.Info;
-import com.zunozap.Reader;
 import com.zunozap.Settings;
 import com.zunozap.Settings.Options;
 import com.zunozap.UniversalEngine;
@@ -14,8 +10,6 @@ import com.zunozap.api.Plugin;
 import com.zunozap.lang.Lang;
 
 import javafx.collections.ObservableList;
-import javafx.concurrent.Worker;
-import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -35,8 +29,6 @@ import javafx.stage.Stage;
 @Info(engine = Engine.WEBKIT)
 public class ZunoZapWebView extends ZunoAPI {
 
-    private static Reader bmread;
-
     public static void main(String[] args) {
         setInstance(new ZunoZapWebView());
         launch(ZunoZapWebView.class, args);
@@ -44,23 +36,6 @@ public class ZunoZapWebView extends ZunoAPI {
 
     @Override
     public void start(Stage stage, Scene scene, StackPane root, BorderPane border) throws Exception {
-        bmread = new Reader(menuBook);
-        bmread.refresh();
-
-        tb.setPrefSize(1365, 768);
-        tb.setSide(Side.TOP);
-
-        Tab newtab = new Tab(" + ");
-        newtab.setClosable(false);
-        tb.getTabs().add(newtab);
-        createTab(true);
-
-        tb.getSelectionModel().selectedItemProperty().addListener((a,b,c) -> { if (c == newtab) createTab(false); });
-
-        border.setCenter(tb);
-        border.setTop(menuBar);
-        border.autosize();
-
         WebView dummy = new WebView();
         setUserAgent(dummy.getEngine());
         regMenuItems(bmread, menuFile, menuBook, aboutPageHTML(dummy.getEngine().getUserAgent(), "N/A"), tb, Engine.WEBKIT);
@@ -113,7 +88,7 @@ public class ZunoZapWebView extends ZunoAPI {
         vBox.setVgrow(web, Priority.ALWAYS);
         vBox.autosize();
 
-        engine.setUserDataDirectory(saves);
+        engine.setUserDataDirectory(data);
         setUserAgent(engine);
         engine.javaScriptEnabledProperty().set(Options.javascript.b);
 
@@ -132,25 +107,11 @@ public class ZunoZapWebView extends ZunoAPI {
 
     @SuppressWarnings("deprecation")
     public final void urlChangeLis(UniversalEngine u, WebView web, final WebEngine en, final TextField urlField, final Tab tab, Button bkmark) {
-        en.getLoadWorker().stateProperty().addListener((ov, oldState, newState) -> {
-            if (newState == Worker.State.FAILED) {
-                File f = new File(new File(saves, en.getLocation().replaceAll("[ : / . ]", "-").trim()),
-                        en.getLocation().replaceAll("[ : / . ]", "-").trim() + ".html");
-                if (f.exists()) {
-                    try {
-                        en.load(f.toURI().toURL().toExternalForm());
-                    } catch (MalformedURLException e) { e.printStackTrace(); }
-                    return;
-                }
-                en.loadContent("Unable to load " + en.getLocation().trim());
-                return;
-            }
-        });
 
         en.locationProperty().addListener((o,oU,nU) -> ZunoZapWebView.this.changed(u, urlField, tab, oU, nU, bkmark, bmread));
 
         en.setOnAlert(popupText -> {
-            if (allowPluginEvents()) for (Plugin pl : p.plugins) pl.onPopup(popupText);
+            if (allowPluginEvents()) for (Plugin pl : p.plugins) pl.onPopup(popupText.getData());
 
             Alert alert = new Alert(AlertType.NONE);
             alert.setTitle("JS Popup");

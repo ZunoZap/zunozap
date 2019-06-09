@@ -16,4 +16,10 @@ public enum Lang {
         a.a();
     }
 
+    public static String from(String s) {
+        try {
+            return valueOf(s).tl;
+        } catch (IllegalArgumentException e) { return s; }
+    }
+
 }

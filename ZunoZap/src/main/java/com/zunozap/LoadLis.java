@@ -15,6 +15,11 @@ import com.zunozap.Settings.Options;
 import me.isaiah.downloadmanager.DownloadFrame;
 
 public abstract class LoadLis implements LoadListener {
+    
+    private boolean m;
+
+    public LoadLis() { this.m = false; }
+    public LoadLis(boolean m) { this.m = m; }
 
     @Override public void onDocumentLoadedInFrame(FrameLoadEvent e){}
     @Override public void onDocumentLoadedInMainFrame(LoadEvent e){}
@@ -22,6 +27,7 @@ public abstract class LoadLis implements LoadListener {
     @Override public void onProvisionalLoadingFrame(ProvisionalLoadingEvent e){}
 
     @Override public void onStartLoadingFrame(StartLoadingEvent e) {
+        if (!m) return;
         String url = e.getValidatedURL();
 
         if (Options.blockMalware.b) {

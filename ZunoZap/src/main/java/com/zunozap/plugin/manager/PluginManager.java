@@ -18,6 +18,7 @@ public class PluginManager {
     public ArrayList<Plugin> plugins = new ArrayList<>();
     public ArrayList<String> names = new ArrayList<>();
     public PluginClassLoader classLoader;
+    public double API_VERSION = 0.8;
 
     public void loadPlugins() {
         ZFile fold = new ZFile("plugins");
@@ -30,22 +31,26 @@ public class PluginManager {
                     p.load(stream);
                     stream.close();
                     classLoader = new PluginClassLoader(new PluginLoader(), getClass().getClassLoader(), p.getProperty("mainClass"), f);
-                    Plugin plugin = classLoader.plugin;
-                    PluginInfo i = plugin.getInfo();
-                    if (i.minBrowserVersion() > 0.8) {
-                        Alert alert = new Alert(AlertType.ERROR);
-                        alert.setTitle("Addons");
-                        alert.setHeaderText(null);
-                        alert.setContentText("Unable to load addon '" + i.name() + "'.\nRequires upgraded browser!");
-
-                        alert.show();
-                        throw new Exception("Requires newer browser");
-                    }
-                    plugins.add(plugin);
-                    names.add(i.name());
-                } catch (Exception e) { System.err.println("Couldnt load " + f.getName() + ": " + e.getMessage()); }
+                    loadPlugin(classLoader.plugin);
+                } catch (Exception e) { System.err.println("Could not load " + f.getName() + ": " + e.getMessage()); }
             }
         }
+    }
+
+    public boolean loadPlugin(Plugin p) throws Exception {
+        PluginInfo i = p.getInfo();
+        if (i.minBrowserVersion() > API_VERSION) {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Addons");
+            alert.setHeaderText(null);
+            alert.setContentText("Unable to load addon '" + i.name() + "'.\nRequires upgraded browser!");
+
+            alert.show();
+            return false;
+        }
+        plugins.add(p);
+        names.add(i.name());
+        return true;
     }
 
 }

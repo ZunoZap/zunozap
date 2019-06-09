@@ -46,18 +46,15 @@ final class PluginClassLoader extends URLClassLoader {
     }
 
     Class<?> findClass0(String name, boolean checkGlobal) throws Exception {
-        if (name.startsWith("me.isaiah.zunozap")) throw new ClassNotFoundException("Locked name: " + name);
+        if (name.startsWith("com.zunozap")) throw new ClassNotFoundException("Locked name: " + name);
 
         Class<?> result = classes.get(name);
 
         if (result == null) {
             if (checkGlobal) result = loader.getClassByName(name);
 
-            if (result == null) {
-                result = super.findClass(name);
-
-                if (result != null) loader.setClass(name, result);
-            }
+            if (result == null)
+                if ((result = super.findClass(name)) != null) loader.setClass(name, result);
 
             classes.put(name, result);
         }

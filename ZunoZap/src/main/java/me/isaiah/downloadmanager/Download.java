@@ -57,14 +57,12 @@ public class Download extends Observable implements Runnable {
     }
 
     public void stat(int s) {
-        status = s;
-        stateChanged();
+        stateChanged(status = s);
     }
 
     // Start or resume downloading.
     private void download() {
-        Thread thread = new Thread(this);
-        thread.start();
+        new Thread(this).start();
     }
 
     private String getFileName(URL url) {
@@ -90,10 +88,8 @@ public class Download extends Observable implements Runnable {
             if (contentLength < 1) stat(4);
 
             // Set the size for this download if it hasn't been already set.
-            if (size == -1) {
-                size = contentLength;
-                stateChanged();
-            }
+            if (size == -1)
+                stateChanged(size = contentLength);
 
             folder.mkdir();
             file = new RandomAccessFile(folder.getAbsolutePath() + File.separator + getFileName(url), "rw");
@@ -101,24 +97,19 @@ public class Download extends Observable implements Runnable {
 
             stream = connection.getInputStream();
             while (status == DOWNLOADING) {
-                byte buffer[]; // Size buffer according to how much of the file is left to download
-                if (size - downloaded > MAX_BUFFER_SIZE) {
-                    buffer = new byte[MAX_BUFFER_SIZE];
-                } else buffer = new byte[size - downloaded];
+                // Size buffer according to how much of the file is left to download
+                byte buffer[]  = size - downloaded > MAX_BUFFER_SIZE ? new byte[MAX_BUFFER_SIZE] : new byte[size - downloaded]; 
 
                 int read = stream.read(buffer); // Read from server into buffer
                 if (read == -1) break;
 
                 file.write(buffer, 0, read); // Write buffer to file
-                downloaded += read;
-                stateChanged();
+                stateChanged(downloaded += read);
             }
 
             // Change status to complete if this point was reached because downloading has finished
-            if (status == 0) {
-                status = 2;
-                stateChanged();
-            }
+            if (status == 0)
+                stateChanged(status = 2);
         } catch (Exception e) { stat(4); } finally {
             // Close file & connection to server.
             if (file != null) try { file.close(); } catch (Exception e) {}
@@ -127,9 +118,10 @@ public class Download extends Observable implements Runnable {
     }
 
     // Notify observers that this download's status has changed
-    private void stateChanged() {
+    private Object stateChanged(Object o) {
         setChanged();
         notifyObservers();
+        return o;
     }
 
 }

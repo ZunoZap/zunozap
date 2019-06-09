@@ -5,7 +5,6 @@ import static com.zunozap.Log.out;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Rectangle;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
@@ -26,7 +25,6 @@ import com.teamdev.jxbrowser.chromium.PluginInfo;
 import com.teamdev.jxbrowser.chromium.PopupContainer;
 import com.teamdev.jxbrowser.chromium.PopupHandler;
 import com.teamdev.jxbrowser.chromium.PopupParams;
-import com.teamdev.jxbrowser.chromium.SavePageType;
 import com.teamdev.jxbrowser.chromium.events.FinishLoadingEvent;
 import com.teamdev.jxbrowser.chromium.internal.Environment;
 import com.teamdev.jxbrowser.chromium.javafx.BrowserView;
@@ -61,7 +59,7 @@ import javafx.stage.Stage;
 public class ZunoZapChrome extends ZunoAPI {
 
     private static Reader bmread;
-    private Stage stage;
+
     private static JWindow l = new JWindow();
     private Random r = new Random();
 
@@ -106,22 +104,6 @@ public class ZunoZapChrome extends ZunoAPI {
 
     @Override
     public void start(Stage stage, Scene scene, StackPane root, BorderPane border) throws Exception {
-        bmread = new Reader(menuBook);
-        bmread.refresh();
-        this.stage = stage;
-
-        tb.setPrefSize(1365, 768);
-
-        Tab newtab = new Tab(" + "); // Setup tabs
-        newtab.setClosable(false);
-        newtab.setId("createtab");
-        tb.getTabs().add(newtab);
-
-        tb.getSelectionModel().selectedItemProperty().addListener((a,b,c) -> { if (c == newtab) createTab(false); });
-
-        border.setCenter(tb);
-        border.autosize();
-
         for (int i = 0; i < 10; i++) deleteDirs(new ZFile("engine" + i));
 
         Browser b = null;
@@ -236,7 +218,7 @@ public class ZunoZapChrome extends ZunoAPI {
         b.setDownloadHandler(dh);
         b.setPopupHandler(ph);
 
-        b.addLoadListener(new LoadLis() {
+        b.addLoadListener(new LoadLis(true) {
             @Override public void onFinishLoadingFrame(FinishLoadingEvent e) {
                 String url = e.getBrowser().getURL();
                 Platform.runLater(() -> {
@@ -245,12 +227,6 @@ public class ZunoZapChrome extends ZunoAPI {
                         bkmark.setText("\u2605");
                     changed(u, urlField, tab, urlField.getText(), url, bkmark, bmread);
                 });
-                if (Options.offlineStorage.b && !url.contains("mail")) new Thread(() -> {
-                    File s = new File(saves, url.replaceAll("[ : / . ? ]", "-"));
-                    s.mkdir();
-                    ZunoAPI.downloadPage(saves, temp, url, false);
-                    b.saveWebPage(url.replaceAll("[ : / . ? ]", "-"), s.getPath(), SavePageType.COMPLETE_HTML);
-                }).start();
             }
         });
     }

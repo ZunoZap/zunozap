@@ -35,12 +35,11 @@ public class Main {
     private static int i = 0;
 
     private static File lib = new File(new File(System.getProperty("user.home"), "zunozap"), "libs");
-    public static URLClassLoader load;
 
     public static void main(String[] args) {
         try { main0(args); } catch (IOException e) { e.printStackTrace(); }
     }
- 
+
     public static void main0(String[] args) throws IOException {
         new JFXPanel(); // initialize toolkit 
 
@@ -82,7 +81,7 @@ public class Main {
         z.setForeground(Color.WHITE);
         z.setBorder(new EmptyBorder(30,65,30,65));
         f.setUndecorated(true);
-        f.setBackground(new Color(0,0,0,200));
+        f.setBackground(new Color(0,0,0,235));
 
         new Thread(() -> { Timer t = new Timer();t.schedule(new TimerTask() { @Override public void run() {
             pb.setValue((int) (d.getProgress() + (smalljar.getProgress() / 2)));

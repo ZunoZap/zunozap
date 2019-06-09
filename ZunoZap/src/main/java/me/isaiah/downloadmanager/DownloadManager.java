@@ -114,8 +114,8 @@ public class DownloadManager extends JFrame implements Observer {
     }
 
     public void addDownload(String s) {
-        String url = s;
-        if (!s.startsWith("http")) url = "http://" + s;
+        String url = !s.startsWith("http") ? "http://" + s : s;
+
         URL verified = verifyUrl(url);
         if (verified != null) {
            tableModel.addDownload(new Download(verified));
@@ -131,7 +131,7 @@ public class DownloadManager extends JFrame implements Observer {
           verified = new URL(url);
        } catch (Exception e) { return null; }
 
-       if (verified.getFile().length() < 2)  return null; // Make sure URL specifies a file.
+       if (verified.getFile().length() < 2) return null; // Make sure URL specifies a file.
 
        return verified;
     }
@@ -141,8 +141,7 @@ public class DownloadManager extends JFrame implements Observer {
         // Unregister from receiving notifications from the last selected download
         if (selected != null) selected.deleteObserver(DownloadManager.this);
 
-        /* If not in the middle of clearing a download, set the selected download and register to
-          receive notifications from it. */
+        /* If not in the middle of clearing a download, set the selected download and register to receive notifications from it. */
         if (!clearing) {
             selected = tableModel.getDownload(table.getSelectedRow());
             selected.addObserver(DownloadManager.this);

@@ -18,24 +18,10 @@ import java.util.zip.ZipFile;
  */
 public class Unzip {
 
-    /**
-     * File to unzip.
-     */
-    private File src;
+    private File src, dest;
 
-    /**
-     * Location of unzipped file.
-     */
-    private File dest;
-
-    /**
-     * ZipFile attribute.
-     */
     private static ZipFile zf;
 
-    /**
-     * End Of File to unzip.
-     */
     private static final int EOF = -1;
 
     public Unzip(File src, File dest) {
@@ -56,9 +42,7 @@ public class Unzip {
     }
 
     /**
-     * Save entry in the target.
-     * @param target the target
-     * @throws IOException the IOException
+     * Save entry in the target
      */
     public void saveEntry(final ZipEntry target) throws IOException {
         try {

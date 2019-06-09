@@ -30,6 +30,10 @@ public class UniversalEngine {
         this.c = true;
     }
 
+    public Object getImplEngine() {
+        return c ? b : w;
+    }
+
     public void load(String url) {
         if (c) b.loadURL(url); else en.load(url);
     }

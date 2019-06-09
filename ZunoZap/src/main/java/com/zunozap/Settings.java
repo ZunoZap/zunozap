@@ -53,13 +53,14 @@ public class Settings extends VBox {
     public static void set(File folder, Scene sc) { s = sc; }
 
     public enum Options {
-        forceHTTPS(false), blockEventCalls(false),
-        offlineStorage(false), javascript(true), blockMalware(true), COMPACT(true);
+        forceHTTPS(false, "HTTPS"), DIS_PL(false),
+        offlineStorage(false, "OFFLINE"), javascript(true), blockMalware(true, "MAL"), COMPACT(true);
 
         public boolean b, def;
         public String n;
 
-        private Options(boolean d) { this.b = d; this.def = d; this.n= Lang.valueOf(name().toUpperCase()).tl; }
+        private Options(boolean d) { this(d, null); }
+        private Options(boolean d, String z) { this.b = d; this.def = d; this.n = Lang.from((z == null ? name() : z).toUpperCase()); }
     }
     
     @SuppressWarnings("unchecked")
@@ -82,7 +83,7 @@ public class Settings extends VBox {
 
         // ENGINE
         comboBox("Web Engine", a -> {
-            ZunoAPI.en = Engine.valueOf(((ComboBox<String>) a.getSource()).getValue());
+            ZunoAPI.en = ((ComboBox<Engine>) a.getSource()).getValue();
             save();
         }, ZunoAPI.getInstance().getInfo().engine().name(), Engine.values());
 

@@ -6,6 +6,8 @@ import java.util.Observer;
 
 import javax.swing.JProgressBar;
 import javax.swing.table.AbstractTableModel;
+
+import com.zunozap.launch.Main;
  
 // This class manages the download table's data.
 class DownloadsTableModel extends AbstractTableModel implements Observer {
@@ -67,7 +69,7 @@ class DownloadsTableModel extends AbstractTableModel implements Observer {
                 return download.getUrl();
             case 1: // Size
                 int size = download.getSize();
-                return (size == -1) ? "" : formatSize(size);
+                return (size == -1) ? "" : Main.formatSize(size);
             case 2: // Progress
                 return new Float(download.getProgress());
             case 3: // Status
@@ -80,12 +82,6 @@ class DownloadsTableModel extends AbstractTableModel implements Observer {
     public void update(Observable o, Object arg) {
         int index = downloadList.indexOf(o);
         fireTableRowsUpdated(index, index);
-    }
-
-    private String formatSize(long v) {
-        if (v < 1024) return v + " B";
-        int z = (63 - Long.numberOfLeadingZeros(v)) / 10;
-        return String.format("%.1f %sB", (double)v / (1L << (z*10)), " KMGTPE".charAt(z));
     }
 
 }

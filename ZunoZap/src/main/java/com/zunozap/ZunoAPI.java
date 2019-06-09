@@ -21,10 +21,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.swing.JOptionPane;
-import javax.swing.text.html.HTML;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.html.parser.ParserDelegator;
 
 import com.zunozap.Settings.Options;
 import com.zunozap.UniversalEngine.Engine;
@@ -85,8 +81,11 @@ public abstract class ZunoAPI extends Application {
     protected static MenuBar menuBar;
     protected final static Menu menuFile = new Menu("\u2630"), menuBook = new Menu("\uD83D\uDCDA");
 
-    protected static final ZFile saves = new ZFile("offline-pages"), data = new ZFile("engine"), cssDir = new ZFile("styles"),
-            plDir = new ZFile("plugins"), temp = new ZFile("temp"), lang = new ZFile("lang");
+    protected Stage stage;
+    public static Reader bmread;
+
+    protected static final ZFile data = new ZFile("engine"), cssDir = new ZFile("styles"),
+            plDir = new ZFile("plugins"), lang = new ZFile("lang");
 
     public static ZunoAPI getInstance() {
         return inst;
@@ -115,10 +114,11 @@ public abstract class ZunoAPI extends Application {
     }
 
     @Override public void start(Stage stage) throws Exception {
+        this.stage = stage;
         StackPane root = new StackPane();
-        BorderPane borderPane = new BorderPane();
+        BorderPane border = new BorderPane();
 
-        root.getChildren().add(borderPane);
+        root.getChildren().add(border);
         Scene scene = new Scene(root, 1200, 600);
 
         if (isValid()) version = getInfo().version(); else err.log("Program not valid");
@@ -132,7 +132,7 @@ public abstract class ZunoAPI extends Application {
             setup(new URL("https://raw.githubusercontent.com/ZunoZap/Blacklist/master/list.dat"), true);
         } catch (Exception e) {}
 
-        mkDirs(home, saves, temp, cssDir);
+        mkDirs(home, cssDir);
 
         if (Options.COMPACT.b) {
             Tab m = new Tab();
@@ -142,10 +142,24 @@ public abstract class ZunoAPI extends Application {
             m.setId("createtab");
             tb.getTabs().add(m);
             tb.setRotateGraphic(true);
-        } else borderPane.setTop(menuBar);
+        } else border.setTop(menuBar);
+
+        bmread = new Reader(menuBook);
+        bmread.refresh();
+
+        tb.setPrefSize(1365, 768);
+        Tab newtab = new Tab(" + "); // Setup tabs
+        newtab.setClosable(false);
+        newtab.setId("createtab");
+        tb.getTabs().add(newtab);
+
+        tb.getSelectionModel().selectedItemProperty().addListener((a,b,c) -> { if (c == newtab) createTab(false); });
+
+        border.setCenter(tb);
+        border.autosize();
 
         stage.getIcons().add(new Image(ZunoAPI.class.getClassLoader().getResourceAsStream("zunozaplogo.png")));
-        start(stage, scene, root, borderPane);
+        start(stage, scene, root, border);
 
         stage.setTitle(getInfo().name() + " " + version);
         stage.setScene(scene);
@@ -158,7 +172,6 @@ public abstract class ZunoAPI extends Application {
         Settings.save();
 
         printGCSavedRam();
-        deleteDirs(temp);
 
         try { t.cancel(); } catch (NullPointerException ingore) {}
         Platform.exit();
@@ -207,61 +220,6 @@ public abstract class ZunoAPI extends Application {
 
             return a.toString();
         } catch (IOException e) { return null; }
-    }
-
-    @Deprecated
-    public static void downloadPage(File dp, File temp, String loc, boolean all) {
-        try {
-            String regex = "[ : / . ? ]";
-            File html = new File(temp, loc.replaceAll(regex, "-").trim() + ".html");
-
-            try {
-                Files.write(Paths.get(html.toURI()), getUrlSource(loc.trim()).getBytes());
-            } catch (NullPointerException e) {}
-            out("Downloaded " + loc);
-            if (html.length() > 5) {
-                File hsdp = new File(new File(dp, loc.replaceAll(regex, "-").trim()), loc.replaceAll(regex, "-").trim() + ".html");
-                hsdp.getParentFile().mkdirs();
-                hsdp.delete();
-                if (all) downloadAssetsFromPage(loc.trim(), hsdp.getParentFile());
-                if (hsdp.exists()) hsdp.delete();
-                Files.move(Paths.get(html.toURI()), Paths.get(hsdp.toURI()), StandardCopyOption.REPLACE_EXISTING);
-            } else html.delete();
-        } catch (IOException e) { e.printStackTrace(); }
-    }
-
-    @Deprecated
-    public static void downloadAssetsFromPage(String site, File f) {
-        new Thread(() -> { try { downloadAssetsFromPage0(site, f); } catch (IOException e) { e.printStackTrace(); }}).start();
-    }
-
-    @Deprecated
-    public static void downloadAssetsFromPage0(String site, File folder) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(new URL(site).openConnection().getInputStream()));
-
-        HTMLDocument doc = (HTMLDocument) new HTMLEditorKit().createDefaultDocument();
-        HTMLEditorKit.ParserCallback callback = doc.getReader(0);
-        new ParserDelegator().parse(br, callback, true);
-
-        for (HTMLDocument.Iterator iterator = doc.getIterator(HTML.Tag.IMG); iterator.isValid(); iterator.next()) {
-            String src = (String) iterator.getAttributes().getAttribute(HTML.Attribute.SRC);
-            if (src != null) downloadAsset(site, src, folder); else err.log("null source");
-        }
-
-        for (HTMLDocument.Iterator iterator = doc.getIterator(HTML.Tag.LINK); iterator.isValid(); iterator.next()) {
-            String src = (String) iterator.getAttributes().getAttribute(HTML.Attribute.HREF);
-            if (src != null) downloadAsset(site, src, folder); else err.log("null source");
-        }
-    }
-
-    @Deprecated
-    private static void downloadAsset(String url, String src, File folder) {
-        try {
-            File file = new File(folder, src);
-            file.getParentFile().mkdirs();
-            file.createNewFile();
-            Files.write(Paths.get(file.toURI()), getUrlSource(src.startsWith("http") ? src : url + src).getBytes());
-        } catch (IOException e) { e.printStackTrace(); }
     }
 
     public void deleteDirs(File... fs) {
@@ -336,7 +294,7 @@ public abstract class ZunoAPI extends Application {
     }
 
     public final boolean allowPluginEvents() {
-        return p.plugins.size() > 0 && !Options.blockEventCalls.b;
+        return p.plugins.size() > 0 && !Options.DIS_PL.b;
     }
 
     public boolean isHTTPSRedirect(URL old, URL u) {
@@ -402,16 +360,14 @@ public abstract class ZunoAPI extends Application {
 
     public final void regMenuItems(Reader bmread, Menu file, Menu book, String html, TabPane tb, Engine e) {
         file.getItems().clear();
-        MenuItem clear = new MenuItem(Lang.CLEAR_OFFLNE.tl), about = new MenuItem("About ZunoZap");
+        MenuItem about = new MenuItem("About ZunoZap");
         MenuItem settings = new MenuItem(Lang.SETT.tl), update = new MenuItem(Lang.UPDATE_CHECK.tl);
 
         Lang.a(() -> {
-            clear.setText(Lang.CLEAR_OFFLNE.tl);
             settings.setText(Lang.SETT.tl);
             update.setText(Lang.UPDATE_CHECK.tl);
         });
 
-        clear.setOnAction(t -> deleteDirs(temp, saves));
         settings.setOnAction(a -> {
             Tab t = new Tab("Settings");
             VBox s = new Settings();
@@ -461,7 +417,7 @@ public abstract class ZunoAPI extends Application {
             it.setOnAction(t -> createTab(false, s2));
             book.getItems().add(it);
         });
-        file.getItems().addAll(clear, about, update, settings);
+        file.getItems().addAll(about, update, settings);
     }
 
     public final boolean check(WebEngine e, String u) {
@@ -499,7 +455,7 @@ public abstract class ZunoAPI extends Application {
         }
 
         engine.js(Options.javascript.b);
-        if (engine.e == Engine.CHROME) engine.b.getPreferences().setPluginsEnabled(!Options.blockEventCalls.b);
+        if (engine.e == Engine.CHROME) engine.b.getPreferences().setPluginsEnabled(!Options.DIS_PL.b);
 
         if (isUrlDownload(url)) {
             new DownloadFrame(url);
@@ -522,8 +478,6 @@ public abstract class ZunoAPI extends Application {
         if (r.bm.containsKey(title)) Lang.b(() -> bkmark.setText("\u2605"));
 
         if (!httpsredirect || url.startsWith("http")) hookonUrlChange(engine, field, old, url);
-
-        if (Options.offlineStorage.b && engine.e == Engine.WEBKIT) new Thread(() -> downloadPage(saves, temp, engine.getURL(), true)).start();
     }
 
     public void bookmarkAction(UniversalEngine e, Reader bmread, EventHandler<ActionEvent> value, Button b, Menu m) {
