@@ -12,7 +12,7 @@ import com.teamdev.jxbrowser.chromium.events.ProvisionalLoadingEvent;
 import com.teamdev.jxbrowser.chromium.events.StartLoadingEvent;
 import com.zunozap.Settings.Options;
 
-import me.isaiah.downloadmanager.DownloadFrame;
+import me.isaiah.downloadmanager.DownloadManager;
 
 public abstract class LoadLis implements LoadListener {
     
@@ -42,7 +42,7 @@ public abstract class LoadLis implements LoadListener {
             } catch (IOException | URISyntaxException e1) {}
         }
 
-        if (ZunoAPI.isUrlDownload(url)) new DownloadFrame(url);
+        if (ZunoAPI.isUrlDownload(url)) DownloadManager.addToManager(url);
     }
 
 }

@@ -16,7 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -26,6 +25,7 @@ import com.zunozap.Settings.Options;
 import com.zunozap.UniversalEngine.Engine;
 import com.zunozap.api.Plugin;
 import com.zunozap.lang.Lang;
+import com.zunozap.launch.Main;
 import com.zunozap.plugin.manager.PluginManager;
 
 import javafx.application.Application;
@@ -55,17 +55,14 @@ import javafx.scene.text.Font;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
-import me.isaiah.downloadmanager.DownloadFrame;
+import me.isaiah.downloadmanager.DownloadManager;
 
 public abstract class ZunoAPI extends Application {
 
     public static File home = new File(System.getProperty("user.home"), "zunozap");
     public static File stylesheet = null;
 
-    protected static String version;
-
     public static double totalRamGCsaved = 0;
-    public int tabnum = 0;
 
     protected final static PluginManager p = new PluginManager();
     protected static Timer t;
@@ -74,7 +71,6 @@ public abstract class ZunoAPI extends Application {
     public static boolean firstRun = false; 
 
     private static ZunoAPI inst;
-    public final HashMap<String, String> bm = new HashMap<>();
     protected static final ArrayList<String> block = new ArrayList<>();
     public static UniversalEngine.Engine en;
     protected static TabPane tb;
@@ -100,7 +96,7 @@ public abstract class ZunoAPI extends Application {
         System.setOut(out);
         System.setErr(err);
         out("Loading");
-        File s = new File(home, "settings.txt");
+        File s = new File(home, "settings.dat");
         if (!s.exists()) {
             home.mkdir();
             s.createNewFile();
@@ -108,12 +104,13 @@ public abstract class ZunoAPI extends Application {
             firstRun = true;
         }
     }
-    
+
     public static void initTabPane() {
         if (null == tb) tb = new TabPane();
     }
 
-    @Override public void start(Stage stage) throws Exception {
+    @Override
+    public void start(Stage stage) throws Exception {
         this.stage = stage;
         StackPane root = new StackPane();
         BorderPane border = new BorderPane();
@@ -121,7 +118,7 @@ public abstract class ZunoAPI extends Application {
         root.getChildren().add(border);
         Scene scene = new Scene(root, 1200, 600);
 
-        if (isValid()) version = getInfo().version(); else err.log("Program not valid");
+        if (!isValid()) err.log("Program not valid");
 
         en = getInfo().engine();
         menuBar = new MenuBar();
@@ -148,12 +145,12 @@ public abstract class ZunoAPI extends Application {
         bmread.refresh();
 
         tb.setPrefSize(1365, 768);
-        Tab newtab = new Tab(" + "); // Setup tabs
+        Tab newtab = new Tab(" + ");
         newtab.setClosable(false);
         newtab.setId("createtab");
         tb.getTabs().add(newtab);
 
-        tb.getSelectionModel().selectedItemProperty().addListener((a,b,c) -> { if (c == newtab) createTab(false); });
+        tb.getSelectionModel().selectedItemProperty().addListener((a,b,c) -> { if (c == newtab) createTab(Settings.tabPage); });
 
         border.setCenter(tb);
         border.autosize();
@@ -161,7 +158,7 @@ public abstract class ZunoAPI extends Application {
         stage.getIcons().add(new Image(ZunoAPI.class.getClassLoader().getResourceAsStream("zunozaplogo.png")));
         start(stage, scene, root, border);
 
-        stage.setTitle(getInfo().name() + " " + version);
+        stage.setTitle(getInfo().name() + " " + getInfo().version());
         stage.setScene(scene);
         stage.show();
 
@@ -178,18 +175,18 @@ public abstract class ZunoAPI extends Application {
     }
 
     public final String aboutPageHTML(String... s) {
-        return String.format("<h1>ZunoZap <small>%s</small></h1><p>A web browser made with the WebKit & Chromium engines<br>"
-                + " Useragent: %s <br> Javascript: " + Options.javascript.b
-                + "<br> Licence: <a href='https://gnu.org/licenses/lgpl-3.0.txt'>LGPLv3</a><hr><br>"
+        return "<h1>ZunoZap</h1>Version " + getInfo().version() + "<br>ZunoZap is " + getUpdated()
+                + "<p>A web browser made with the WebKit & Chromium engines"
+                + "<br>Useragent: " + s[0] + "<br>Javascript: " + Options.javascript.b
+                + "<br>Licence: <a href='https://gnu.org/licenses/lgpl-3.0.txt'>LGPLv3</a><hr><br>"
                 + "<b>Note: The Chromium engine is provided by JxBrowser by <a href='https://teamdev.com/'>TeamDev</a></b></p>"
-                + "ZunoZap Plugins: " + getPluginNames() + "<br>Chromium Plugins: " + s[1],
-                getInfo().version(), s[0]);
+                + "ZunoZap Plugins: " + getPluginNames() + "<br>Chromium Plugins: " + s[1];
     }
 
-    public static void setUserAgent(WebEngine e) {
-        if (!e.getUserAgent().contains("ZunoZap")) 
-            e.setUserAgent(e.getUserAgent() + " ZunoZap/" + version + " Firefox/67.0.1 Chrome/69.0.3497.12 ");
-        else err("Useragent has already been set");
+    public void setUserAgent(WebEngine e) {
+        if (!e.getUserAgent().contains("ZunoZap"))
+            e.setUserAgent(e.getUserAgent() + " ZunoZap/" + getInfo().version() + " Firefox/67.0.4 Chrome/69.0.3497.12");
+        else err("Useragent already set");
     }
 
     public final static void history(WebEngine e, String go) {
@@ -198,8 +195,9 @@ public abstract class ZunoAPI extends Application {
 
     public static final void loadSite(String url, UniversalEngine e) {
         if (url.startsWith("zunozap:")) {
-            if (url.substring(8).startsWith("home")) e.load("http://www.zunozap.com/");
-            else if (url.substring(8).startsWith("start")) e.load(Settings.tabPage);
+            if ((url = url.substring(8)).startsWith("home")) e.load("http://www.zunozap.com/");
+            if (url.startsWith("start")) e.load(Settings.tabPage);
+            if (url.startsWith("about")) e.loadHTML(getInstance().aboutPageHTML(e.getUserAgent(), "B"));
 
             return;
         }
@@ -214,11 +212,9 @@ public abstract class ZunoAPI extends Application {
 
     public static String getUrlSource(String url) {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL(url).openConnection().getInputStream(), "UTF-8"))) {
-            String l;
-            StringBuilder a = new StringBuilder();
-            while ((l = in.readLine()) != null) a.append(l);
-
-            return a.toString();
+            String l, s = "";
+            while ((l = in.readLine()) != null) s += l + "\n";
+            return s;
         } catch (IOException e) { return null; }
     }
 
@@ -229,12 +225,8 @@ public abstract class ZunoAPI extends Application {
         }
     }
 
-    public void say(String msg) {
-        say(msg, 1);
-    }
-
-    public void say(String msg, int type) {
-        JOptionPane.showMessageDialog(null, msg, getInfo().name(), type);
+    public void say(Object...obj) {
+        JOptionPane.showMessageDialog(null, obj[0], "ZunoZap", obj.length < 2 ? 1 : Integer.parseInt(String.valueOf(obj[1])));
     }
 
     public boolean isValid() {
@@ -255,22 +247,16 @@ public abstract class ZunoAPI extends Application {
         } catch (IOException e) { e.printStackTrace(); return null;}
     }
 
-    private String formatSize(long v) {
-        if (v < 1024) return v + " B";
-        int z = (63 - Long.numberOfLeadingZeros(v)) / 10;
-        return String.format("%.1f %sB", (double)v / (1L << (z*10)), " KMGTPE".charAt(z));
-    }
-
     private void startGC() {
-        out("Starting GC with 2min delay");
+        out("Starting GC");
         t = new Timer(true);
         t.schedule(new TimerTask() { @Override public void run() {
             long l = Runtime.getRuntime().freeMemory();
-            String sl = formatSize(l);
+            String sl = Main.formatSize(l);
             double e = Double.valueOf(sl.substring(0, (sl.length() - 3)));
             if (e > 140 && e < 601 && shouldGC) {
                 System.gc();
-                String l2 = formatSize(Runtime.getRuntime().freeMemory() - l);
+                String l2 = Main.formatSize(Runtime.getRuntime().freeMemory() - l);
                 out("GC: Saved " + l2);
                 double a = Double.valueOf(l2.substring(0, (l2.length() - 3)));
                 if (l2.endsWith("MB")) totalRamGCsaved += a;
@@ -338,16 +324,12 @@ public abstract class ZunoAPI extends Application {
         for (File f : fs) f.mkdir();
     }
 
-    public static String updateCheck() {
-        Info i = getInstance().getInfo();
+    public String getUpdated() {
+        Info i = getInfo();
 
         try {
-            return getUrlSource(i.updateURL()).equalsIgnoreCase(i.version()) ? "Uptodate" : "You are outdated!";
-        } catch (Exception e) { return "error " + e; }
-    }
-
-    public final void createTab(boolean isStart) {
-        createTab(isStart, Settings.tabPage);
+            return getUrlSource(i.updateURL()).split("\n")[0].equalsIgnoreCase(i.version()) ? "up to date" : "outdated!";
+        } catch (Exception e) { return "UPDATE_INFO_ERROR " + e; }
     }
 
     public static void setup(URL url, boolean clear) throws IOException {
@@ -358,15 +340,12 @@ public abstract class ZunoAPI extends Application {
         in.close();
     }
 
-    public final void regMenuItems(Reader bmread, Menu file, Menu book, String html, TabPane tb, Engine e) {
+    public final void regMenuItems(Menu file, Menu book, String html, TabPane tb, Engine e) {
         file.getItems().clear();
         MenuItem about = new MenuItem("About ZunoZap");
-        MenuItem settings = new MenuItem(Lang.SETT.tl), update = new MenuItem(Lang.UPDATE_CHECK.tl);
+        MenuItem settings = new MenuItem(Lang.SETT.tl);
 
-        Lang.a(() -> {
-            settings.setText(Lang.SETT.tl);
-            update.setText(Lang.UPDATE_CHECK.tl);
-        });
+        Lang.a(() -> settings.setText(Lang.SETT.tl));
 
         settings.setOnAction(a -> {
             Tab t = new Tab("Settings");
@@ -392,9 +371,9 @@ public abstract class ZunoAPI extends Application {
             tb.getTabs().add(tb.getTabs().size() - 1, t);
             tb.getSelectionModel().select(t);
         });
-        update.setOnAction(t -> say(updateCheck()));
 
         about.setOnAction(a -> {
+            getInstance().createTab("zunozap:about");
             Tab t = new Tab(Lang.ABOUT.tl);
             UniversalEngine c = null;
             Node v = null;
@@ -414,10 +393,10 @@ public abstract class ZunoAPI extends Application {
 
         bmread.bm.forEach((s1, s2) -> {
             MenuItem it = new MenuItem(s1);
-            it.setOnAction(t -> createTab(false, s2));
+            it.setOnAction(t -> createTab(s2));
             book.getItems().add(it);
         });
-        file.getItems().addAll(about, update, settings);
+        file.getItems().addAll(settings, about);
     }
 
     public final boolean check(WebEngine e, String u) {
@@ -446,8 +425,8 @@ public abstract class ZunoAPI extends Application {
         }
 
         if (url.toLowerCase().contains("zunozap.com/addons")) {
-            boolean t = url.toLowerCase().contains("zunozap.com/addons/themes/");
-            boolean p = url.toLowerCase().contains("zunozap.com/addons/plugins/");
+            boolean t = url.toLowerCase().contains("/themes/");
+            boolean p = url.toLowerCase().contains("/plugins/");
             if (p || t) {
                 downloadAddon(url, t, (t ? cssDir : plDir));
                 return;
@@ -458,7 +437,7 @@ public abstract class ZunoAPI extends Application {
         if (engine.e == Engine.CHROME) engine.b.getPreferences().setPluginsEnabled(!Options.DIS_PL.b);
 
         if (isUrlDownload(url)) {
-            new DownloadFrame(url);
+            DownloadManager.addToManager(url);
             return;
         }
 
@@ -520,7 +499,7 @@ public abstract class ZunoAPI extends Application {
     }
 
     public abstract void start(Stage stage, Scene scene, StackPane root, BorderPane pane) throws Exception;
-    public abstract void createTab(boolean b, String s2);
+    public abstract void createTab(String s2);
     protected abstract void onTabClosed(Object source);
 
 }

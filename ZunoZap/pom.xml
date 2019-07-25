@@ -2,12 +2,12 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>me.isaiah.zunozap</groupId>
+  <groupId>com.zunozap</groupId>
   <artifactId>ZunoZap</artifactId>
-  <version>0.7.x</version>
+  <version>0.8.x</version>
 
   <name>ZunoZap</name>
-  <url>https://zunozap.github.io/</url>
+  <url>http://www.zunozap.com/</url>
 
   <build>
     <defaultGoal>package</defaultGoal>
@@ -30,8 +30,11 @@
                   <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                      <manifestEntries>
                        <Main-Class>
-                         me.isaiah.zunozap.LibDownload
+                         com.zunozap.launch.Main
                        </Main-Class>
+                       <Launcher-Agent-Class>
+                         com.zunozap.launch.Agent
+                       </Launcher-Agent-Class>
                      </manifestEntries>
                    </transformer>
                  </transformers>
@@ -45,12 +48,8 @@
   <repositories>
     <repository>
         <id>com.teamdev</id>
-        <url>http://maven.teamdev.com/repository/products</url>
+        <url>https://maven.teamdev.com/repository/products</url>
     </repository>
-    <repository>
-     <id>jitpack.io</id>
-     <url>https://jitpack.io</url>
-   </repository>
   </repositories>
 
   <properties>
@@ -61,20 +60,15 @@
 
   <organization>
   	<name>ZunoZap Team</name>
-  	<url>https://github.com/ZunoZap/</url>
+  	<url>http://www.zunozap.com/credits/</url>
   </organization>
   
   <dependencies>
     <dependency>
       <groupId>com.teamdev.jxbrowser</groupId>
       <artifactId>jxbrowser</artifactId>
-      <version>6.20</version>
+      <version>6.23.1</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-    <groupId>com.github.micheljung</groupId>
-        <artifactId>FX-BorderlessScene</artifactId>
-        <version>3.2.0</version>
     </dependency>
   </dependencies>
 </project>

@@ -12,7 +12,6 @@ public class Download extends Observable implements Runnable {
     private static final int MAX_BUFFER_SIZE = 1024;
 
     public static final String STATUSES[] = {"Downloading", "Paused", "Complete", "Cancelled", "Error"}; // status names
-    public static final int DOWNLOADING = 0, PAUSED = 1, COMPLETE = 2, CANCELLED = 3, ERROR = 4; // status codes
 
     private URL url;
     private int size,downloaded,status;
@@ -56,13 +55,12 @@ public class Download extends Observable implements Runnable {
         return status;
     }
 
-    public void stat(int s) {
-        stateChanged(status = s);
+    public void stat(int i) {
+        stateChanged(status = i);
     }
 
-    // Start or resume downloading.
     private void download() {
-        new Thread(this).start();
+        new Thread(this).start(); // Start/resume downloading
     }
 
     private String getFileName(URL url) {
@@ -96,7 +94,7 @@ public class Download extends Observable implements Runnable {
             file.seek(downloaded);
 
             stream = connection.getInputStream();
-            while (status == DOWNLOADING) {
+            while (status == 0) {
                 // Size buffer according to how much of the file is left to download
                 byte buffer[]  = size - downloaded > MAX_BUFFER_SIZE ? new byte[MAX_BUFFER_SIZE] : new byte[size - downloaded]; 
 

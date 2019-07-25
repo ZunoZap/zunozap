@@ -1,7 +1,5 @@
 package com.zunozap.launch;
 
-import static com.zunozap.Log.out;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -12,17 +10,11 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-/**
- * This class unzipes a zip file.
- * @author skabore
- */
 public class Unzip {
 
     private File src, dest;
 
     private static ZipFile zf;
-
-    private static final int EOF = -1;
 
     public Unzip(File src, File dest) {
         this.src = src;
@@ -59,13 +51,13 @@ public class Unzip {
                 FileOutputStream fos = new FileOutputStream(file);
                 BufferedOutputStream bos = new BufferedOutputStream(fos);
                 int c;
-                while ((c = bis.read()) != EOF)
+                while ((c = bis.read()) != -1)
                     bos.write((byte) c);
 
                 bos.close();
                 fos.close();
             }
-        } catch (IOException e) { out(e.getMessage()); }
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
 }

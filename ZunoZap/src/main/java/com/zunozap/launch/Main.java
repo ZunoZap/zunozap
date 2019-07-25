@@ -5,15 +5,14 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
@@ -29,7 +28,7 @@ import me.isaiah.downloadmanager.Download;
 
 public class Main {
 
-    // Info for chromium
+    // Info for Chromium
     private static String ver = "6.23.1";
     private static String mvn = "https://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/";
     private static int i = 0;
@@ -41,6 +40,7 @@ public class Main {
     }
 
     public static void main0(String[] args) throws IOException {
+        linuxCheck();
         new JFXPanel(); // initialize toolkit 
 
         lib.mkdirs();
@@ -48,9 +48,10 @@ public class Main {
         File sfile = new File(lib, "jxbrowser-" + ver + ".jar");
 
         if ((file.exists() && sfile.exists()) && ((file.length() + sfile.length()) > 45000000)) {
-            try {
-                addURLs(file.toURI().toURL(), sfile.toURI().toURL());
-            } catch (IOException e) { ZunoZapWebView.main(args); return; }
+            if (!Agent.addClassPath(file, sfile)) {
+                ZunoZapWebView.main(args);
+                return;
+            }
             try { start(args); } catch (IOException e) { e.printStackTrace(); }
             return;
         } else if (lib.listFiles() != null && lib.listFiles().length > 0) for (File fi : lib.listFiles()) fi.delete();
@@ -89,9 +90,7 @@ public class Main {
 
             if (d.getStatus() == 2 && i == 0) {
                 i = 1;
-                try {
-                    addURLs(smalljar.getAsFile().toURI().toURL(), d.getAsFile().toURI().toURL());
-                } catch (IOException e) { e.printStackTrace(); }
+                Agent.addClassPath(smalljar.getAsFile(), d.getAsFile());
                 t.cancel();
                 f.dispose();
                 try {
@@ -124,24 +123,25 @@ public class Main {
         String os = getOS().name().toLowerCase(Locale.ENGLISH);
         return mvn + "jxbrowser-" + os + "/" + ver + "/jxbrowser-" + os + "-" + ver + ".jar";
     }
-
-    @Deprecated
-    private static void addURLs(URL... u) throws IOException {
-        URLClassLoader sysloader = (URLClassLoader) Main.class.getClassLoader();
-        Class<?> sysclass = URLClassLoader.class;
-
+    
+    public static void linuxCheck() {
+        if (getOS() != OS.LINUX64)
+            return;
         try {
-            Method method = sysclass.getDeclaredMethod("addURL", URL.class);
-            method.setAccessible(true);
-            for (URL ur : u) method.invoke(sysloader, (Object)ur);
-        } catch (Throwable t) { throw new IOException("Could not add URL to system classloader"); }
+            Class.forName("javafx.application.Application");
+        } catch (ClassNotFoundException e) {
+            JOptionPane.showMessageDialog(null,
+                    "OpenJFX is not installed.\nPlease install the package openjfx.\nDebian/Ubuntu might also require Java 11 for openjfx", "ZunoZap", 0);
+            e.printStackTrace();
+        }
     }
 
     private static OS getOS() {
         String os = System.getProperty("os.name").toLowerCase();
-        if (os.startsWith("windows"))
+
+        if (os.indexOf("win") >= 0)
             return System.getProperty("os.arch").indexOf("64") != -1 ? OS.WIN64 : OS.WIN32;
-        if (os.startsWith("mac")) return OS.MAC;
+        if (os.indexOf("mac") >= 0) return OS.MAC;
 
         return OS.LINUX64;
     }

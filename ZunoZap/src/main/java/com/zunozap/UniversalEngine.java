@@ -58,4 +58,8 @@ public class UniversalEngine {
         if (c) b.getPreferences().setJavaScriptEnabled(bo); else en.setJavaScriptEnabled(bo);
     }
 
+    public String getUserAgent() {
+        return c ? b.getUserAgent() : en.getUserAgent();
+    }
+
 }

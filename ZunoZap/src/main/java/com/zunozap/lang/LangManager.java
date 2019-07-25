@@ -20,7 +20,7 @@ public class LangManager {
             if (s.startsWith("#") || sp[0].trim().length() < 1) continue;
             try {
                 Lang.valueOf(sp[0].trim()).tl = sp[1].trim();
-            } catch (Exception e) { err("Unable to get translation " + e.getMessage()); }
+            } catch (Exception e) { err("Unable to get translation: " + e.getMessage()); }
         }
         lang = f.getName().replace(".lang", "");
         full = l.get(0).replace("#lang=", "");

@@ -38,7 +38,7 @@ public class ZunoZapWebView extends ZunoAPI {
     public void start(Stage stage, Scene scene, StackPane root, BorderPane border) throws Exception {
         WebView dummy = new WebView();
         setUserAgent(dummy.getEngine());
-        regMenuItems(bmread, menuFile, menuBook, aboutPageHTML(dummy.getEngine().getUserAgent(), "N/A"), tb, Engine.WEBKIT);
+        regMenuItems(menuFile, menuBook, aboutPageHTML(dummy.getEngine().getUserAgent(), "N/A"), tb, Engine.WEBKIT);
         menuBar.getMenus().addAll(menuFile, menuBook);
         Settings.set(cssDir, scene);
         Settings.init(cssDir);
@@ -52,11 +52,11 @@ public class ZunoZapWebView extends ZunoAPI {
 
     @Override
     @SuppressWarnings("static-access") 
-    public final void createTab(boolean isStartTab, String url) {
-        tabnum++;
+    public final void createTab(String url) {
+        int tabnum = tb.getTabs().size() + 1;
 
         // Create Tab
-        final Tab tab = new Tab("Loading...");
+        final Tab tab = new Tab(Lang.LOAD.tl);
         tab.setTooltip(new Tooltip("Tab " + tabnum));
         tab.setId("tab-"+tabnum);
 
@@ -78,7 +78,7 @@ public class ZunoZapWebView extends ZunoAPI {
         back.setOnAction(v -> history(engine, "back"));
         forward.setOnAction(v -> history(engine, "forward"));
 
-        bkmark.setOnAction(v -> bookmarkAction(e, bmread, (t -> createTab(false, engine.getLocation())), bkmark, menuBook));
+        bkmark.setOnAction(v -> bookmarkAction(e, bmread, (t -> createTab(engine.getLocation())), bkmark, menuBook));
 
         // Setting Styles
         urlField.setId("urlfield");
@@ -92,7 +92,7 @@ public class ZunoZapWebView extends ZunoAPI {
         setUserAgent(engine);
         engine.javaScriptEnabledProperty().set(Options.javascript.b);
 
-        if (isStartTab) engine.load(Settings.tabPage); else loadSite(url, e);
+        loadSite(url, e);
 
         tab.setContent(vBox);
 

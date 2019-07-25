@@ -30,8 +30,8 @@ public class PluginManager {
                     InputStream stream = jar.getInputStream(jar.getJarEntry("plugin.txt"));
                     p.load(stream);
                     stream.close();
-                    classLoader = new PluginClassLoader(new PluginLoader(), getClass().getClassLoader(), p.getProperty("mainClass"), f);
-                    loadPlugin(classLoader.plugin);
+                    loadPlugin((classLoader = new PluginClassLoader(new PluginLoader(), getClass().getClassLoader(),
+                            p.getProperty("mainClass"), f)).plugin);
                 } catch (Exception e) { System.err.println("Could not load " + f.getName() + ": " + e.getMessage()); }
             }
         }
@@ -40,11 +40,9 @@ public class PluginManager {
     public boolean loadPlugin(Plugin p) throws Exception {
         PluginInfo i = p.getInfo();
         if (i.minBrowserVersion() > API_VERSION) {
-            Alert alert = new Alert(AlertType.ERROR);
+            Alert alert = new Alert(AlertType.ERROR, "Unable to load addon '" + i.name() + "'.\nRequires upgraded browser!");
             alert.setTitle("Addons");
             alert.setHeaderText(null);
-            alert.setContentText("Unable to load addon '" + i.name() + "'.\nRequires upgraded browser!");
-
             alert.show();
             return false;
         }

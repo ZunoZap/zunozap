@@ -30,7 +30,6 @@ import com.teamdev.jxbrowser.chromium.internal.Environment;
 import com.teamdev.jxbrowser.chromium.javafx.BrowserView;
 import com.zunozap.Info;
 import com.zunozap.LoadLis;
-import com.zunozap.Reader;
 import com.zunozap.Settings;
 import com.zunozap.Settings.Options;
 import com.zunozap.UniversalEngine;
@@ -58,8 +57,6 @@ import javafx.stage.Stage;
 @Info(enableGC=false, engine = Engine.CHROME)
 public class ZunoZapChrome extends ZunoAPI {
 
-    private static Reader bmread;
-
     private static JWindow l = new JWindow();
     private Random r = new Random();
 
@@ -70,7 +67,7 @@ public class ZunoZapChrome extends ZunoAPI {
     private final PopupHandler ph = new PopupHandler() {
         @Override public PopupContainer handlePopup(PopupParams pp) {
             return new PopupContainer() { @Override public void insertBrowser(Browser b, Rectangle r) {
-                createTab(false, b.getURL());
+                createTab(b.getURL());
                 b.dispose();
             }};
         }
@@ -116,9 +113,9 @@ public class ZunoZapChrome extends ZunoAPI {
             b = new Browser(new BrowserContext(new BrowserContextParams(f.getAbsolutePath())));
         }
 
-        createTab(true);
-        b.setUserAgent("ZunoZap/" + version + " " + b.getUserAgent());
-        regMenuItems(bmread, menuFile, menuBook, aboutPageHTML(b.getUserAgent(), getJxPluginNames(b)), tb, Engine.CHROME);
+        createTab(Settings.tabPage);
+        b.setUserAgent("ZunoZap/" + getInfo().version() + " " + b.getUserAgent());
+        regMenuItems(menuFile, menuBook, aboutPageHTML(b.getUserAgent(), getJxPluginNames(b)), tb, Engine.CHROME);
         menuBar.getMenus().addAll(menuFile, menuBook);
         Settings.set(cssDir, scene);
         Settings.init(cssDir);
@@ -138,7 +135,7 @@ public class ZunoZapChrome extends ZunoAPI {
     }
 
     @Override
-    public final void createTab(boolean isStartTab, String url) {
+    public final void createTab(String url) {
         Browser b = null;
 
         try {
@@ -149,11 +146,11 @@ public class ZunoZapChrome extends ZunoAPI {
             f.deleteOnExit();
             b = new Browser(new BrowserContext(new BrowserContextParams(f.getAbsolutePath())));
         }
-        b.setUserAgent("ZunoZap/" + version + " " + b.getUserAgent());
-        createTab(isStartTab, url, true, b, new BrowserView(b));
+        b.setUserAgent("ZunoZap/" + getInfo().version() + " " + b.getUserAgent());
+        createTab(url, true, b, new BrowserView(b));
     }
 
-    public final void createTab(boolean isStartTab, String url, boolean load, Browser b, BrowserView web) {
+    public final void createTab(String url, boolean load, Browser b, BrowserView web) {
         int tabnum = tb.getTabs().size() + 1;
 
         final Tab tab = new Tab(Lang.LOAD.tl);
@@ -176,10 +173,10 @@ public class ZunoZapChrome extends ZunoAPI {
         back.setOnAction(v -> b.goBack());
         forward.setOnAction(v -> b.goForward());
 
-        bkmark.setOnAction(v -> bookmarkAction(e, bmread, (t -> createTab(false, b.getURL())), bkmark, menuBook));
+        bkmark.setOnAction(v -> bookmarkAction(e, bmread, (t -> createTab(b.getURL())), bkmark, menuBook));
 
         String title = (b.getTitle() != null ? b.getTitle() : b.getURL());
-        if (bmread.bm.containsKey(title)) bkmark.setText("\u2605");
+        if (null == title && bmread.bm.containsKey(title)) bkmark.setText("\u2605");
 
         // Setting Styles
         field.setId("urlfield");
@@ -192,7 +189,7 @@ public class ZunoZapChrome extends ZunoAPI {
         b.getPreferences().setJavaScriptEnabled(Options.javascript.b);
 
         if (load)
-               if (isStartTab) b.loadURL(Settings.tabPage); else loadSite(url, e);
+            loadSite(url, e);
 
         b.setFullScreenHandler(new ZFullScreenHandler(stage));
 

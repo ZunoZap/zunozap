@@ -13,12 +13,13 @@ import javafx.scene.control.MenuItem;
 
 public class Reader {
 
-    public HashMap<String, String> bm = ZunoAPI.getInstance().bm;
+    public HashMap<String, String> bm;
     private Menu book;
 
     public Reader(Menu bk) {
         File dat = new ZFile("bookmarks.dat", false);
         this.book = bk;
+        this.bm = new HashMap<>();
         bk.getItems().clear();
         try {
             for (String s : Files.readAllLines(Paths.get(dat.toURI()))) {
@@ -34,7 +35,7 @@ public class Reader {
     public void readd() {
         bm.forEach((a, b) -> {
             MenuItem item = new MenuItem(a);
-            item.setOnAction(t -> ZunoAPI.getInstance().createTab(false, b));
+            item.setOnAction(t -> ZunoAPI.getInstance().createTab(b));
             book.getItems().add(item);
         });
     }

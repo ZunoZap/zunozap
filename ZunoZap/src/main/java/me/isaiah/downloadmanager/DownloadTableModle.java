@@ -9,21 +9,18 @@ import javax.swing.table.AbstractTableModel;
 
 import com.zunozap.launch.Main;
  
-// This class manages the download table's data.
+// This class manages the download table's data
 class DownloadsTableModel extends AbstractTableModel implements Observer {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String[] columnNames = {"URL", "Size", "Progress", "Status"};  // Names for the table's columns.
-    private static final Class<?>[] columnClasses = {String.class, String.class, JProgressBar.class, String.class}; // Classes for each column's values.
+    private static final String[] columnNames = {"URL", "Size", "Progress", "Status"};
 
-    private ArrayList<Download> downloadList = new ArrayList<>(); // The table's list of downloads.
+    private ArrayList<Download> downloadList = new ArrayList<>();
 
     public void addDownload(Download download) {
-        download.addObserver(this); // Register to be notified when the download changes.
-         
+        download.addObserver(this); // Register to be notified when the download changes
         downloadList.add(download);
-
         fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1);
     }
 
@@ -36,8 +33,7 @@ class DownloadsTableModel extends AbstractTableModel implements Observer {
     }
 
     public void clearDownload(int row) {
-        downloadList.remove(row); // Remove a download from the list.
-
+        downloadList.remove(row); // Remove download from list
         fireTableRowsDeleted(row, row);
     }
 
@@ -53,7 +49,7 @@ class DownloadsTableModel extends AbstractTableModel implements Observer {
 
     @Override
     public Class<?> getColumnClass(int col) {
-        return columnClasses[col];
+        return col == 2 ? JProgressBar.class : String.class;
     }
 
     @Override

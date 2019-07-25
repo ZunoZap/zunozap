@@ -2,14 +2,14 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>me.isaiah.zunozap</groupId>
+  <groupId>com.zunozap</groupId>
   <artifactId>ZunoZap-parent</artifactId>
-  <version>0.7.x</version>
+  <version>0.8.x</version>
 
   <name>ZunoZap-parent</name>
-  <url>https://zunozap.github.io/</url>
+  <url>http://zunozap.com/</url>
   <packaging>pom</packaging>
-  
+
   <modules>
     <module>ZunoZap</module>
   </modules>

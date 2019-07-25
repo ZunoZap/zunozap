@@ -33,90 +33,77 @@ public class DownloadManager extends JFrame implements Observer {
     private boolean clearing;
     private Timer t;
 
+    private static DownloadManager dm = null;
+    public static void addToManager(String url) {
+        if (dm == null) dm = new DownloadManager();
+
+        dm.addDownload(url);
+        dm.setVisible(true);
+    }
+
     public DownloadManager() {
-       setTitle("Download Manager");
-       setSize(640, 480);
+        setTitle("Download Manager");
+        setSize(640, 480);
 
-       addWindowListener(new WindowAdapter() { @Override public void windowClosing(WindowEvent e){ setVisible(false); }});
+        addWindowListener(new WindowAdapter() { @Override public void windowClosing(WindowEvent e){ setVisible(false); }});
 
-       // Set up add panel
-       JPanel addPanel = new JPanel();
-       addTextField = new JTextField(30);
+        // Set up add panel
+        JPanel addPanel = new JPanel();
+        addTextField = new JTextField(30);
 
-       // Set up Downloads table
-       tableModel = new DownloadsTableModel();
-       table = new JTable(tableModel);
-       table.getSelectionModel().addListSelectionListener(l -> tableSelectionChanged());
+        // Set up Downloads table
+        tableModel = new DownloadsTableModel();
+        table = new JTable(tableModel);
+        table.getSelectionModel().addListSelectionListener(l -> tableSelectionChanged());
 
-       table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Allow only one row at a time to be selected
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Allow only one row at a time to be selected
 
-       // Set up ProgressBar as renderer for progress column
-       ProgressRenderer renderer = new ProgressRenderer(0, 100);
-       renderer.setStringPainted(true);
-       table.setDefaultRenderer(JProgressBar.class, renderer);
+        // Set up ProgressBar as renderer for progress column
+        ProgressRenderer renderer = new ProgressRenderer(0, 100);
+        renderer.setStringPainted(true);
+        table.setDefaultRenderer(JProgressBar.class, renderer);
 
-       table.setRowHeight((int) renderer.getPreferredSize().getHeight());
+        table.setRowHeight((int) renderer.getPreferredSize().getHeight());
 
-       JPanel downloadsPanel = new JPanel();
-       downloadsPanel.setBorder(BorderFactory.createTitledBorder("Download Manager"));
-       downloadsPanel.setLayout(new BorderLayout());
-       downloadsPanel.add(new JScrollPane(table), BorderLayout.CENTER);
+        JPanel downloadsPanel = new JPanel();
+        downloadsPanel.setBorder(BorderFactory.createTitledBorder("Download Manager"));
+        downloadsPanel.setLayout(new BorderLayout());
+        downloadsPanel.add(new JScrollPane(table), BorderLayout.CENTER);
 
-       // Set up s panel.
-       JPanel sPanel = new JPanel();
-       pause = new JButton("Pause");
-       resume = new JButton("Resume");
-       cancel = new JButton("Cancel");
-       clear = new JButton("Clear");
-       JButton exit = new JButton("Exit");
+        JPanel sPanel = new JPanel();
+        (pause = (JButton) sPanel.add(new JButton("Pause"))).addActionListener(l -> action(1));
+        (resume = (JButton) sPanel.add(new JButton("Resume"))).addActionListener(l -> action(0));
+        (cancel = (JButton) sPanel.add(new JButton("Cancel"))).addActionListener(l -> action(3));
+        (clear = (JButton) sPanel.add(new JButton("Clear"))).addActionListener(l -> actionClear());
+        ((JButton) sPanel.add(new JButton("Exit"))).addActionListener(l -> setVisible(false));
 
-       pause.addActionListener(l -> action(1));
-       pause.setEnabled(false);
-       sPanel.add(pause);
+        setsEnabled(false, false, false, false);
 
-       resume.addActionListener(l -> action(0));
-       resume.setEnabled(false);
-       sPanel.add(resume);
+        getContentPane().setLayout(new BorderLayout());
+        getContentPane().add(addPanel, BorderLayout.NORTH);
+        getContentPane().add(downloadsPanel, BorderLayout.CENTER);
+        getContentPane().add(sPanel, BorderLayout.SOUTH);
 
-       cancel.addActionListener(l -> action(3));
-       cancel.setEnabled(false);
-       sPanel.add(cancel);
+        t = new Timer();
+        t.schedule(new TimerTask() { @Override public void run() {
+            if (!isVisible()) {
+                if (tableModel.getDownloads().size() <= 0) {
+                    dispose();
+                    t.cancel();
+                } else {
+                    boolean b = false;
+                    for (Download down : tableModel.getDownloads()) if (down.getStatus() >= 2) b = true; else {b = false; break;}
 
-       clear.addActionListener(l -> actionClear());
-       clear.setEnabled(false);
-       sPanel.add(clear);
-
-       exit.addActionListener(l -> setVisible(false));
-       sPanel.add(exit);
-
-       // Add panels to display.
-       getContentPane().setLayout(new BorderLayout());
-       getContentPane().add(addPanel, BorderLayout.NORTH);
-       getContentPane().add(downloadsPanel, BorderLayout.CENTER);
-       getContentPane().add(sPanel, BorderLayout.SOUTH);
-
-       t = new Timer();
-       t.schedule(new TimerTask() { @Override public void run() {
-           if (!isVisible()) {
-               if (tableModel.getDownloads().size() <= 0) {
-                   dispose();
-                   t.cancel();
-               } else {
-                   boolean b = false;
-                   for (Download down : tableModel.getDownloads()) if (down.getStatus() >= 2) b = true;
-
-                   if (b) {
-                       dispose();
-                       t.cancel();
-                   }
-               }
+                    if (b) {
+                        dispose();
+                        t.cancel();
+                    }
+                }
         }}}, 100, 10000);
     }
 
     public void addDownload(String s) {
-        String url = !s.startsWith("http") ? "http://" + s : s;
-
-        URL verified = verifyUrl(url);
+        URL verified = verifyUrl(s.startsWith("http") ? s : "http://" + s);
         if (verified != null) {
            tableModel.addDownload(new Download(verified));
            addTextField.setText(""); // reset
@@ -124,24 +111,22 @@ public class DownloadManager extends JFrame implements Observer {
     }
 
     private URL verifyUrl(String url) {
-       if (!url.toLowerCase().startsWith("http")) return null;
+        if (!url.toLowerCase().startsWith("http")) return null;
 
-       URL verified = null;
-       try {
-          verified = new URL(url);
-       } catch (Exception e) { return null; }
+        URL verified = null;
+        try {
+            verified = new URL(url);
+        } catch (Exception e) { return null; }
 
-       if (verified.getFile().length() < 2) return null; // Make sure URL specifies a file.
+        if (verified.getFile().length() < 2) return null; // Make sure URL is a file
 
-       return verified;
+        return verified;
     }
 
-    // Called when table row selection changes.
     private void tableSelectionChanged() {
-        // Unregister from receiving notifications from the last selected download
-        if (selected != null) selected.deleteObserver(DownloadManager.this);
+        if (selected != null) selected.deleteObserver(DownloadManager.this); // Unregister from the last selected
 
-        /* If not in the middle of clearing a download, set the selected download and register to receive notifications from it. */
+        // If not in the middle of clearing a download, set the selected and register to receive notifications
         if (!clearing) {
             selected = tableModel.getDownload(table.getSelectedRow());
             selected.addObserver(DownloadManager.this);
@@ -155,18 +140,18 @@ public class DownloadManager extends JFrame implements Observer {
     }
 
     private void actionClear() {
-       clearing = true;
-       tableModel.clearDownload(table.getSelectedRow());
-       clearing = false;
-       selected = null;
-       updates();
+        clearing = true;
+        tableModel.clearDownload(table.getSelectedRow());
+        clearing = false;
+        selected = null;
+        updates();
     }
 
     private void updates() {
-       if (selected != null) {
-           int s = selected.getStatus();
-           setsEnabled(s == 0, (s == 1 || s == 4), s <= 1, s >= 2);
-       } else setsEnabled(false, false, false, false); // No download is selected in table.
+        if (selected != null) {
+            int s = selected.getStatus();
+            setsEnabled(s == 0, (s == 1 || s == 4), s <= 1, s >= 2);
+        } else setsEnabled(false, false, false, false); // No download is selected
     }
 
     private void setsEnabled(boolean a, boolean b, boolean c, boolean d) {
@@ -178,15 +163,7 @@ public class DownloadManager extends JFrame implements Observer {
 
     @Override
     public void update(Observable o, Object arg) {
-       if (selected != null && selected.equals(o)) updates();
-    }
-
-    public static void main(String[] args) {
-       run(new DownloadManager());
-    }
-
-    public static void run(DownloadManager instance) {
-        instance.setVisible(true);
+        if (selected != null && selected.equals(o)) updates();
     }
 
 }

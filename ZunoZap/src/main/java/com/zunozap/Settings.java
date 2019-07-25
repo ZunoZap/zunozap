@@ -45,7 +45,6 @@ public class Settings extends VBox {
     protected static String searchEn = "http://duckduckgo.com/?q=%s";
 
     private List<Node> c;
-    private static ZFile settings = new ZFile("settings.txt", false);
     public static Scene s;
     public static HashMap<String, File> b = new HashMap<>(), l = new HashMap<>();
     public ArrayList<ChangeLis> l2 = new ArrayList<>();
@@ -57,10 +56,14 @@ public class Settings extends VBox {
         offlineStorage(false, "OFFLINE"), javascript(true), blockMalware(true, "MAL"), COMPACT(true);
 
         public boolean b, def;
-        public String n;
+        public Lang n;
 
         private Options(boolean d) { this(d, null); }
-        private Options(boolean d, String z) { this.b = d; this.def = d; this.n = Lang.from((z == null ? name() : z).toUpperCase()); }
+        private Options(boolean d, String z) {
+            this.b = d; 
+            this.def = d; 
+            this.n = Lang.get((z == null ? name() : z).toUpperCase()); 
+        }
     }
     
     @SuppressWarnings("unchecked")
@@ -135,8 +138,8 @@ public class Settings extends VBox {
     }
 
     private final void addCheckBox(Options o) {
-        CheckBox box = new CheckBox(o.name()); // TODO
-        Lang.a(() -> box.setText(o.n));
+        CheckBox box = new CheckBox(o.n == null ? o.name() : o.n.tl);
+        Lang.a(() -> box.setText(o.n == null ? o.name() : o.n.tl));
         box.setSelected(o.b);
         box.setPadding(new Insets(4,4,4,4));
         box.setOnAction(a -> {
@@ -223,7 +226,7 @@ public class Settings extends VBox {
 
     public static boolean init(File dir) {
         try {
-            settings.createNewFile();
+            f.createNewFile();
             load();
         } catch (IOException e) { return false; }
         
