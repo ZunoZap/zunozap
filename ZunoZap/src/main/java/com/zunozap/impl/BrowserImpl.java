@@ -6,34 +6,27 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Rectangle;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Random;
 
 import javax.swing.JLabel;
 import javax.swing.JWindow;
 import javax.swing.border.EmptyBorder;
 
 import com.teamdev.jxbrowser.chromium.Browser;
-import com.teamdev.jxbrowser.chromium.BrowserContext;
-import com.teamdev.jxbrowser.chromium.BrowserContextParams;
 import com.teamdev.jxbrowser.chromium.BrowserCore;
-import com.teamdev.jxbrowser.chromium.BrowserException;
 import com.teamdev.jxbrowser.chromium.BrowserPreferences;
 import com.teamdev.jxbrowser.chromium.DownloadHandler;
 import com.teamdev.jxbrowser.chromium.DownloadItem;
-import com.teamdev.jxbrowser.chromium.PluginInfo;
 import com.teamdev.jxbrowser.chromium.PopupContainer;
 import com.teamdev.jxbrowser.chromium.PopupHandler;
 import com.teamdev.jxbrowser.chromium.PopupParams;
 import com.teamdev.jxbrowser.chromium.events.FinishLoadingEvent;
 import com.teamdev.jxbrowser.chromium.internal.Environment;
-import com.teamdev.jxbrowser.chromium.javafx.BrowserView;
-import com.zunozap.Info;
+import com.zunozap.Engine;
+import com.zunozap.Engine.Type;
+import com.zunozap.EngineHelper;
 import com.zunozap.LoadLis;
 import com.zunozap.Settings;
 import com.zunozap.Settings.Options;
-import com.zunozap.UniversalEngine;
-import com.zunozap.UniversalEngine.Engine;
 import com.zunozap.ZFile;
 import com.zunozap.ZFullScreenHandler;
 import com.zunozap.ZunoAPI;
@@ -43,6 +36,8 @@ import com.zunozap.lang.Lang;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
@@ -52,13 +47,12 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.web.WebEngine;
 import javafx.stage.Stage;
 
-@Info(enableGC=false, engine = Engine.CHROME)
-public class ZunoZapChrome extends ZunoAPI {
+public class BrowserImpl extends ZunoAPI {
 
     private static JWindow l = new JWindow();
-    private Random r = new Random();
 
     private final DownloadHandler dh = new DownloadHandler() {
         @Override public boolean allowDownload(DownloadItem i) { return !isUrlDownload(i.getDestinationFile().getName()); }
@@ -92,7 +86,7 @@ public class ZunoZapChrome extends ZunoAPI {
         l.pack();
         l.setLocationRelativeTo(null);
 
-        launch(ZunoZapChrome.class, args);
+        launch(BrowserImpl.class, args);
 
         out("Shutting down BrowserCore");
         BrowserCore.shutdown();
@@ -103,30 +97,20 @@ public class ZunoZapChrome extends ZunoAPI {
     public void start(Stage stage, Scene scene, StackPane root, BorderPane border) throws Exception {
         for (int i = 0; i < 10; i++) deleteDirs(new ZFile("engine" + i));
 
-        Browser b = null;
-        try {
-            b = new Browser();
-        } catch (BrowserException e) {
-            ZFile f = new ZFile("engine" + r.nextInt(10));
-            f.mk();
-            f.deleteOnExit();
-            b = new Browser(new BrowserContext(new BrowserContextParams(f.getAbsolutePath())));
-        }
-
         createTab(Settings.tabPage);
-        b.setUserAgent("ZunoZap/" + getInfo().version() + " " + b.getUserAgent());
-        regMenuItems(menuFile, menuBook, aboutPageHTML(b.getUserAgent(), getJxPluginNames(b)), tb, Engine.CHROME);
+        regMenuItems(menuFile, menuBook, tb, EngineHelper.type);
         menuBar.getMenus().addAll(menuFile, menuBook);
+
         Settings.set(cssDir, scene);
         Settings.init(cssDir);
         Settings.changeStyle("ZunoZap default");
         Settings.save();
         scene.getStylesheets().add(ZunoAPI.stylesheet.toURI().toURL().toExternalForm());
 
-        BrowserPreferences.setChromiumDir(data.getAbsolutePath());
-        BrowserPreferences.setUserAgent(BrowserPreferences.getUserAgent() + " ZunoZap/" + getInfo().version());
-
-        b.dispose(false);
+        if (Settings.en == Type.CHROME) {
+            BrowserPreferences.setChromiumDir(data.getAbsolutePath());
+            BrowserPreferences.setUserAgent(BrowserPreferences.getUserAgent() + " ZunoZap/" + VERSION);
+        }
 
         p.loadPlugins();
         hookonStart(stage, scene, tb);
@@ -136,21 +120,10 @@ public class ZunoZapChrome extends ZunoAPI {
 
     @Override
     public final void createTab(String url) {
-        Browser b = null;
-
-        try {
-            b = new Browser();
-        } catch (BrowserException e) {
-            ZFile f = new ZFile("engine" + r.nextInt(10));
-            f.mk();
-            f.deleteOnExit();
-            b = new Browser(new BrowserContext(new BrowserContextParams(f.getAbsolutePath())));
-        }
-        b.setUserAgent("ZunoZap/" + getInfo().version() + " " + b.getUserAgent());
-        createTab(url, true, b, new BrowserView(b));
+        createTab(url, true);
     }
 
-    public final void createTab(String url, boolean load, Browser b, BrowserView web) {
+    public final void createTab(String url, boolean load) {
         int tabnum = tb.getTabs().size() + 1;
 
         final Tab tab = new Tab(Lang.LOAD.tl);
@@ -160,22 +133,22 @@ public class ZunoZapChrome extends ZunoAPI {
         final Button back = new Button("<"), forward = new Button(">"), goBtn = new Button(Lang.GO.tl), bkmark = new Button("\u2606");
         Lang.a(() -> goBtn.setText(Lang.GO.tl));
 
+        Engine e = EngineHelper.newBrowser();
         TextField field = new TextField("http://");
         HBox hBox = new HBox(back, forward, field, goBtn, bkmark);
-        VBox vBox = new VBox(hBox, web);
-        UniversalEngine e = new UniversalEngine(b);
+        VBox vBox = new VBox(hBox, e.getComponent());
 
-        urlChangeLis(e, b, field, tab, bkmark);
+        urlChangeLis(e, field, tab, bkmark);
 
         goBtn.setOnAction(v -> loadSite(field.getText(), e));
         field.setOnAction(v -> loadSite(field.getText(), e));
 
-        back.setOnAction(v -> b.goBack());
-        forward.setOnAction(v -> b.goForward());
+        back.setOnAction(v -> e.history(0));
+        forward.setOnAction(v -> e.history(1));
 
-        bkmark.setOnAction(v -> bookmarkAction(e, bmread, (t -> createTab(b.getURL())), bkmark, menuBook));
+        bkmark.setOnAction(v -> bookmarkAction(e, bmread, (t -> createTab(e.getURL())), bkmark, menuBook));
 
-        String title = (b.getTitle() != null ? b.getTitle() : b.getURL());
+        String title = (e.getTitle() != null ? e.getTitle() : e.getURL());
         if (null == title && bmread.bm.containsKey(title)) bkmark.setText("\u2605");
 
         // Setting Styles
@@ -183,18 +156,18 @@ public class ZunoZapChrome extends ZunoAPI {
         field.setMaxWidth(400);
         hBox.setId("urlbar");
         HBox.setHgrow(field, Priority.ALWAYS);
-        VBox.setVgrow(web, Priority.ALWAYS);
+        VBox.setVgrow(e.getComponent(), Priority.ALWAYS);
         vBox.autosize();
 
-        b.getPreferences().setJavaScriptEnabled(Options.javascript.b);
+        e.js(Options.javascript.b);
+        if (e instanceof ChromeEngine)
+            ((Browser)e.getImplEngine()).setFullScreenHandler(new ZFullScreenHandler(stage));
 
         if (load)
             loadSite(url, e);
 
-        b.setFullScreenHandler(new ZFullScreenHandler(stage));
-
         tab.setContent(vBox);
-        tab.setOnCloseRequest(a -> onTabClosed(a.getSource()));
+        tab.setOnCloseRequest(a -> e.stop());
 
         if (allowPluginEvents()) for (Plugin pl : p.plugins) pl.onTabCreate(tab);
 
@@ -204,39 +177,37 @@ public class ZunoZapChrome extends ZunoAPI {
         tb.getSelectionModel().select(tab);
     }
 
-    @Override
-    protected void onTabClosed(Object s) {
-        try {
-            ((BrowserView) ((VBox) ((Tab) s).getContent()).getChildren().get(1)).getBrowser().dispose();
-        } catch (Exception e) { ((BrowserView) ((Tab) s).getContent()).getBrowser().dispose(); }
-    }
+    public final void urlChangeLis(Engine u, final TextField urlField, final Tab tab, final Button bkmark) {
+        if (u instanceof ChromeEngine) {
+            Browser b = (Browser)u.getImplEngine();
+            b.setDownloadHandler(dh);
+            b.setPopupHandler(ph);
+    
+            b.addLoadListener(new LoadLis(true) {
+                @Override public void onFinishLoadingFrame(FinishLoadingEvent e) {
+                    String url = e.getBrowser().getURL();
+                    Platform.runLater(() -> {
+                        tab.setText(b.getTitle());
+                        if (bmread.bm.containsKey(b.getTitle() != null ? b.getTitle() : url)) 
+                            bkmark.setText("\u2605");
+                        changed(u, urlField, tab, urlField.getText(), url, bkmark, bmread);
+                    });
+                }
+            });
+        } else if (u instanceof WebKitEngine) {
+            WebEngine en = (WebEngine)u.getImplEngine();
+            en.locationProperty().addListener((o,oU,nU) -> changed(u, urlField, tab, oU, nU, bkmark, bmread));
 
-    public final void urlChangeLis(UniversalEngine u, final Browser b, final TextField urlField, final Tab tab, final Button bkmark) {
-        b.setDownloadHandler(dh);
-        b.setPopupHandler(ph);
+            en.setOnAlert(popupText -> {
+                if (allowPluginEvents()) for (Plugin pl : p.plugins) pl.onPopup(popupText.getData());
 
-        b.addLoadListener(new LoadLis(true) {
-            @Override public void onFinishLoadingFrame(FinishLoadingEvent e) {
-                String url = e.getBrowser().getURL();
-                Platform.runLater(() -> {
-                    tab.setText(b.getTitle());
-                    if (bmread.bm.containsKey(b.getTitle() != null ? b.getTitle() : url)) 
-                        bkmark.setText("\u2605");
-                    changed(u, urlField, tab, urlField.getText(), url, bkmark, bmread);
-                });
-            }
-        });
-    }
-
-    public static final String getJxPluginNames(Browser b) {
-        ArrayList<String> names = new ArrayList<>();
-        int size = b.getPluginManager().getPluginsInfo().size();
-        for (PluginInfo i : b.getPluginManager().getPluginsInfo()) {
-            String s = i.getName() + " " + i.getVersion();
-            if (!names.contains(s)) names.add(s);
-            else size--;
+                Alert alert = new Alert(AlertType.NONE);
+                alert.setTitle("JS Popup");
+                alert.setContentText(popupText.getData());
+                alert.show();
+            });
+            en.titleProperty().addListener((ov, o, n) -> tab.setText(n));
         }
-        return (size != 0 ? "(" + size + "): " + names.toString().substring(1).replace("]", "") : "No Chromium plugins");
     }
 
 }

@@ -6,7 +6,7 @@ import static com.zunozap.Log.out;
 import java.io.File;
 import java.net.URL;
 
-import com.zunozap.UniversalEngine;
+import com.zunozap.Engine;
 import com.zunozap.ZFile;
 
 import javafx.scene.Scene;
@@ -33,7 +33,7 @@ public abstract class Plugin {
 
     public void onTabCreate(Tab tab){/**/}
 
-    public void onURLChange(UniversalEngine e, TextField field, Object oldURL, URL newURL) {/**/}
+    public void onURLChange(Engine e, TextField field, Object oldURL, URL newURL) {/**/}
 
     public void onLoad(Stage stage, Scene scene, TabPane tabBar){/**/}
 

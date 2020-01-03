@@ -1,8 +1,5 @@
-.tab-pane *.tab-header-background {
-    -fx-outer-border: darkorange;
-    -fx-inner-border: darkorange;
-    -fx-background-color: -fx-outer-border, -fx-inner-border, orange;
-}
+.tab-pane *.tab-header-background {-fx-background-color:orange;}
+#createtab {-fx-background-color:transparent;}
 
 .tab {
     -fx-background-insets: 0 1 0 1,0,0;
@@ -11,37 +8,23 @@
     -fx-border-insets: 5px;
 }
 
-#createtab {
-    -fx-background-color: transparent;
-}
-
-.tab .tab-label { 
+.tab-label { 
     -fx-alignment: CENTER;
-    -fx-text-fill: #828282;
     -fx-font-size: 12px;
-    -fx-font-weight: bold;
-}
-
-.tab:selected .tab-label { 
-    -fx-alignment: CENTER;
+    -fx-margin: 12px;
 }
 
 .button {
-    -fx-background-color: transparent;
-    -fx-border: solid;
-    -fx-border-color: transparent;
-    -fx-border-radius: 2px;
+    -fx-background-color:transparent;
 }
 
 #urlfield {
-    -fx-background-color: rgba(3,3,3,0.4);
-    -fx-text-fill: white;
-    -fx-border: solid;
-    -fx-border-color: teal;
-    -fx-border-radius: 2px;
+    -fx-background-color:rgba(255,255,255,0.5);
+    -fx-border:solid;
+    -fx-border-color:rgba(1,1,1,0.1);
 }
 
 #urlbar {
-    -fx-padding: 5px;
-    -fx-background-color: #e2e2e2;
+    -fx-padding:5px;
+    -fx-background-color:#e2e2e2;
 }

@@ -1,12 +1,12 @@
 #lang=English
 
 HTTPS=Force HTTPS
-DIS_PL=Disable plugins
+DIS_PL=Disable addons
 OFFLINE=Store sites for offline browsing
 MAL=Malware blocker
 LOAD=Loading
 GO=Go
-NO_PL=No Installed Plugins
+NO_PL=No Addons
 CLEAR_OFFLNE=Clear offline data
 SETT=Settings
 ABOUT=About

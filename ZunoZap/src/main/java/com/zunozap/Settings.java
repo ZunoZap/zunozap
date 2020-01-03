@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.zunozap.UniversalEngine.Engine;
+import com.zunozap.Engine.Type;
 import com.zunozap.lang.ChangeLis;
 import com.zunozap.lang.Lang;
 import com.zunozap.lang.LangManager;
@@ -43,6 +43,7 @@ public class Settings extends VBox {
     public static String styleName = "None";
     public static String tabPage = "http://start.duckduckgo.com/";
     protected static String searchEn = "http://duckduckgo.com/?q=%s";
+    public static Type en;
 
     private List<Node> c;
     public static Scene s;
@@ -86,9 +87,9 @@ public class Settings extends VBox {
 
         // ENGINE
         comboBox("Web Engine", a -> {
-            ZunoAPI.en = ((ComboBox<Engine>) a.getSource()).getValue();
+            en = ((ComboBox<Engine.Type>) a.getSource()).getValue();
             save();
-        }, ZunoAPI.getInstance().getInfo().engine().name(), Engine.values());
+        }, EngineHelper.type.name(), Engine.Type.values());
 
         // BAR POS
         comboBox("Tab Postioning", a -> {
@@ -162,7 +163,7 @@ public class Settings extends VBox {
         map.put("styleName", styleName);
         map.put("newtab", tabPage);
         map.put("search", searchEn);
-        map.put("engine", ZunoAPI.en);
+        map.put("engine", en);
         map.put("lang", LangManager.lang + ".lang");
         map.put("stylefile", ZunoAPI.stylesheet.getAbsolutePath());
         for (Options o : Options.values())
@@ -211,10 +212,10 @@ public class Settings extends VBox {
         ZunoAPI.tb.setSide(null != sid ? Side.valueOf(sid) : Side.TOP);
 
         try {
-            ZunoAPI.en = (Engine) map.get("engine");
+            en = (Type) map.get("engine");
         } catch (Exception e) {
             e.printStackTrace();
-            ZunoAPI.en = Engine.CHROME;
+            en = Type.CHROME;
         }
 
         for (String s : map.keySet()) {
@@ -229,7 +230,7 @@ public class Settings extends VBox {
             f.createNewFile();
             load();
         } catch (IOException e) { return false; }
-        
+
         ZunoAPI.exportResource("style.css", ZunoAPI.home);
         ZFile f = new ZFile("style.css", false);
         b.put("ZunoZap default", f);

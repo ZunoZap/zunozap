@@ -17,30 +17,30 @@ import javax.swing.JProgressBar;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 
+import com.zunozap.Engine.Type;
+import com.zunozap.EngineHelper;
 import com.zunozap.Settings;
-import com.zunozap.UniversalEngine.Engine;
 import com.zunozap.ZunoAPI;
-import com.zunozap.impl.ZunoZapChrome;
-import com.zunozap.impl.ZunoZapWebView;
+import com.zunozap.impl.BrowserImpl;
+import com.zunozap.impl.ChromeEngine;
+import com.zunozap.impl.WebKitEngine;
 
 import javafx.embed.swing.JFXPanel;
 import me.isaiah.downloadmanager.Download;
 
 public class Main {
 
-    // Info for Chromium
-    private static String ver = "6.23.1";
+    // Maven info
+    private static String ver = "6.24.2";
     private static String mvn = "https://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/";
     private static int i = 0;
 
-    private static File lib = new File(new File(System.getProperty("user.home"), "zunozap"), "libs");
+    public static final File lib = new File(new File(System.getProperty("user.home"), "zunozap"), "libs");
 
-    public static void main(String[] args) {
-        try { main0(args); } catch (IOException e) { e.printStackTrace(); }
-    }
+    public static void main(String[] args) throws IOException {
+        if (os() == OS.LINUX64)
+            linuxCheck();
 
-    public static void main0(String[] args) throws IOException {
-        linuxCheck();
         new JFXPanel(); // initialize toolkit 
 
         lib.mkdirs();
@@ -49,7 +49,8 @@ public class Main {
 
         if ((file.exists() && sfile.exists()) && ((file.length() + sfile.length()) > 45000000)) {
             if (!Agent.addClassPath(file, sfile)) {
-                ZunoZapWebView.main(args);
+                EngineHelper.setEngine(Type.WEBKIT, WebKitEngine.class);
+                BrowserImpl.main(args);
                 return;
             }
             try { start(args); } catch (IOException e) { e.printStackTrace(); }
@@ -108,9 +109,13 @@ public class Main {
 
     private static void start(String[] args) throws IOException {
         ZunoAPI.initTabPane();
-        if (Settings.init(new File(new File(System.getProperty("user.home"), "zunozap"), "styles")) && ZunoAPI.en == Engine.WEBKIT) {
-            ZunoZapWebView.main(args);
-        } else ZunoZapChrome.main(args);
+        Settings.init(new File(lib.getParentFile(), "styles"));
+
+        if (Settings.en == Type.WEBKIT)
+             EngineHelper.setEngine(Type.WEBKIT, WebKitEngine.class);
+        else EngineHelper.setEngine(Type.CHROME, ChromeEngine.class);
+
+        BrowserImpl.main(args);
     }
 
     public static String formatSize(long v) {
@@ -120,23 +125,20 @@ public class Main {
     }
 
     private static String getJarName() {
-        String os = getOS().name().toLowerCase(Locale.ENGLISH);
+        String os = os().name().toLowerCase(Locale.ENGLISH);
         return mvn + "jxbrowser-" + os + "/" + ver + "/jxbrowser-" + os + "-" + ver + ".jar";
     }
-    
+
     public static void linuxCheck() {
-        if (getOS() != OS.LINUX64)
-            return;
         try {
             Class.forName("javafx.application.Application");
         } catch (ClassNotFoundException e) {
-            JOptionPane.showMessageDialog(null,
-                    "OpenJFX is not installed.\nPlease install the package openjfx.\nDebian/Ubuntu might also require Java 11 for openjfx", "ZunoZap", 0);
             e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "OpenJFX is not installed!\nPlease install openjfx\nDebian/Ubuntu may also require Java 11 for openjfx", "ZunoZap", 0);
         }
     }
 
-    private static OS getOS() {
+    public static OS os() {
         String os = System.getProperty("os.name").toLowerCase();
 
         if (os.indexOf("win") >= 0)

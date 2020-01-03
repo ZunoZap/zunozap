@@ -22,7 +22,7 @@ public class Unzip {
     }
 
     /**
-     * This method unzips file.
+     * Unzips file
      */
     public void execute() throws IOException {
         zf = new ZipFile(src);
