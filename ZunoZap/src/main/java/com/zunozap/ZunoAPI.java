@@ -17,7 +17,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.swing.JOptionPane;
 
@@ -61,9 +60,8 @@ import me.isaiah.downloadmanager.DownloadManager;
 public abstract class ZunoAPI extends Application {
 
     public final String NAME = "ZunoZap";
-    public final String VERSION = "0.9";
+    public final String VERSION = "20.5";
     public final String UPDATE_URL = "https://raw.githubusercontent.com/ZunoZap/zunozap/master/LATEST-RELEASE.md";
-    public boolean enableGC = false;
 
     public static File home = new File(System.getProperty("user.home"), "zunozap");
     public static File stylesheet = null;
@@ -73,12 +71,10 @@ public abstract class ZunoAPI extends Application {
     protected final static PluginManager p = new PluginManager();
     protected static Timer t;
 
-    private boolean shouldGC = true;
     public static boolean firstRun = false; 
 
     private static ZunoAPI inst;
     protected static final ArrayList<String> block = new ArrayList<>();
-    //public static Type en;
     protected static TabPane tb;
     protected static MenuBar menuBar;
     protected final static Menu menuFile = new Menu("\u2630"), menuBook = new Menu("\uD83D\uDCDA");
@@ -165,15 +161,13 @@ public abstract class ZunoAPI extends Application {
         stage.setTitle(NAME + " " + VERSION);
         stage.setScene(scene);
         stage.show();
-
-        if (enableGC) startGC();
     }
 
-    @Override public void stop() {
+    @Override
+    public void stop() {
         Settings.save();
-        printGCSavedRam();
 
-        try { t.cancel(); } catch (NullPointerException ingore) {}
+        try { t.cancel(); } catch (NullPointerException ingore){}
         Platform.exit();
     }
 
@@ -245,33 +239,6 @@ public abstract class ZunoAPI extends Application {
             Files.copy(stream, p, StandardCopyOption.REPLACE_EXISTING);
             return p;
         } catch (IOException e) { e.printStackTrace(); return null;}
-    }
-
-    private void startGC() {
-        out("Starting GC");
-        t = new Timer(true);
-        t.schedule(new TimerTask() { @Override public void run() {
-            long l = Runtime.getRuntime().freeMemory();
-            String sl = Main.formatSize(l);
-            double e = Double.valueOf(sl.substring(0, (sl.length() - 3)));
-            if (e > 140 && e < 601 && shouldGC) {
-                System.gc();
-                String l2 = Main.formatSize(Runtime.getRuntime().freeMemory() - l);
-                out("GC: Saved " + l2);
-                double a = Double.valueOf(l2.substring(0, (l2.length() - 3)));
-                if (l2.endsWith("MB")) totalRamGCsaved += a;
-                else if (l2.endsWith("GB")) totalRamGCsaved += ((long) a * 1024);
-
-                if (l2.startsWith("-")) shouldGC = false;
-            } else shouldGC = true;
-        }}, 240000);
-    }
-
-    public static void printGCSavedRam() {
-        double t = totalRamGCsaved;
-
-        out("GC: Total saved " + (t > 1024 ? Math.floor((t / 1024) * 10 + 0.5) / 10 + " GB" 
-                : Math.floor(t * 10 + 0.5) / 10 + " MB"));
     }
 
     public static final String getPluginNames() {

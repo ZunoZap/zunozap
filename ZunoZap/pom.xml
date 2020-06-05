@@ -58,6 +58,10 @@
         <id>com.teamdev</id>
         <url>https://maven.teamdev.com/repository/products</url>
     </repository>
+    <repository>
+        <id>com.fungus-soft</id>
+        <url>https://isaiah.fungus-soft.com/maven-repo/</url>
+    </repository>
   </repositories>
 
   <properties>
@@ -67,8 +71,8 @@
   </properties>
 
   <organization>
-  	<name>ZunoZap</name>
-  	<url>http://www.zunozap.com/credits/</url>
+  	<name>Fungus Software</name>
+  	<url>http://zunozap.fungus-soft.com/credits/</url>
   </organization>
   
   <dependencies>
@@ -85,5 +89,13 @@
       <scope>system</scope>
       <systemPath>${project.basedir}/../libs/copper-indev.jar</systemPath>
     </dependency>
+
+    <!-- OpenJDK 8 does not include JavaFX. This dependency allows building on OpenJDK8 -->
+    <dependency>
+      <groupId>com.fungus_soft</groupId>
+      <artifactId>openjfx8_api</artifactId>
+      <version>8u202-b02-scoop</version>
+      <scope>provided</scope>
+   </dependency>
   </dependencies>
 </project>

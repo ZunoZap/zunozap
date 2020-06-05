@@ -31,7 +31,7 @@ import me.isaiah.downloadmanager.Download;
 public class Main {
 
     // Maven info
-    private static String ver = "6.24.2";
+    private static String ver = "6.24.3";
     private static String mvn = "https://maven.teamdev.com/repository/products/com/teamdev/jxbrowser/";
     private static int i = 0;
 

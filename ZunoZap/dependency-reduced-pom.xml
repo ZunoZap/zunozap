@@ -62,6 +62,12 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>com.fungus_soft</groupId>
+      <artifactId>openjfx8_api</artifactId>
+      <version>8u202-b02-scoop</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>com.zunozap</groupId>
       <artifactId>copper</artifactId>
       <version>0.0.1</version>

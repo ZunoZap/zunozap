@@ -21,7 +21,6 @@ com\zunozap\api\Plugin.class
 me\isaiah\downloadmanager\ProgressRenderer.class
 com\zunozap\launch\Main$1.class
 com\zunozap\Settings$Options.class
-com\zunozap\ZunoAPI$1.class
 com\zunozap\Reader.class
 com\zunozap\plugin\manager\PluginManager.class
 com\zunozap\Engine.class
