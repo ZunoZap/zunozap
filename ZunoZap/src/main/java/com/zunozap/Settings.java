@@ -4,16 +4,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import com.zunozap.Engine.Type;
-import com.zunozap.lang.ChangeLis;
 import com.zunozap.lang.Lang;
 import com.zunozap.lang.LangManager;
 
@@ -48,13 +51,12 @@ public class Settings extends VBox {
     private List<Node> c;
     public static Scene s;
     public static HashMap<String, File> b = new HashMap<>(), l = new HashMap<>();
-    public ArrayList<ChangeLis> l2 = new ArrayList<>();
+    public ArrayList<Runnable> l2 = new ArrayList<>();
 
     public static void set(File folder, Scene sc) { s = sc; }
 
     public enum Options {
-        forceHTTPS(false, "HTTPS"), DIS_PL(false),
-        offlineStorage(false, "OFFLINE"), javascript(true), blockMalware(true, "MAL"), COMPACT(true);
+        forceHTTPS(false, "HTTPS"), DIS_PL(false), offlineStorage(false, "OFFLINE"), javascript(true), COMPACT(true);
 
         public boolean b, def;
         public Lang n;
@@ -94,9 +96,9 @@ public class Settings extends VBox {
         // BAR POS
         comboBox("Tab Postioning", a -> {
             Object value = ((ComboBox<String>) a.getSource()).getValue();
-            ZunoAPI.tb.setSide((Side) value);
+            ZunoZap.tb.setSide((Side) value);
             save();
-        }, ZunoAPI.tb.getSide(), Side.values());
+        }, ZunoZap.tb.getSide(), Side.values());
 
         textField("Home Page", a -> tabPage = a.f.getText(), tabPage);
         textField("Search Engine", a -> searchEn = a.f.getText(), searchEn);
@@ -151,7 +153,7 @@ public class Settings extends VBox {
     }
 
     public static void changeStyle(String str) {
-        ZunoAPI.stylesheet = b.get(str);
+        ZunoZap.stylesheet = b.get(str);
         styleName = str;
         try {
             s.getStylesheets().setAll(b.get(str).toURI().toURL().toExternalForm());
@@ -165,7 +167,7 @@ public class Settings extends VBox {
         map.put("search", searchEn);
         map.put("engine", en);
         map.put("lang", LangManager.lang + ".lang");
-        map.put("stylefile", ZunoAPI.stylesheet.getAbsolutePath());
+        map.put("stylefile", ZunoZap.stylesheet.getAbsolutePath());
         for (Options o : Options.values())
             map.put(o.name(), o.b);
         saveMap();
@@ -173,7 +175,7 @@ public class Settings extends VBox {
 
     public static void setLang(String s) {
         map.put("lang", s);
-        Platform.runLater(() -> { for (ChangeLis c : Lang.l2) c.a(); });
+        Platform.runLater(() -> { for (Runnable c : Lang.l2) c.run(); });
     }
 
     public static void saveMap() {
@@ -201,15 +203,15 @@ public class Settings extends VBox {
         tabPage = (String) map.getOrDefault("newtab", "http://start.duckduckgo.com/");
         searchEn = (String) map.getOrDefault("search", "http://duckduckgo.com/?q=%s");
         try {
-            LangManager.setLang(new File(ZunoAPI.lang, (String) map.getOrDefault("lang", "en.lang")));
+            LangManager.setLang(new File(ZunoZap.lang, (String) map.getOrDefault("lang", "en.lang")));
         } catch (IOException e1) {
             e1.printStackTrace();
         }
 
-        ZunoAPI.stylesheet = new File((String) map.getOrDefault("stylefile", new ZFile("style.css", false).getAbsolutePath()));
+        ZunoZap.stylesheet = new File((String) map.getOrDefault("stylefile", new ZFile("style.css", false).getAbsolutePath()));
         String sid = (String) map.get("side");
 
-        ZunoAPI.tb.setSide(null != sid ? Side.valueOf(sid) : Side.TOP);
+        ZunoZap.tb.setSide(null != sid ? Side.valueOf(sid) : Side.TOP);
 
         try {
             en = (Type) map.get("engine");
@@ -220,8 +222,16 @@ public class Settings extends VBox {
 
         for (String s : map.keySet()) {
             Object v = map.get(s);
-            if (v instanceof Boolean)
-                Options.valueOf(s).b = (boolean) v;
+            if (v instanceof Boolean) {
+                Options op = null;
+                for (Options o : Options.values()) {
+                    if (o.name().equals(s)) {
+                        op = o;
+                        break;
+                    }
+                }
+                if (null != op) op.b = (boolean) v;
+            }
         }
     }
 
@@ -231,11 +241,11 @@ public class Settings extends VBox {
             load();
         } catch (IOException e) { return false; }
 
-        ZunoAPI.exportResource("style.css", ZunoAPI.home);
+        exportResource("style.css", ZunoZap.home);
         ZFile f = new ZFile("style.css", false);
         b.put("ZunoZap default", f);
-        if (styleName == null || styleName.equalsIgnoreCase("none") || ZunoAPI.firstRun) {
-            ZunoAPI.stylesheet = f;
+        if (styleName == null || styleName.equalsIgnoreCase("none") || ZunoZap.firstRun) {
+            ZunoZap.stylesheet = f;
             styleName = "ZunoZap default";
         }
 
@@ -245,19 +255,29 @@ public class Settings extends VBox {
         temp.deleteOnExit();
         b.put("Java", temp);
 
-        File z = ZunoAPI.exportResource("en.lang", ZunoAPI.lang).toFile();
+        File z = exportResource("en.lang", ZunoZap.lang).toFile();
 
         try {
-            if (ZunoAPI.firstRun || ZunoAPI.lang.listFiles().length == 1) LangManager.setLang(z);
+            if (ZunoZap.firstRun || ZunoZap.lang.listFiles().length == 1) LangManager.setLang(z);
         } catch (IOException e1) { e1.printStackTrace(); }
 
-        for (File fi : ZunoAPI.lang.listFiles()) {
+        for (File fi : ZunoZap.lang.listFiles()) {
             try {
                 l.put(Files.readAllLines(fi.toPath()).get(0).replace("#lang=", ""), fi);
             } catch (IOException e) { e.printStackTrace(); }
         }
         save();
         return true;
+    }
+
+    public static Path exportResource(String res, File folder) {
+        try (InputStream stream = Settings.class.getClassLoader().getResourceAsStream(res)) {
+            if (stream == null) throw new IOException("Null " + res);
+
+            Path p = Paths.get(folder.getAbsolutePath() + File.separator + res);
+            Files.copy(stream, p, StandardCopyOption.REPLACE_EXISTING);
+            return p;
+        } catch (IOException e) { e.printStackTrace(); return null;}
     }
 
 }

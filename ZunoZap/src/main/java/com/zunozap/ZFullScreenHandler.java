@@ -1,6 +1,6 @@
 package com.zunozap;
 
-import static com.zunozap.ZunoAPI.tb;
+import static com.zunozap.ZunoZap.tb;
 
 import com.teamdev.jxbrowser.chromium.FullScreenHandler;
 

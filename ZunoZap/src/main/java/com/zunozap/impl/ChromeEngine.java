@@ -6,9 +6,11 @@ import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.teamdev.jxbrowser.chromium.BrowserContextParams;
 import com.teamdev.jxbrowser.chromium.BrowserException;
+import com.teamdev.jxbrowser.chromium.BrowserPreferences;
 import com.teamdev.jxbrowser.chromium.javafx.BrowserView;
 import com.zunozap.Engine;
 import com.zunozap.ZFile;
+import com.zunozap.ZunoZap;
 
 import javafx.scene.Node;
 
@@ -20,6 +22,8 @@ public class ChromeEngine implements Engine {
     private BrowserView v;
 
     public ChromeEngine() {
+        if (!BrowserPreferences.getUserAgent().contains("ZunoZap"))
+            BrowserPreferences.setUserAgent(BrowserPreferences.getUserAgent() + " ZunoZap/" + ZunoZap.VERSION);
         try {
             this.b = new Browser();
         } catch (BrowserException e) {
@@ -42,7 +46,7 @@ public class ChromeEngine implements Engine {
     }
 
     @Override
-    public void load(String url) {
+    public void loadRaw(String url) {
         b.loadURL(url);
     }
 

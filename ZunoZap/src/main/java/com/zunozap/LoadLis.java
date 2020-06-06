@@ -30,19 +30,19 @@ public abstract class LoadLis implements LoadListener {
         if (!m) return;
         String url = e.getValidatedURL();
 
-        if (Options.blockMalware.b) {
-            try {
-                URL ur = new URL(url);
-                if (ZunoAPI.block == null || ZunoAPI.block.isEmpty() || ZunoAPI.block.size() < 1) return;
+        try {
+            URL ur = new URL(url);
+            System.out.println(ur.toURI().getHost());
+            System.out.println(ur.toURI().getHost());
+            if (ZunoZap.block == null || ZunoZap.block.isEmpty() || ZunoZap.block.size() < 1) return;
     
-                if (ZunoAPI.block.contains(ur.toURI().getHost())) {
-                    e.getBrowser().stop();
-                    e.getBrowser().loadURL("http://zunozap.com/pages/blocked.html?" + url);
-                }
-            } catch (IOException | URISyntaxException e1) {}
-        }
+            if (ZunoZap.block.contains(ur.toURI().getHost())) {
+                e.getBrowser().stop();
+                e.getBrowser().loadURL("http://zunozap.com/pages/blocked.html?" + url);
+            }
+        } catch (IOException | URISyntaxException e1) {}
 
-        if (ZunoAPI.isUrlDownload(url)) DownloadManager.addToManager(url);
+        if (ZunoZap.isUrlDownload(url)) DownloadManager.addToManager(url);
     }
 
 }

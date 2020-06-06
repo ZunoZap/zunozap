@@ -3,39 +3,51 @@ package com.zunozap;
 import static com.zunozap.Log.err;
 import static com.zunozap.Log.out;
 
+import java.awt.Rectangle;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Timer;
 
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JWindow;
+import javax.swing.border.EmptyBorder;
 
 import com.teamdev.jxbrowser.chromium.Browser;
-import com.teamdev.jxbrowser.chromium.PluginInfo;
+import com.teamdev.jxbrowser.chromium.DownloadHandler;
+import com.teamdev.jxbrowser.chromium.DownloadItem;
+import com.teamdev.jxbrowser.chromium.PopupContainer;
+import com.teamdev.jxbrowser.chromium.PopupHandler;
+import com.teamdev.jxbrowser.chromium.PopupParams;
+import com.teamdev.jxbrowser.chromium.events.FinishLoadingEvent;
 import com.zunozap.Engine.Type;
 import com.zunozap.Settings.Options;
 import com.zunozap.api.Plugin;
+import com.zunozap.impl.BrowserImpl;
 import com.zunozap.impl.ChromeEngine;
+import com.zunozap.impl.WebKitEngine;
 import com.zunozap.lang.Lang;
 import com.zunozap.launch.Main;
+import com.zunozap.launch.Main.OS;
 import com.zunozap.plugin.manager.PluginManager;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -44,11 +56,14 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -57,10 +72,10 @@ import javafx.scene.web.WebEngine;
 import javafx.stage.Stage;
 import me.isaiah.downloadmanager.DownloadManager;
 
-public abstract class ZunoAPI extends Application {
+public abstract class ZunoZap extends Application {
 
-    public final String NAME = "ZunoZap";
-    public final String VERSION = "20.5";
+    public static final String NAME = "ZunoZap";
+    public static final String VERSION = "20.5";
     public final String UPDATE_URL = "https://raw.githubusercontent.com/ZunoZap/zunozap/master/LATEST-RELEASE.md";
 
     public static File home = new File(System.getProperty("user.home"), "zunozap");
@@ -73,7 +88,7 @@ public abstract class ZunoAPI extends Application {
 
     public static boolean firstRun = false; 
 
-    private static ZunoAPI inst;
+    private static ZunoZap inst;
     protected static final ArrayList<String> block = new ArrayList<>();
     protected static TabPane tb;
     protected static MenuBar menuBar;
@@ -81,17 +96,39 @@ public abstract class ZunoAPI extends Application {
 
     protected Stage stage;
     public static Reader bmread;
+    public static JWindow l = new JWindow();
 
     protected static final ZFile data = new ZFile("engine"), cssDir = new ZFile("styles"),
             plDir = new ZFile("plugins"), lang = new ZFile("lang");
 
-    public static ZunoAPI getInstance() {
+    @Deprecated
+    public static ZunoZap getInstance() {
         return inst;
     }
 
-    protected static void setInstance(ZunoAPI inst) {
-        ZunoAPI.inst = inst;
-        ZunoAPI.stylesheet = new File(home, "style.css");
+    @Deprecated
+    protected static void setInstance(ZunoZap inst) {
+        ZunoZap.inst = inst;
+        ZunoZap.stylesheet = new File(home, "style.css");
+    }
+
+    public static void main(String[] args) throws IOException {
+        JLabel z = new JLabel("ZUNOZAP");
+        z.setFont(new java.awt.Font("Dialog", java.awt.Font.BOLD, 56));
+        z.setForeground(java.awt.Color.WHITE);
+        z.setBorder(new EmptyBorder(15,30,15,30));
+        l.setBackground(new java.awt.Color(0,0,0,200));
+        l.setContentPane(z);
+        l.setVisible(true);
+        l.pack();
+        l.setLocationRelativeTo(null);
+
+        launch(ZunoZap.class, args);
+
+        out("Shutting down BrowserCore");
+        if (Settings.en == Type.CHROME)
+            com.teamdev.jxbrowser.chromium.BrowserCore.shutdown();
+        Platform.exit();
     }
 
     @Override
@@ -99,6 +136,9 @@ public abstract class ZunoAPI extends Application {
         System.setOut(out);
         System.setErr(err);
         out("Loading");
+        setInstance(this);
+        if (Main.os() == OS.MAC) com.teamdev.jxbrowser.chromium.BrowserCore.initialize();
+
         File s = new File(home, "settings.dat");
         if (!s.exists()) {
             home.mkdir();
@@ -127,10 +167,14 @@ public abstract class ZunoAPI extends Application {
         Settings.init(cssDir);
 
         try {
-            setup(new URL("https://raw.githubusercontent.com/ZunoZap/Blacklist/master/list.dat"), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(new URL("https://raw.githubusercontent.com/ZunoZap/Blacklist/master/list.dat").openConnection().getInputStream()));
+            String site;
+            while ((site = in.readLine()) != null) block.add(site);
+            in.close();
         } catch (Exception e) {}
 
-        mkDirs(home, cssDir);
+        home.mkdirs();
+        cssDir.mkdirs();
 
         if (Options.COMPACT.b) {
             Tab m = new Tab();
@@ -155,8 +199,27 @@ public abstract class ZunoAPI extends Application {
         border.setCenter(tb);
         border.autosize();
 
-        stage.getIcons().add(new Image(ZunoAPI.class.getClassLoader().getResourceAsStream("zunozaplogo.png")));
-        start(stage, scene, root, border);
+        stage.getIcons().add(new Image(ZunoZap.class.getClassLoader().getResourceAsStream("zunozaplogo.png")));
+
+        for (int i = 0; i < 10; i++) deleteDirs(new ZFile("engine" + i));
+
+        createTab(Settings.tabPage);
+        regMenuItems(menuFile, menuBook, tb, EngineHelper.type);
+        menuBar.getMenus().addAll(menuFile, menuBook);
+
+        Settings.set(cssDir, scene);
+        Settings.init(cssDir);
+        Settings.changeStyle("ZunoZap default");
+        Settings.save();
+        scene.getStylesheets().add(ZunoZap.stylesheet.toURI().toURL().toExternalForm());
+
+        if (Settings.en == Type.CHROME)
+            com.teamdev.jxbrowser.chromium.BrowserPreferences.setChromiumDir(data.getAbsolutePath());
+
+        p.loadPlugins();
+        for (Plugin pl : p.plugins) pl.onLoad(stage, scene, tb);
+        l.setVisible(false);
+        l.dispose();
 
         stage.setTitle(NAME + " " + VERSION);
         stage.setScene(scene);
@@ -180,44 +243,15 @@ public abstract class ZunoAPI extends Application {
                 + "ZunoZap Plugins: " + getPluginNames() + "<br>Chromium Plugins: " + getJxPluginNames(e);
     }
 
-    public final void loadSite(String url, Engine e) {
-        if (url.startsWith("zunozap:")) {
-            if ((url = url.substring(8)).startsWith("home")) e.load("http://www.zunozap.com/");
-            if (url.startsWith("start")) e.load(Settings.tabPage);
-            if (url.startsWith("about")) e.loadHTML(aboutPageHTML(e));
-
-            return;
-        }
-
-        if ((url.replaceAll("[ . ]", "").equalsIgnoreCase(url.replaceAll(" ", "")))) {
-            e.load(String.format(Settings.searchEn, url.replace(" ", "%20")));
-            return;
-        }
-
-        e.load(url.startsWith("http") ? url : "http" + (Options.forceHTTPS.b ? "s://" : "://") + url);
-    }
-
     public final String getJxPluginNames(Engine e) {
         if (!(e instanceof ChromeEngine))
-            return "N/a";
-        Browser b = (Browser)e.getImplEngine();
+            return "N/A";
+        com.teamdev.jxbrowser.chromium.Browser b = (com.teamdev.jxbrowser.chromium.Browser)e.getImplEngine();
 
-        ArrayList<String> names = new ArrayList<>();
-        int size = b.getPluginManager().getPluginsInfo().size();
-        for (PluginInfo i : b.getPluginManager().getPluginsInfo()) {
-            String s = i.getName() + " " + i.getVersion();
-            if (!names.contains(s)) names.add(s);
-            else size--;
-        }
-        return (size != 0 ? "(" + size + "): " + names.toString().substring(1).replace("]", "") : "No Chromium plugins");
-    }
-
-    public static String getUrlSource(String url) {
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL(url).openConnection().getInputStream(), "UTF-8"))) {
-            String l, s = "";
-            while ((l = in.readLine()) != null) s += l + "\n";
-            return s;
-        } catch (IOException e) { return null; }
+        String names = "";
+        for (com.teamdev.jxbrowser.chromium.PluginInfo i : b.getPluginManager().getPluginsInfo())
+            names += i.getName() + " " + i.getVersion() + ", ";
+        return (b.getPluginManager().getPluginsInfo().size() != 0 ? names : "No Chromium plugins");
     }
 
     public void deleteDirs(File... fs) {
@@ -231,23 +265,9 @@ public abstract class ZunoAPI extends Application {
         JOptionPane.showMessageDialog(null, obj[0], "ZunoZap", obj.length < 2 ? 1 : Integer.parseInt(String.valueOf(obj[1])));
     }
 
-    public static Path exportResource(String res, File folder) {
-        try (InputStream stream = ZunoAPI.class.getClassLoader().getResourceAsStream(res)) {
-            if (stream == null) throw new IOException("Null " + res + " from jar");
-
-            Path p = Paths.get(folder.getAbsolutePath() + File.separator + res);
-            Files.copy(stream, p, StandardCopyOption.REPLACE_EXISTING);
-            return p;
-        } catch (IOException e) { e.printStackTrace(); return null;}
-    }
-
     public static final String getPluginNames() {
         int size = p.plugins.size();
         return size != 0 ? "Plugins (" + size + "): " + String.valueOf(p.names) : Lang.NO_PL.tl;
-    }
-
-    public final boolean allowPluginEvents() {
-        return p.plugins.size() > 0 && !Options.DIS_PL.b;
     }
 
     public boolean isHTTPSRedirect(URL old, URL u) {
@@ -277,32 +297,20 @@ public abstract class ZunoAPI extends Application {
             Files.copy(in, Paths.get(f.toURI()), StandardCopyOption.REPLACE_EXISTING);
             if (theme) {
                 Settings.b.clear();
-                try { Settings.init(dir); } catch (Exception e) { say("Unable to reload style manager"); }
+                try { Settings.init(dir); } catch (Exception e){say("Unable to reload style manager");}
             }
         } catch (IOException e) {
             e.printStackTrace();
             say("Unable to download addon: " + e.getMessage());
             return;
         }
-        say("Downloaded " + (theme ? "theme" : "plugin\nRestart required to enable"));
-    }
-
-    public void mkDirs(File... fs) {
-        for (File f : fs) f.mkdir();
+        say("Downloaded " + (theme ? "theme" : "plugin\nRestart browser to enable"));
     }
 
     public String getUpdated() {
-        try {
-            return getUrlSource(UPDATE_URL).split("\n")[0].equalsIgnoreCase(VERSION) ? "up to date" : "outdated!";
-        } catch (Exception e) { return "UPDATE_INFO_ERROR " + e; }
-    }
-
-    public static void setup(URL url, boolean clear) throws IOException {
-        BufferedReader in = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
-
-        String site;
-        while ((site = in.readLine()) != null) block.add(site);
-        in.close();
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL(UPDATE_URL).openConnection().getInputStream(), "UTF-8"))) {
+            return in.readLine().equalsIgnoreCase(VERSION) ? "up to date" : "outdated";
+        } catch (IOException e){return null;}
     }
 
     public final void regMenuItems(Menu file, Menu book, TabPane tb, Type e) {
@@ -347,28 +355,13 @@ public abstract class ZunoAPI extends Application {
         file.getItems().addAll(settings, about);
     }
 
-    public final boolean check(WebEngine e, String u) {
-        if (!Options.blockMalware.b) return true;
-
-        try {
-            URL url = new URL(u);
-            if (ZunoAPI.block == null || ZunoAPI.block.isEmpty() || ZunoAPI.block.size() < 1) return true;
-
-            if (ZunoAPI.block.contains(url.toURI().getHost())) {
-                e.getLoadWorker().cancel();
-                e.load("http://zunozap.com/pages/blocked.html?" + url.toURI().getHost());
-                return false;
-            }
-        } catch (IOException | URISyntaxException e1) {}
-        return true;
-    }
-
     public void changed(final Engine engine, final TextField field, final Tab tab, String old, String url, final Button bkmark, Reader r) {
-        if (old == null && (url.contains("zunozap.com/pages/startpage") || url.contains("start.duckduckgo.com"))) return;
+        if (old == null && url.contains(Settings.tabPage)) return;
 
         if (old == null || old.isEmpty()) {
             field.setText(url);
-            hookonUrlChange(engine, field, null, url);
+            for (Plugin pl : p.plugins)
+                pl.onURLChange(engine, field, old, url);
             return;
         }
 
@@ -382,7 +375,6 @@ public abstract class ZunoAPI extends Application {
         }
 
         engine.js(Options.javascript.b);
-        if (engine instanceof ChromeEngine) ((Browser)engine.getImplEngine()).getPreferences().setPluginsEnabled(!Options.DIS_PL.b);
 
         if (isUrlDownload(url)) {
             DownloadManager.addToManager(url);
@@ -404,7 +396,9 @@ public abstract class ZunoAPI extends Application {
         String title = (engine.getTitle() != null ? engine.getTitle() : engine.getURL()).replaceAll("[^a-zA-Z ]", "");
         if (r.bm.containsKey(title)) Lang.b(() -> bkmark.setText("\u2605"));
 
-        if (!httpsredirect || url.startsWith("http")) hookonUrlChange(engine, field, old, url);
+        if (!httpsredirect || url.startsWith("http")) 
+            for (Plugin pl : p.plugins)
+                pl.onURLChange(engine, field, old, url);
     }
 
     public void bookmarkAction(Engine e, Reader bmread, EventHandler<ActionEvent> value, Button b, Menu m) {
@@ -430,23 +424,103 @@ public abstract class ZunoAPI extends Application {
         }
     }
 
-    public void hookonStart(Stage st, Scene sc, TabPane tb) {
-        if (allowPluginEvents()) for (Plugin pl : p.plugins) pl.onLoad(st, sc, tb);
+    public final void createTab(String url) {
+        int tabnum = tb.getTabs().size() + 1;
+
+        final Tab tab = new Tab(Lang.LOAD.tl);
+        tab.setTooltip(new Tooltip("Tab " + tabnum));
+        tab.setId("tab-"+tabnum);
+
+        final Button back = new Button("<"), forward = new Button(">"), goBtn = new Button(Lang.GO.tl), bkmark = new Button("\u2606");
+        Lang.a(() -> goBtn.setText(Lang.GO.tl));
+
+        Engine e = EngineHelper.newBrowser();
+        TextField field = new TextField("http://");
+        HBox hBox = new HBox(back, forward, field, goBtn, bkmark);
+        VBox vBox = new VBox(hBox, e.getComponent());
+
+        addHandlers(e, field, tab, bkmark);
+
+        goBtn.setOnAction(v -> e.load(field.getText()));
+        field.setOnAction(v -> e.load(field.getText()));
+
+        back.setOnAction(v -> e.history(0));
+        forward.setOnAction(v -> e.history(1));
+
+        bkmark.setOnAction(v -> bookmarkAction(e, bmread, (t -> createTab(e.getURL())), bkmark, menuBook));
+
+        String title = (e.getTitle() != null ? e.getTitle() : e.getURL());
+        if (null == title && bmread.bm.containsKey(title)) bkmark.setText("\u2605");
+
+        // Setting Styles
+        field.setId("urlfield");
+        field.setMaxWidth(400);
+        hBox.setId("urlbar");
+        HBox.setHgrow(field, Priority.ALWAYS);
+        VBox.setVgrow(e.getComponent(), Priority.ALWAYS);
+        vBox.autosize();
+
+        e.js(Options.javascript.b);
+        if (e instanceof ChromeEngine)
+            ((Browser)e.getImplEngine()).setFullScreenHandler(new ZFullScreenHandler(stage));
+
+        e.load(url);
+
+        tab.setContent(vBox);
+        tab.setOnCloseRequest(a -> e.stop());
+
+        for (Plugin pl : p.plugins) pl.onTabCreate(tab);
+
+        final ObservableList<Tab> tabs = tb.getTabs();
+
+        tabs.add(tabs.size() - 1, tab);
+        tb.getSelectionModel().select(tab);
     }
 
-    public void hookonUrlChange(Engine engine, TextField field, String old, String url) {
-        if (!allowPluginEvents()) return;
+    public final void addHandlers(Engine u, final TextField urlField, final Tab tab, final Button bkmark) {
+        if (u instanceof ChromeEngine) {
+            DownloadHandler dh = new DownloadHandler() {
+                @Override public boolean allowDownload(DownloadItem i) { return !isUrlDownload(i.getDestinationFile().getName()); }
+            };
 
-        for (Plugin pl : p.plugins) {
-            try {
-                pl.onURLChange(engine, field, (old != null ? new URL(old) : null), new URL(url));
-            } catch (MalformedURLException e) {
-                err(e.getMessage() + ": Cant pass url change to " + pl.getInfo().name());
-            }
+            PopupHandler ph = new PopupHandler() {
+                @Override public PopupContainer handlePopup(PopupParams pp) {
+                    return new PopupContainer() { @Override public void insertBrowser(Browser b, Rectangle r) {
+                        createTab(b.getURL());
+                        b.dispose();
+                    }};
+                }
+            };
+
+            Browser b = (Browser)u.getImplEngine();
+            b.setDownloadHandler(dh);
+            b.setPopupHandler(ph);
+    
+            b.addLoadListener(new LoadLis(true) {
+                @Override public void onFinishLoadingFrame(FinishLoadingEvent e) {
+                    String url = e.getBrowser().getURL();
+                    Platform.runLater(() -> {
+                        tab.setText(b.getTitle());
+                        if (bmread.bm.containsKey(b.getTitle() != null ? b.getTitle() : url)) 
+                            bkmark.setText("\u2605");
+                        changed(u, urlField, tab, urlField.getText(), url, bkmark, bmread);
+                    });
+                }
+            });
+        } else if (u instanceof WebKitEngine) {
+            WebEngine en = (WebEngine)u.getImplEngine();
+            en.locationProperty().addListener((o,oU,nU) -> changed(u, urlField, tab, oU, nU, bkmark, bmread));
+
+            en.setOnAlert(popupText -> {
+                for (Plugin pl : p.plugins) pl.onPopup(popupText.getData());
+
+                Alert alert = new Alert(AlertType.NONE);
+                alert.setTitle("JS Popup");
+                alert.setContentText(popupText.getData());
+                alert.show();
+            });
+            en.titleProperty().addListener((ov, o, n) -> tab.setText(n));
         }
     }
-
-    public abstract void start(Stage stage, Scene scene, StackPane root, BorderPane pane) throws Exception;
-    public abstract void createTab(String s2);
 
 }

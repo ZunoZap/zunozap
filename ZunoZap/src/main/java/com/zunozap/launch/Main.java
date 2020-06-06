@@ -20,8 +20,7 @@ import javax.swing.border.EmptyBorder;
 import com.zunozap.Engine.Type;
 import com.zunozap.EngineHelper;
 import com.zunozap.Settings;
-import com.zunozap.ZunoAPI;
-import com.zunozap.impl.BrowserImpl;
+import com.zunozap.ZunoZap;
 import com.zunozap.impl.ChromeEngine;
 import com.zunozap.impl.WebKitEngine;
 
@@ -50,7 +49,7 @@ public class Main {
         if ((file.exists() && sfile.exists()) && ((file.length() + sfile.length()) > 45000000)) {
             if (!Agent.addClassPath(file, sfile)) {
                 EngineHelper.setEngine(Type.WEBKIT, WebKitEngine.class);
-                BrowserImpl.main(args);
+                ZunoZap.main(args);
                 return;
             }
             try { start(args); } catch (IOException e) { e.printStackTrace(); }
@@ -108,14 +107,14 @@ public class Main {
     }
 
     private static void start(String[] args) throws IOException {
-        ZunoAPI.initTabPane();
+        ZunoZap.initTabPane();
         Settings.init(new File(lib.getParentFile(), "styles"));
 
         if (Settings.en == Type.WEBKIT)
              EngineHelper.setEngine(Type.WEBKIT, WebKitEngine.class);
         else EngineHelper.setEngine(Type.CHROME, ChromeEngine.class);
 
-        BrowserImpl.main(args);
+        ZunoZap.main(args);
     }
 
     public static String formatSize(long v) {
@@ -148,6 +147,6 @@ public class Main {
         return OS.LINUX64;
     }
 
-    private enum OS { WIN32, WIN64, LINUX64, MAC; }
+    public enum OS { WIN32, WIN64, LINUX64, MAC; }
 
 }

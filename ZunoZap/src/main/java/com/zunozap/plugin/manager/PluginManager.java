@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.jar.JarFile;
 
+import com.zunozap.Settings;
 import com.zunozap.ZFile;
 import com.zunozap.api.Plugin;
 import com.zunozap.api.PluginInfo;
@@ -21,6 +22,8 @@ public class PluginManager {
     public double API_VERSION = 0.8;
 
     public void loadPlugins() {
+        if (Settings.Options.DIS_PL.b)
+            return;
         ZFile fold = new ZFile("plugins");
         fold.mkdir();
         for (File f : fold.listFiles()) {

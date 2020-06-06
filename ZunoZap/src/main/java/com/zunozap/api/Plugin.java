@@ -1,10 +1,6 @@
 package com.zunozap.api;
 
-import static com.zunozap.Log.err;
-import static com.zunozap.Log.out;
-
 import java.io.File;
-import java.net.URL;
 
 import com.zunozap.Engine;
 import com.zunozap.ZFile;
@@ -23,19 +19,11 @@ public abstract class Plugin {
         return getClass().getAnnotation(PluginInfo.class);
     }
 
-    public static final void out(Object o) {
-        out.log(o);
-    }
+    public void onTabCreate(Tab tab){}
 
-    public static final void err(Object o) {
-        err.log(o);
-    }
+    public void onURLChange(Engine e, TextField field, String oldURL, String newURL) {}
 
-    public void onTabCreate(Tab tab){/**/}
-
-    public void onURLChange(Engine e, TextField field, Object oldURL, URL newURL) {/**/}
-
-    public void onLoad(Stage stage, Scene scene, TabPane tabBar){/**/}
+    public void onLoad(Stage stage, Scene scene, TabPane tabBar){}
 
     @Deprecated
     public void onPopup(boolean bad){/**/}

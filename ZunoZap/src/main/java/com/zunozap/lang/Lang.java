@@ -7,13 +7,13 @@ public enum Lang {
     HTTPS, DIS_PL, OFFLINE, MAL, LOAD, GO, NO_PL, CLEAR_OFFLNE, SETT, ABOUT, LANG, COMPACT;
 
     public String tl;
-    public static ArrayList<ChangeLis> l2 = new ArrayList<>();
+    public static ArrayList<Runnable> l2 = new ArrayList<>();
 
-    public static final void a(ChangeLis a) { l2.add(a); }
+    public static final void a(Runnable a) { l2.add(a); }
 
-    public static final void b(ChangeLis a) {
+    public static final void b(Runnable a) {
         a(a);
-        a.a();
+        a.run();
     }
     
     public static Lang get(String s) {

@@ -1,5 +1,7 @@
 package com.zunozap;
 
+import com.zunozap.Settings.Options;
+
 import javafx.scene.Node;
 
 /**
@@ -8,30 +10,19 @@ import javafx.scene.Node;
 public interface Engine {
 
     public enum Type { WEBKIT, CHROME, COPPER }
-    //public Type e;
-    //protected WebView w;
-    //private WebEngine en;
-    //protected Browser b;
-    //private boolean c;
-
-    /*public Engine(WebView w) {
-        this.e = Type.WEBKIT;
-        this.w = w;
-        this.en = w.getEngine();
-        this.c = false;
-    }
-
-    public Engine(Browser b) {
-        this.e = Type.CHROME;
-        this.b = b;
-        this.c = true;
-    }*/
 
     public Node getComponent();
 
     public Object getImplEngine();
 
-    public void load(String url);
+    public default void load(String url) {
+        if (url.startsWith("<html>"))
+            loadHTML(url);
+        else load((url.replaceAll("[ . ]", "").equalsIgnoreCase(url.replaceAll(" ", ""))) ? String.format(Settings.searchEn, url.replace(" ", "%20")) :
+            url.startsWith("http") ? url : "http" + (Options.forceHTTPS.b ? "s://" : "://") + url);
+    }
+
+    public void loadRaw(String url);
 
     public void loadHTML(String html);
 

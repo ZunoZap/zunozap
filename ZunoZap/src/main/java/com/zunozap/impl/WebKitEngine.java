@@ -1,6 +1,7 @@
 package com.zunozap.impl;
 
 import com.zunozap.Engine;
+import com.zunozap.ZunoZap;
 
 import javafx.scene.Node;
 import javafx.scene.web.WebEngine;
@@ -14,6 +15,7 @@ public class WebKitEngine implements Engine {
     public WebKitEngine() {
         this.w = new WebView();
         this.e = w.getEngine();
+        this.e.setUserAgent(getUserAgent() + " ZunoZap/" + ZunoZap.VERSION);
     }
 
     @Override
@@ -27,7 +29,7 @@ public class WebKitEngine implements Engine {
     }
 
     @Override
-    public void load(String url) {
+    public void loadRaw(String url) {
         e.load(url);
     }
 
