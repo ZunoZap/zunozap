@@ -2,18 +2,18 @@
 ZunoZap - fast as lighting Java powered web browser.
 
 ZunoZap is a light and fast open-source web browser made for you.
-Unlike other browsers ZunoZap uses a adverage of 400MB of RAM (Chrome 1GB, Edge 2GB, Firefox 600MB).
+Built-in ad-block & data saver.
 
 Contains
-- A Plugin API
-- Style API.
+- A Plugin & Theme API.
+- Built-in Ad block.
+- Data saver
 - Settings.
 - Auto-updating
-- Offline web site viewer (beta).
 - Light
-Website: https://www.zunozap.com/
+Website: https://www.zunozap.javazilla.com/
 
-Download: [Download for Windows, Mac, & Linux](https://zunozap.fungus-soft.com/download) | [Download APK for Android - COMING SOON](http://zunozap.com/)
+Download: [Download for Windows, Mac, & Linux](https://zunozap.javazilla.com/download) | [Download APK for Android - COMING SOON](http://zunozap.com/)
 
 Github: https://github.com/ZunoZap/
 
@@ -21,9 +21,9 @@ Discord: https://discordapp.com/invite/66z7bjP
 
 ![image](https://www.gnu.org/graphics/lgplv3-147x51.png)
 
-# Disclaimer
+## Disclaimer
 
-ZunoZap uses JxBrowser http://www.teamdev.com/jxbrowser, which is a proprietary software. 
+ZunoZap Legacy (0.9.x) used JxBrowser http://www.teamdev.com/jxbrowser, which is a proprietary software. 
 
 The use of JxBrowser is governed by JxBrowser Product Licence Agreement http://www.teamdev.com/jxbrowser-licence-agreement. 
 
