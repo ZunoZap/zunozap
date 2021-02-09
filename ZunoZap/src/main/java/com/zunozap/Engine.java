@@ -3,13 +3,14 @@ package com.zunozap;
 import com.zunozap.Settings.Options;
 
 import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TextField;
 
 /**
  * Collection of methods that are the same between engines
  */
 public interface Engine {
-
-    public enum Type { WEBKIT, CHROME, COPPER }
 
     public Node getComponent();
 
@@ -18,7 +19,7 @@ public interface Engine {
     public default void load(String url) {
         if (url.startsWith("<html>"))
             loadHTML(url);
-        else load((url.replaceAll("[ . ]", "").equalsIgnoreCase(url.replaceAll(" ", ""))) ? String.format(Settings.searchEn, url.replace(" ", "%20")) :
+        else loadRaw((url.replaceAll("[ . ]", "").equalsIgnoreCase(url.replaceAll(" ", ""))) ? String.format(Settings.SEARCH, url.replace(" ", "%20")) :
             url.startsWith("http") ? url : "http" + (Options.forceHTTPS.b ? "s://" : "://") + url);
     }
 
@@ -32,10 +33,10 @@ public interface Engine {
 
     public void stop();
 
-    public void js(boolean bo);
-
     public String getUserAgent();
 
     public void history(int history);
+
+    public void addHandlers(TextField urlField, Tab tab, Button bkmark, Button pro);
 
 }

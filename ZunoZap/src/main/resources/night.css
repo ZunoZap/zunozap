@@ -1,0 +1,7 @@
+.tab-pane *.tab-header-background {-fx-background-color:rgb(40,40,40)}
+#createtab .tab-label, #xbtn,#s,.button {-fx-text-fill:#c8c8c8}
+.tab:selected .tab-label {-fx-text-fill:#e6e6e6} .button1 {-fx-text-fill:white}
+#urlfield {-fx-background-color:#737373} #si {-fx-background-color:#939393}
+#si .button {-fx-background-color:#787878} #urlbar {-fx-background-color:#626262}
+.tab {-fx-background-color:#262626} .tab:selected {-fx-background-color:#626262-fx-text-fill:#fafafa}
+.scroll-pane {-fx-background-color:#8c8c8c}

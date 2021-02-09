@@ -1,0 +1,2 @@
+.tab-pane *.tab-header-background {-fx-background-color:orange;}
+#urlbar {-fx-background-color:#eeeeee} .tab:selected {-fx-background-color:#eeeeee} .tab {-fx-background-color:#cccccc}

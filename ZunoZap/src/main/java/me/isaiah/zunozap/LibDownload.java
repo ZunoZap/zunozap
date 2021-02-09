@@ -1,12 +1,10 @@
 package me.isaiah.zunozap;
 
-import java.io.IOException;
-
-@Deprecated
+/**
+ * Installer looks for this class
+ */
 public class LibDownload {
-
-    public static void main(String[] a) throws IOException {
-        com.zunozap.launch.Main.main(a);
+    public static void main(String[] args) {
+        com.zunozap.launch.Main.main(args);
     }
-
 }

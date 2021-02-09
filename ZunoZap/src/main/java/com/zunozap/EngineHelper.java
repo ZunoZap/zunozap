@@ -1,23 +1,43 @@
 package com.zunozap;
 
-import com.zunozap.Engine.Type;
-
 public class EngineHelper {
 
-    public static Class<?> engine;
-    public static Type type;
+    public enum EngineType {
+        WEBKIT("com.zunozap.impl.WebViewEngine", "WebView"),
+        CHROME("com.zunozap.impl.CefEngine", "Chromium 84");
 
-    public static void setEngine(Type t, Class<?> clazz) {
-        engine = clazz;
+        private String clazz;
+        public String display;
+        private EngineType(String clazz, String display) {
+            this.clazz = clazz;
+            this.display = display;
+        }
+
+        @Override
+        public String toString() {
+            return display;
+        }
+    }
+
+    public static Class<?> engine;
+    public static EngineType type;
+
+    public static void setEngine(EngineType t) {
+        try {
+            engine = Class.forName(t.clazz);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         type = t;
     }
 
-    public static Engine newBrowser() {
+    @SuppressWarnings("deprecation")
+    public static Engine newBrowser(String url) {
         try {
-            return (Engine) engine.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            return (Engine) engine.getConstructor(String.class).newInstance(url);
+        } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return new com.zunozap.impl.WebViewEngine(url);
         }
     }
 

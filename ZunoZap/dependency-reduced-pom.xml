@@ -4,12 +4,8 @@
   <groupId>com.zunozap</groupId>
   <artifactId>ZunoZap</artifactId>
   <name>ZunoZap</name>
-  <version>0.8.x</version>
-  <url>http://www.zunozap.com/</url>
-  <organization>
-    <name>ZunoZap</name>
-    <url>http://www.zunozap.com/credits/</url>
-  </organization>
+  <version>10.2-dev</version>
+  <url>http://zunozap.com/</url>
   <build>
     <defaultGoal>package</defaultGoal>
     <directory>${basedir}</directory>
@@ -25,7 +21,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <minimizeJar>true</minimizeJar>
+              <minimizeJar>false</minimizeJar>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>
@@ -38,7 +34,6 @@
                 <transformer>
                   <manifestEntries>
                     <Main-Class>com.zunozap.launch.Main</Main-Class>
-                    <Launcher-Agent-Class>com.zunozap.launch.Agent</Launcher-Agent-Class>
                   </manifestEntries>
                 </transformer>
               </transformers>
@@ -50,17 +45,11 @@
   </build>
   <repositories>
     <repository>
-      <id>com.teamdev</id>
-      <url>https://maven.teamdev.com/repository/products</url>
+      <id>com.fungus-soft</id>
+      <url>https://isaiah.fungus-soft.com/maven-repo/</url>
     </repository>
   </repositories>
   <dependencies>
-    <dependency>
-      <groupId>com.teamdev.jxbrowser</groupId>
-      <artifactId>jxbrowser</artifactId>
-      <version>6.23.1</version>
-      <scope>provided</scope>
-    </dependency>
     <dependency>
       <groupId>com.fungus_soft</groupId>
       <artifactId>openjfx8_api</artifactId>

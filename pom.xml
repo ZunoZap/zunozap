@@ -11,6 +11,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>Wrapper</module>
     <module>ZunoZap</module>
   </modules>
 

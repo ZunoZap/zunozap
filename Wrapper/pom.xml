@@ -1,0 +1,93 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.zunozap</groupId>
+  <artifactId>Wrapper</artifactId>
+  <version>10.0</version>
+
+  <name>OJX</name>
+  <url>http://www.zunozap.com/</url>
+
+  <build>
+    <defaultGoal>package</defaultGoal>
+    <directory>${basedir}</directory>
+    <finalName>OJX-${project.version}</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <minimizeJar>true</minimizeJar>
+                <filters>
+                  <filter>
+                    <artifact>*:*</artifact>
+                    <excludes>
+                      <exclude>META-INF/maven/</exclude>
+                    </excludes>
+                  </filter>
+                </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <repositories>
+    <repository>
+        <id>com.fungus-soft</id>
+        <url>https://isaiah.fungus-soft.com/maven-repo/</url>
+    </repository>
+  </repositories>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
+
+  <organization>
+  	<name>Javazilla</name>
+  	<url>http://zunozap.javazilla.com/credits/</url>
+  </organization>
+  
+  <dependencies>
+    <dependency>
+      <groupId>com.zunozap</groupId>
+      <artifactId>jcef</artifactId>
+      <version>0.0.1</version>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/../libs/wrapper/jcef.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>com.zunozap</groupId>
+      <artifactId>gluegen</artifactId>
+      <version>0.0.1</version>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/../libs/wrapper/gluegen-rt-2.3.2.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>com.zunozap</groupId>
+      <artifactId>jogl</artifactId>
+      <version>0.0.1</version>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/../libs/wrapper/jogl-all-2.3.2.jar</systemPath>
+    </dependency>
+
+    <!-- OpenJDK 8 does not include JavaFX. This dependency allows building on OpenJDK8 -->
+    <dependency>
+      <groupId>com.fungus_soft</groupId>
+      <artifactId>openjfx8_api</artifactId>
+      <version>8u202-b02-scoop</version>
+      <scope>provided</scope>
+   </dependency>
+  </dependencies>
+</project>

@@ -4,10 +4,10 @@
 
   <groupId>com.zunozap</groupId>
   <artifactId>ZunoZap</artifactId>
-  <version>0.8.x</version>
+  <version>10.2-dev</version>
 
   <name>ZunoZap</name>
-  <url>http://www.zunozap.com/</url>
+  <url>http://zunozap.com/</url>
 
   <build>
     <defaultGoal>package</defaultGoal>
@@ -25,7 +25,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <minimizeJar>true</minimizeJar>
+              <minimizeJar>false</minimizeJar>
                 <filters>
                   <filter>
                     <artifact>*:*</artifact>
@@ -40,9 +40,6 @@
                        <Main-Class>
                          com.zunozap.launch.Main
                        </Main-Class>
-                       <Launcher-Agent-Class>
-                         com.zunozap.launch.Agent
-                       </Launcher-Agent-Class>
                      </manifestEntries>
                    </transformer>
                  </transformers>
@@ -55,10 +52,6 @@
 
   <repositories>
     <repository>
-        <id>com.teamdev</id>
-        <url>https://maven.teamdev.com/repository/products</url>
-    </repository>
-    <repository>
         <id>com.fungus-soft</id>
         <url>https://isaiah.fungus-soft.com/maven-repo/</url>
     </repository>
@@ -69,25 +62,20 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
-
-  <organization>
-  	<name>Fungus Software</name>
-  	<url>http://zunozap.fungus-soft.com/credits/</url>
-  </organization>
   
   <dependencies>
-    <dependency>
-      <groupId>com.teamdev.jxbrowser</groupId>
-      <artifactId>jxbrowser</artifactId>
-      <version>6.23.1</version>
-      <scope>provided</scope>
-    </dependency>
     <dependency>
       <groupId>com.zunozap</groupId>
       <artifactId>copper</artifactId>
       <version>0.0.1</version>
       <scope>system</scope>
       <systemPath>${project.basedir}/../libs/copper-indev.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>com.zunozap</groupId>
+      <artifactId>Wrapper</artifactId>
+      <version>10.0</version>
+      <scope>compile</scope>
     </dependency>
 
     <!-- OpenJDK 8 does not include JavaFX. This dependency allows building on OpenJDK8 -->
